@@ -35,17 +35,17 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-[#26352B]/45 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className={`relative w-full ${SIZE_CLASSES[size]} max-h-[90vh] flex flex-col bg-[#141210] border border-[#2a241f] rounded-2xl shadow-2xl overflow-hidden`}>
+      <div className={`relative w-full ${SIZE_CLASSES[size]} max-h-[90vh] flex flex-col overflow-hidden rounded-[20px] border border-[#EDE9E0] bg-[#FBF9F6] shadow-[0_30px_70px_-30px_rgba(38,53,43,0.45)]`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#231d17] shrink-0">
-          <h2 className="text-base font-bold text-white">{title}</h2>
+        <div className="flex shrink-0 items-center justify-between border-b border-[#F0EDE5] px-5 py-4">
+          <h2 className="text-[15px] font-black text-[#333B2E]">{title}</h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1c1613] text-[#a89f94] hover:text-white hover:bg-[#251e19] transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F0EDE5] text-[#6B7264] transition-colors hover:bg-[#E7E3D8] hover:text-[#333B2E]"
             aria-label="إغلاق"
           >
             <X className="h-4 w-4" />

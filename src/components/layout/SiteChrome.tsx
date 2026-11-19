@@ -19,8 +19,8 @@ import { StoreToastProvider } from "@/components/common/StoreToast";
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-
-  if (isAdmin) return <>{children}</>;
+  // صفحة اللوجن شاشة مستقلة: من غير هيدر/فوتر/شريط توصيل/درج سلة
+  if (isAdmin || pathname === "/login") return <>{children}</>;
 
   return (
     <ShopProvider>

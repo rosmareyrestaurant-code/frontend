@@ -28,28 +28,28 @@ export function ConfirmDialog({
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <div className="space-y-5">
         <div className="flex items-start gap-3">
-          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] ${
             variant === "danger"
-              ? "bg-red-500/15 text-red-400"
-              : "bg-yellow-500/15 text-yellow-400"
+              ? "bg-[#FBE4E0] text-[#C25B4F]"
+              : "bg-[#FCF3E7] text-[#A9803F]"
           }`}>
-            <AlertTriangle className="h-5 w-5" />
+            <AlertTriangle className="h-5 w-5" strokeWidth={2} />
           </div>
-          <p className="text-sm text-[#c4b9ad] leading-relaxed pt-1.5">{message}</p>
+          <p className="pt-1.5 text-[13px] font-semibold leading-relaxed text-[#6B7264]">{message}</p>
         </div>
-        <div className="flex gap-3 justify-end">
+        <div className="flex justify-end gap-2.5">
           <button
             onClick={onClose}
-            className="rounded-xl bg-[#1c1613] border border-[#2a231d] px-4 py-2.5 text-sm font-bold text-[#a89f94] hover:text-white transition-colors"
+            className="rounded-full bg-[#F0EDE5] px-4 py-2.5 text-[12px] font-bold text-[#50604D] transition-colors hover:bg-[#E7E3D8]"
           >
             {cancelText}
           </button>
           <button
             onClick={() => { onConfirm(); onClose(); }}
-            className={`rounded-xl px-4 py-2.5 text-sm font-bold text-white transition-colors ${
+            className={`rounded-full px-4 py-2.5 text-[12px] font-bold text-[#fff] transition-colors ${
               variant === "danger"
-                ? "bg-red-500/80 hover:bg-red-500 border border-red-500/50"
-                : "bg-yellow-500/80 hover:bg-yellow-500 border border-yellow-500/50"
+                ? "bg-[#C25B4F] hover:bg-[#B0503F]"
+                : "bg-[#C08A2E] hover:bg-[#AC7A26]"
             }`}
           >
             {confirmText}

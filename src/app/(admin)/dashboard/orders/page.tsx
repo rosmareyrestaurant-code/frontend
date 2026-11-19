@@ -1,27 +1,24 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
-  Search, Phone, MapPin, Copy, ChevronDown,
-  ShoppingBag, X, CheckCircle2, Globe2, Truck,
+  Search, Phone, MapPin, Copy, ChevronDown, ShoppingBag, X,
 } from "lucide-react";
 import { StatusBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
 import { useToast } from "@/components/admin/shared/Toast";
+import { PaymentMethodIcon } from "@/components/common/PaymentBrandIcons";
+import { AdminOrder, OrderStatus, ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/types/admin";
+
+// Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
 import { MOCK_ORDERS } from "@/data/admin/orders";
-import { useCustomerOrders } from "@/hooks/useCustomerOrders";
-import { useDelivery } from "@/context/DeliveryContext";
-import { Order } from "@/types";
-import {
-  AdminOrder, OrderStatus,
-  ORDER_STATUS_LABELS,
-} from "@/types/admin";
+
+const USE_MOCK = true;
 
 const ALL_STATUSES: OrderStatus[] = ["pending", "delivered", "cancelled"];
-
 const PER_PAGE = 6;
 
 function formatDate(iso: string) {
@@ -33,38 +30,74 @@ function formatDate(iso: string) {
 
 export default function OrdersPage() {
   const { showToast } = useToast();
-  const [orders, setOrders] = useState<AdminOrder[]>(MOCK_ORDERS);
+  const [orders, setOrders] = useState<AdminOrder[]>(MOCK_ORDERS.slice(0, PER_PAGE));
+  const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(MOCK_ORDERS.length);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
-  const [selectedLiveOrder, setSelectedLiveOrder] = useState<Order | null>(null);
   const [page, setPage] = useState(1);
 
-  // الطلبات اللي بيجهزها العملاء على الموقع وتظهر هنا فوراً عشان نتواصل معاهم.
-  const customerOrders = useCustomerOrders();
-  const { activeZones } = useDelivery();
+  const fetchOrders = useCallback(async () => {
+    if (USE_MOCK) {
+      const q = search.trim().toLowerCase();
+      const filtered = MOCK_ORDERS.filter((o) =>
+        (statusFilter === "all" || o.status === statusFilter) &&
+        (!q || o.orderNumber?.toLowerCase().includes(q) || o.customerName.includes(search.trim()) || o.customerPhone.includes(q))
+      );
+      setOrders(filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE));
+      setTotal(filtered.length);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const sp = new URLSearchParams({ page: String(page), limit: String(PER_PAGE) });
+      if (search) sp.set("q", search);
+      if (statusFilter !== "all") sp.set("status", statusFilter);
+      const res = await fetch(`/api/admin/orders?${sp}`);
+      const d = await res.json();
+      if (d.success) {
+        setOrders(d.data.orders);
+        setTotal(d.data.pagination.total);
+      } else {
+        showToast(d.error?.message ?? "فشل تحميل الطلبات", "error");
+      }
+    } catch {
+      showToast("تعذّر الاتصال بالخادم", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, search, statusFilter, showToast]);
 
-  /** البيان الأخضر بيظهر بس لو المكان مضاف ومفعّل في إعدادات التوصيل المجاني. */
-  const isLiveOrderFree = (order: Order) =>
-    !!order.customer.areaId &&
-    activeZones.some((z) => z.id === order.customer.areaId || z.name === order.customer.areaName);
+  useEffect(() => { queueMicrotask(() => { void fetchOrders(); }); }, [fetchOrders]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return orders.filter((o) => {
-      const matchSearch = !q || o.id.toLowerCase().includes(q) || o.customerName.toLowerCase().includes(q) || o.customerPhone.includes(q);
-      const matchStatus = statusFilter === "all" || o.status === statusFilter;
-      return matchSearch && matchStatus;
-    });
-  }, [orders, search, statusFilter]);
+  const totalPages = Math.ceil(total / PER_PAGE);
 
-  const totalPages = Math.ceil(filtered.length / PER_PAGE);
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-
-  const changeStatus = (orderId: string, status: OrderStatus) => {
-    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
-    if (selectedOrder?.id === orderId) setSelectedOrder((prev) => prev ? { ...prev, status } : null);
-    showToast(`تم تحديث حالة الطلب إلى: ${ORDER_STATUS_LABELS[status]}`, "success");
+  const changeStatus = async (orderId: string, status: OrderStatus) => {
+    if (USE_MOCK) {
+      setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status } : o));
+      if (selectedOrder?.id === orderId) setSelectedOrder((prev) => prev ? { ...prev, status } : null);
+      showToast(`تم تحديث الحالة: ${ORDER_STATUS_LABELS[status]}`, "success");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status } : o));
+        if (selectedOrder?.id === orderId) setSelectedOrder((prev) => prev ? { ...prev, status } : null);
+        showToast(`تم تحديث الحالة: ${ORDER_STATUS_LABELS[status]}`, "success");
+      } else {
+        showToast(d.error?.message ?? "فشل تحديث الحالة", "error");
+      }
+    } catch {
+      showToast("خطأ في الاتصال", "error");
+    }
   };
 
   const copyText = (text: string, label: string) => {
@@ -72,72 +105,68 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row gap-3">
+    <div className="space-y-4 sm:space-y-5">
+      {/* البحث والفلترة */}
+      <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#5a4f45]" />
-          <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="ابحث برقم الطلب أو اسم العميل أو الهاتف..."
-            className="w-full rounded-xl bg-[#141210] border border-[#2a241f] py-2.5 pr-9 pl-4 text-sm text-white placeholder-[#5a4f45] focus:border-[#ff7a00] focus:outline-none transition-colors" />
-          {search && <button onClick={() => setSearch("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5a4f45] hover:text-white"><X className="h-3.5 w-3.5" /></button>}
+          <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9A9C90]" />
+          <input type="text" value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="ابحث برقم الطلب أو الاسم أو الهاتف..."
+            className="w-full rounded-full border border-[#E9E5DA] bg-[#FBF9F6] py-2.5 pe-4 ps-10 text-[13px] text-[#333B2E] placeholder-[#A6A79C] transition-colors focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+          {search && <button onClick={() => setSearch("")} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9A9C90] transition-colors hover:text-[#50604D]" aria-label="مسح البحث"><X className="h-3.5 w-3.5" /></button>}
         </div>
         <div className="relative">
           <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as OrderStatus | "all"); setPage(1); }}
-            className="appearance-none rounded-xl bg-[#141210] border border-[#2a241f] py-2.5 pr-4 pl-8 text-sm text-white focus:border-[#ff7a00] focus:outline-none transition-colors min-w-[160px]">
+            className="w-full min-w-[170px] appearance-none rounded-full border border-[#E9E5DA] bg-[#FBF9F6] py-2.5 pe-4 ps-10 text-[13px] font-semibold text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20">
             <option value="all">كل الحالات</option>
             {ALL_STATUSES.map((s) => <option key={s} value={s}>{ORDER_STATUS_LABELS[s]}</option>)}
           </select>
-          <ChevronDown className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#5a4f45] pointer-events-none" />
+          <ChevronDown className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9A9C90]" />
         </div>
       </div>
 
-      <div className="rounded-2xl bg-[#141210] border border-[#26201a] overflow-hidden">
-        <div className="px-5 py-3 border-b border-[#231d17]">
-          <h2 className="text-sm font-bold text-white">الطلبات ({filtered.length})</h2>
+      {/* جدول الطلبات */}
+      <div className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
+        <div className="px-5 pb-3 pt-4">
+          <h2 className="text-[15px] font-black text-[#333B2E]">
+            الطلبات <span className="text-[12px] font-bold text-[#9A9C90]">({total})</span>
+          </h2>
         </div>
-        {paginated.length === 0 ? (
-          <EmptyState icon={ShoppingBag} title="لا توجد طلبات" description="لم يتم العثور على طلبات مطابقة للبحث" />
+        {loading ? (
+          <div className="py-12 text-center text-[13px] text-[#9A9C90] animate-pulse">جاري التحميل...</div>
+        ) : orders.length === 0 ? (
+          <EmptyState icon={ShoppingBag} title="لا توجد طلبات" description="لم يتم العثور على طلبات مطابقة" />
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-sm min-w-[700px]">
+              <table className="w-full min-w-[700px] text-right">
                 <thead>
-                  <tr className="text-[11px] text-[#5a4f45] border-b border-[#1e1914]">
-                    <th className="px-5 py-3 font-bold">رقم الطلب</th>
-                    <th className="px-5 py-3 font-bold">العميل</th>
-                    <th className="px-5 py-3 font-bold">الإجمالي</th>
-                    <th className="px-5 py-3 font-bold">الحالة</th>
-                    <th className="px-5 py-3 font-bold">التاريخ</th>
-                    <th className="px-5 py-3 font-bold">تفاصيل</th>
+                  <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
+                    <th className="px-5 py-2.5 font-bold">رقم الطلب</th>
+                    <th className="px-5 py-2.5 font-bold">العميل</th>
+                    <th className="px-5 py-2.5 font-bold">الإجمالي</th>
+                    <th className="px-5 py-2.5 font-bold">الحالة</th>
+                    <th className="px-5 py-2.5 font-bold">التاريخ</th>
+                    <th className="px-5 py-2.5 font-bold">تفاصيل</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1a1612]">
-                  {paginated.map((order) => (
-                    <tr
-                      key={order.id}
-                      onClick={() => setSelectedOrder(order)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setSelectedOrder(order);
-                        }
-                      }}
-                      tabIndex={0}
-                      role="button"
-                      aria-label={`عرض تفاصيل الطلب ${order.id}`}
-                      className="cursor-pointer transition-colors hover:bg-[#1a1512] focus:outline-none focus-visible:bg-[#1a1512] focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#ff7a00]/40"
-                    >
-                      <td className="px-5 py-3.5 font-black text-white">#{order.id}</td>
+                <tbody className="divide-y divide-[#F0EDE5]">
+                  {orders.map((order) => (
+                    <tr key={order.id} onClick={() => setSelectedOrder(order)}
+                      tabIndex={0} role="button"
+                      className="cursor-pointer text-[12px] transition-colors hover:bg-[#F8F6F1] focus:outline-none focus-visible:bg-[#F8F6F1]">
+                      <td className="px-5 py-3.5 font-black text-[#333B2E]" dir="ltr">#{order.orderNumber}</td>
                       <td className="px-5 py-3.5">
-                        <p className="font-semibold text-white text-xs">{order.customerName}</p>
-                        <p className="text-[11px] text-[#5a4f45]">{order.customerPhone}</p>
+                        <p className="font-semibold text-[#333B2E]">{order.customerName}</p>
+                        <p className="text-[11px] text-[#9A9C90]" dir="ltr">{order.customerPhone}</p>
                       </td>
-                      <td className="px-5 py-3.5 font-black text-[#ff7a00]">{order.total} ج.م</td>
+                      <td className="px-5 py-3.5 font-black text-[#333B2E]">{order.total} ج.م</td>
                       <td className="px-5 py-3.5"><StatusBadge status={order.status} /></td>
-                      <td className="px-5 py-3.5 text-[11px] text-[#5a4f45]">{formatDate(order.createdAt)}</td>
+                      <td className="px-5 py-3.5 text-[11px] font-medium text-[#9A9C90]">{formatDate(order.createdAt)}</td>
                       <td className="px-5 py-3.5">
                         <button onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
-                          className="rounded-lg bg-[#1f1915] border border-[#2a231d] px-3 py-1.5 text-xs font-bold text-[#a89f94] hover:text-white hover:border-[#ff7a00]/40 transition-colors">
+                          className="rounded-full border border-[#E7E3D8] bg-[#F4F2EE] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#EDEAE1]">
                           تفاصيل
                         </button>
                       </td>
@@ -147,112 +176,37 @@ export default function OrdersPage() {
               </table>
             </div>
             <div className="px-5 py-3">
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={filtered.length} itemsPerPage={PER_PAGE} />
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={total} itemsPerPage={PER_PAGE} />
             </div>
           </>
         )}
       </div>
 
-      {/* الطلبات الواردة حياً من الموقع — العميل يدخل بياناته ومكانه فقط */}
-      {customerOrders.length > 0 && (
-        <div className="rounded-2xl bg-[#141210] border border-emerald-500/20 overflow-hidden">
-          <div className="px-5 py-3 border-b border-[#231d17] flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <Globe2 className="h-4 w-4 text-emerald-400" />
-              طلبات واردة من الموقع ({customerOrders.length})
-            </h2>
-            <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> مباشر
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-sm min-w-[760px]">
-              <thead>
-                <tr className="text-[11px] text-[#5a4f45] border-b border-[#1e1914]">
-                  <th className="px-5 py-3 font-bold">رقم الطلب</th>
-                  <th className="px-5 py-3 font-bold">العميل</th>
-                  <th className="px-5 py-3 font-bold">الهاتف</th>
-                  <th className="px-5 py-3 font-bold">المكان</th>
-                  <th className="px-5 py-3 font-bold">التوصيل</th>
-                  <th className="px-5 py-3 font-bold">الإجمالي</th>
-                  <th className="px-5 py-3 font-bold">تفاصيل</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#1a1612]">
-                {customerOrders.map((order) => (
-                  <tr
-                    key={order.id}
-                    onClick={() => setSelectedLiveOrder(order)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelectedLiveOrder(order);
-                      }
-                    }}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`عرض تفاصيل الطلب الوارد ${order.id}`}
-                    className="cursor-pointer transition-colors hover:bg-[#1a1512] focus:outline-none focus-visible:bg-[#1a1512] focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-emerald-500/40"
-                  >
-                    <td className="px-5 py-3.5 font-black text-white">#{order.id}</td>
-                    <td className="px-5 py-3.5 font-semibold text-white text-xs">{order.customer.name}</td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-1.5" dir="ltr">
-                        <span className="text-xs text-[#c4b9ad]">{order.customer.phone}</span>
-                        <a href={`tel:${order.customer.phone}`} onClick={(e) => e.stopPropagation()}
-                           aria-label={`اتصال بـ ${order.customer.name}`}
-                           className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors">
-                          <Phone className="h-3.5 w-3.5" />
-                        </a>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-xs text-[#c4b9ad]">{order.customer.areaName || "—"}</td>
-                    <td className="px-5 py-3.5">
-                      {isLiveOrderFree(order) ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-1 text-[11px] font-bold text-emerald-400 border border-emerald-500/30">
-                          <CheckCircle2 className="h-3 w-3" /> توصيل مجاني
-                        </span>
-                      ) : (
-                        <span className="text-xs text-[#5a4f45]">—</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5 font-black text-[#ff7a00]">{order.total} ج.م</td>
-                    <td className="px-5 py-3.5">
-                      <button onClick={(e) => { e.stopPropagation(); setSelectedLiveOrder(order); }}
-                        className="rounded-lg bg-[#1f1915] border border-[#2a231d] px-3 py-1.5 text-xs font-bold text-[#a89f94] hover:text-white hover:border-[#ff7a00]/40 transition-colors">
-                        تفاصيل
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      <Modal isOpen={!!selectedOrder} onClose={() => setSelectedOrder(null)} title={selectedOrder ? `تفاصيل الطلب #${selectedOrder.id}` : ""} size="lg">
+      {/* Order Detail Modal */}
+      <Modal isOpen={!!selectedOrder} onClose={() => setSelectedOrder(null)}
+        title={selectedOrder ? `تفاصيل الطلب #${selectedOrder.orderNumber}` : ""} size="lg">
         {selectedOrder && (
           <div className="space-y-5">
-            <div className="rounded-xl bg-[#1a1512] border border-[#2a231d] p-4 space-y-3">
-              <h3 className="text-xs font-bold text-[#ff7a00] uppercase tracking-wider">بيانات العميل</h3>
-              <div className="grid sm:grid-cols-2 gap-3">
+            {/* بيانات العميل */}
+            <div className="space-y-3 rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-4">
+              <h3 className="text-[11px] font-black tracking-wide text-[#50604D]">بيانات العميل</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <p className="text-[10px] text-[#5a4f45]">الاسم</p>
-                  <p className="text-sm font-bold text-white">{selectedOrder.customerName}</p>
+                  <p className="text-[10px] font-semibold text-[#9A9C90]">الاسم</p>
+                  <p className="text-[13px] font-bold text-[#333B2E]">{selectedOrder.customerName}</p>
                 </div>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-[10px] text-[#5a4f45]">الهاتف</p>
-                    <p className="text-sm font-bold text-white" dir="ltr">{selectedOrder.customerPhone}</p>
+                    <p className="text-[10px] font-semibold text-[#9A9C90]">الهاتف</p>
+                    <p className="text-[13px] font-bold text-[#333B2E]" dir="ltr">{selectedOrder.customerPhone}</p>
                   </div>
                   <div className="flex gap-1.5">
                     <a href={`tel:${selectedOrder.customerPhone}`}
-                       className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors">
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-[#E3F0DE] text-[#4F8A57] transition-colors hover:bg-[#D8EAD2]">
                       <Phone className="h-3.5 w-3.5" />
                     </a>
                     <button onClick={() => copyText(selectedOrder.customerPhone, "الهاتف")}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2a231d] text-[#8a8076] hover:text-white transition-colors">
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F0EDE5] text-[#6B7264] transition-colors hover:bg-[#E7E3D8]">
                       <Copy className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -260,162 +214,98 @@ export default function OrdersPage() {
               </div>
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-[#ff7a00] shrink-0 mt-0.5" />
-                  <p className="text-sm text-[#c4b9ad]">{selectedOrder.customerAddress}</p>
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#50604D]" />
+                  <p className="text-[13px] font-medium text-[#6B7264]">{selectedOrder.customerAddress}</p>
                 </div>
                 <button onClick={() => copyText(selectedOrder.customerAddress, "العنوان")}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2a231d] text-[#8a8076] hover:text-white transition-colors shrink-0">
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F0EDE5] text-[#6B7264] transition-colors hover:bg-[#E7E3D8]">
                   <Copy className="h-3.5 w-3.5" />
                 </button>
               </div>
               {selectedOrder.notes && (
-                <div className="rounded-lg bg-[#ff7a00]/8 border border-[#ff7a00]/20 px-3 py-2">
-                  <p className="text-[11px] text-[#ff9838]"><span className="font-bold">ملاحظة: </span>{selectedOrder.notes}</p>
+                <div className="rounded-[10px] border border-[#F0E5D2] bg-[#FCF3E7] px-3 py-2">
+                  <p className="text-[11px] font-semibold text-[#8A6414]"><span className="font-black">ملاحظة: </span>{selectedOrder.notes}</p>
                 </div>
               )}
             </div>
 
+            {/* الوجبات */}
             <div className="space-y-2">
-              <h3 className="text-xs font-bold text-[#ff7a00] uppercase tracking-wider">الوجبات المطلوبة</h3>
+              <h3 className="text-[11px] font-black tracking-wide text-[#50604D]">الوجبات المطلوبة</h3>
               {selectedOrder.items.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-xl bg-[#1a1512] border border-[#2a231d] p-3">
-                  <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-[#141210] shrink-0">
-                    <Image src={item.productImage} alt={item.productName} fill className="object-cover" sizes="48px" />
+                <div key={i} className="flex items-center gap-3 rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-3">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-[10px] bg-[#F1EEE7]">
+                    <Image src={item.productImage || "/images/logo-rosemary-green.png"} alt={item.productName} fill className="object-cover" sizes="48px" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{item.productName}</p>
-                    {item.notes && <p className="text-[11px] text-[#ff9838]">ملاحظة: {item.notes}</p>}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-bold text-[#333B2E]">{item.productName}</p>
+                    {item.selectedSize && <p className="text-[11px] font-medium text-[#8A6414]">الحجم: {item.selectedSize.name}</p>}
+                    {item.notes && <p className="text-[11px] font-medium text-[#8A6414]">ملاحظة: {item.notes}</p>}
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-black text-[#ff7a00]">{item.price * item.quantity} ج.م</p>
-                    <p className="text-[11px] text-[#5a4f45]">{item.price} × {item.quantity}</p>
+                  <div className="shrink-0 text-right">
+                    <p className="text-[13px] font-black text-[#333B2E]">{item.itemTotal} ج.م</p>
+                    <p className="text-[11px] text-[#9A9C90]">{item.price} × {item.quantity}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="rounded-xl bg-[#1a1512] border border-[#2a231d] p-4 space-y-2">
-              <div className="flex justify-between text-xs text-[#a89f94]">
-                <span>المجموع الفرعي</span>
-                <span className="font-bold text-white">{selectedOrder.subtotal} ج.م</span>
+            {/* الإجمالي */}
+            <div className="space-y-2 rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-4">
+              <div className="flex justify-between text-[12px] font-semibold text-[#8F9186]">
+                <span>المجموع الفرعي</span><span className="font-bold text-[#333B2E]">{selectedOrder.subtotal} ج.م</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-[#2a231d]">
-                <span className="text-sm font-black text-white">الإجمالي</span>
-                <span className="text-lg font-black text-[#ff7a00]">{selectedOrder.total} ج.م</span>
+              {(selectedOrder.deliveryFee ?? 0) > 0 && (
+                <div className="flex justify-between text-[12px] font-semibold text-[#8F9186]">
+                  <span>رسوم التوصيل</span><span className="font-bold text-[#333B2E]">{selectedOrder.deliveryFee} ج.م</span>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-[#E5E0D3] pt-2">
+                <span className="text-[13px] font-black text-[#333B2E]">الإجمالي</span>
+                <span className="text-[17px] font-black text-[#333B2E]">{selectedOrder.total} ج.م</span>
               </div>
-              <p className="pt-1 text-[11px] text-[#6b6259]">الدفع عند الاستلام (كاش)</p>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] font-semibold text-[#9A9C90]">طريقة الدفع</span>
+                <span className="flex items-center gap-1.5 text-[11.5px] font-bold text-[#333B2E]">
+                  <PaymentMethodIcon method={selectedOrder.paymentMethod} className="h-4 w-4" />
+                  {PAYMENT_METHOD_LABELS[selectedOrder.paymentMethod] ?? "كاش عند الاستلام"}
+                </span>
+              </div>
             </div>
 
+            {/* إثبات التحويل */}
+            {selectedOrder.paymentProofUrl && (
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-black tracking-wide text-[#50604D]">صورة التحويل</h3>
+                <a href={selectedOrder.paymentProofUrl} target="_blank" rel="noreferrer noopener"
+                  className="group block overflow-hidden rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE]">
+                  <div className="relative h-48 w-full">
+                    <Image src={selectedOrder.paymentProofUrl} alt="صورة إثبات التحويل" fill sizes="480px" className="object-contain p-2" />
+                  </div>
+                  <div className="flex items-center justify-between border-t border-[#EDE9E0] px-4 py-2">
+                    <span className="text-[11px] font-bold text-[#50604D]">إيصال تحويل {PAYMENT_METHOD_LABELS[selectedOrder.paymentMethod]}</span>
+                    <span className="text-[10.5px] font-bold text-[#9A9C90] group-hover:text-[#50604D]">فتح بالحجم الكامل ←</span>
+                  </div>
+                </a>
+              </div>
+            )}
+
+            {/* تغيير الحالة */}
             <div className="space-y-2">
-              <h3 className="text-xs font-bold text-[#ff7a00] uppercase tracking-wider">تغيير حالة الطلب</h3>
+              <h3 className="text-[11px] font-black tracking-wide text-[#50604D]">تغيير حالة الطلب</h3>
               <div className="grid grid-cols-3 gap-2">
                 {ALL_STATUSES.map((s) => (
                   <button key={s} onClick={() => changeStatus(selectedOrder.id, s)}
-                    className={`rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                    disabled={selectedOrder.status === s}
+                    className={`rounded-full border px-3 py-2 text-[11px] font-bold transition-all disabled:cursor-default ${
                       selectedOrder.status === s
-                        ? "bg-[#ff7a00] border-[#ff7a00] text-white"
-                        : "bg-[#1a1512] border-[#2a231d] text-[#a89f94] hover:border-[#ff7a00]/40 hover:text-white"
+                        ? "border-[#50604D] bg-[#50604D] text-[#fff]"
+                        : "border-[#E7E3D8] bg-[#F4F2EE] text-[#6B7264] hover:border-[#C9D3C3] hover:text-[#333B2E]"
                     }`}>
                     {ORDER_STATUS_LABELS[s]}
                   </button>
                 ))}
               </div>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* تفاصيل الطلب الوارد من الموقع */}
-      <Modal isOpen={!!selectedLiveOrder} onClose={() => setSelectedLiveOrder(null)}
-             title={selectedLiveOrder ? `تفاصيل الطلب #${selectedLiveOrder.id}` : ""} size="lg">
-        {selectedLiveOrder && (
-          <div className="space-y-5">
-            <div className="rounded-xl bg-[#1a1512] border border-[#2a231d] p-4 space-y-3">
-              <h3 className="text-xs font-bold text-[#ff7a00] uppercase tracking-wider">بيانات العميل</h3>
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div>
-                  <p className="text-[10px] text-[#5a4f45]">الاسم</p>
-                  <p className="text-sm font-bold text-white">{selectedLiveOrder.customer.name}</p>
-                </div>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-[10px] text-[#5a4f45]">الهاتف</p>
-                    <p className="text-sm font-bold text-white" dir="ltr">{selectedLiveOrder.customer.phone}</p>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <a href={`tel:${selectedLiveOrder.customer.phone}`}
-                       className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors">
-                      <Phone className="h-3.5 w-3.5" />
-                    </a>
-                    <button onClick={() => copyText(selectedLiveOrder.customer.phone, "الهاتف")}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2a231d] text-[#8a8076] hover:text-white transition-colors">
-                      <Copy className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-[#ff7a00] shrink-0 mt-0.5" />
-                  <p className="text-sm text-[#c4b9ad]">{selectedLiveOrder.customer.address}</p>
-                </div>
-                <button onClick={() => copyText(selectedLiveOrder.customer.address, "العنوان")}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2a231d] text-[#8a8076] hover:text-white transition-colors shrink-0">
-                  <Copy className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-3 pt-1">
-                <div>
-                  <p className="text-[10px] text-[#5a4f45]">المكان</p>
-                  <p className="text-sm font-bold text-white">{selectedLiveOrder.customer.areaName || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-[#5a4f45]">التوصيل</p>
-                  {isLiveOrderFree(selectedLiveOrder) ? (
-                    <p className="flex items-center gap-1 text-sm font-bold text-emerald-400">
-                      <Truck className="h-3.5 w-3.5" /> توصيل مجاني
-                    </p>
-                  ) : (
-                    <p className="text-sm text-[#5a4f45]">—</p>
-                  )}
-                </div>
-              </div>
-              {selectedLiveOrder.customer.notes && (
-                <div className="rounded-lg bg-[#ff7a00]/8 border border-[#ff7a00]/20 px-3 py-2">
-                  <p className="text-[11px] text-[#ff9838]"><span className="font-bold">ملاحظة: </span>{selectedLiveOrder.customer.notes}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-xs font-bold text-[#ff7a00] uppercase tracking-wider">الوجبات المطلوبة</h3>
-              {selectedLiveOrder.items.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-xl bg-[#1a1512] border border-[#2a231d] p-3">
-                  <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-[#141210] shrink-0">
-                    <Image src={item.product.image} alt={item.product.name} fill className="object-cover" sizes="48px" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{item.product.name}</p>
-                    {item.notes && <p className="text-[11px] text-[#ff9838]">ملاحظة: {item.notes}</p>}
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-black text-[#ff7a00]">{item.product.price * item.quantity} ج.م</p>
-                    <p className="text-[11px] text-[#5a4f45]">{item.product.price} × {item.quantity}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="rounded-xl bg-[#1a1512] border border-[#2a231d] p-4 space-y-2">
-              <div className="flex justify-between text-xs text-[#a89f94]">
-                <span>المجموع</span>
-                <span className="font-bold text-white">{selectedLiveOrder.subtotal} ج.م</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-[#2a231d]">
-                <span className="text-sm font-black text-white">الإجمالي</span>
-                <span className="text-lg font-black text-[#ff7a00]">{selectedLiveOrder.total} ج.م</span>
-              </div>
-              <p className="pt-1 text-[11px] text-[#6b6259]">الدفع عند الاستلام (كاش) · {formatDate(selectedLiveOrder.createdAt)}</p>
             </div>
           </div>
         )}

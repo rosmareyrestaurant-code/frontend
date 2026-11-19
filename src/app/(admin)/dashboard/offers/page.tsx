@@ -1,259 +1,160 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Flame,
-  Clock,
-  Eye,
-  EyeOff,
-  Percent,
-} from "lucide-react";
+import { Plus, Pencil, Trash2, Flame, Clock, Eye, EyeOff, Percent } from "lucide-react";
 import { ActiveBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import ImageUpload from "@/components/admin/shared/ImageUpload";
 import { useToast } from "@/components/admin/shared/Toast";
-import { MOCK_ADMIN_OFFERS } from "@/data/admin/offers";
-import { AdminOffer } from "@/types/admin";
+import type { AdminOffer } from "@/types/admin";
 
-const EMPTY: Omit<AdminOffer, "id"> = {
-  title: "",
-  subtitle: "",
-  image: "",
-  price: 0,
-  originalPrice: 0,
-  durationMinutes: 180,
-  sortOrder: 1,
-  isActive: true,
+// Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
+import { MOCK_ADMIN_OFFERS } from "@/data/admin/offers";
+
+const USE_MOCK = true;
+
+const EMPTY: Omit<AdminOffer, "id"> & { imagePublicId?: string } = {
+  title: "", subtitle: "", image: "", imagePublicId: "", price: 0, originalPrice: 0, durationMinutes: 180, sortOrder: 1, isActive: true,
 };
 
 export default function OffersAdminPage() {
   const { showToast } = useToast();
   const [offers, setOffers] = useState<AdminOffer[]>(MOCK_ADMIN_OFFERS);
+  const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editOffer, setEditOffer] = useState<AdminOffer | null>(null);
-  const [form, setForm] = useState<Omit<AdminOffer, "id">>(EMPTY);
+  const [form, setForm] = useState<Omit<AdminOffer, "id"> & { imagePublicId?: string }>(EMPTY);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const openAdd = () => {
-    setEditOffer(null);
-    setForm({
-      ...EMPTY,
-      sortOrder: offers.length + 1,
-    });
-    setModalOpen(true);
-  };
+  const fetchOffers = useCallback(async () => {
+    if (USE_MOCK) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/offers?limit=50");
+      const d = await res.json();
+      if (d.success) setOffers(d.data.offers);
+      else showToast(d.error?.message ?? "فشل", "error");
+    } catch { showToast("خطأ", "error"); }
+    finally { setLoading(false); }
+  }, [showToast]);
 
-  const openEdit = (offer: AdminOffer) => {
-    setEditOffer(offer);
-    setForm({
-      title: offer.title,
-      subtitle: offer.subtitle,
-      image: offer.image,
-      price: offer.price,
-      originalPrice: offer.originalPrice,
-      durationMinutes: offer.durationMinutes,
-      sortOrder: offer.sortOrder,
-      isActive: offer.isActive,
-    });
-    setModalOpen(true);
-  };
+  useEffect(() => { queueMicrotask(() => { void fetchOffers(); }); }, [fetchOffers]);
 
-  const save = () => {
-    if (!form.title.trim()) {
-      showToast("عنوان العرض مطلوب", "error");
+  const openAdd = () => { setEditOffer(null); setForm({ ...EMPTY, sortOrder: offers.length + 1 }); setModalOpen(true); };
+  const openEdit = (o: AdminOffer) => { setEditOffer(o); setForm({ title: o.title, subtitle: o.subtitle, image: o.image, imagePublicId: (o as AdminOffer & { imagePublicId?: string }).imagePublicId ?? "", price: o.price, originalPrice: o.originalPrice, durationMinutes: o.durationMinutes, sortOrder: o.sortOrder, isActive: o.isActive }); setModalOpen(true); };
+
+  const save = async () => {
+    if (!form.title.trim()) { showToast("العنوان مطلوب", "error"); return; }
+    if (!form.price || form.price <= 0) { showToast("السعر مطلوب", "error"); return; }
+    if (!form.image.trim()) { showToast("الصورة مطلوبة", "error"); return; }
+    if (USE_MOCK) {
+      if (editOffer) {
+        setOffers((prev) => prev.map((o) => o.id === editOffer.id ? { ...o, ...form } : o));
+        showToast("تم التحديث", "success");
+      } else {
+        setOffers((prev) => [...prev, { ...(form as AdminOffer), id: `ofr-${Date.now()}` }]);
+        showToast("تمت الإضافة", "success");
+      }
+      setModalOpen(false);
       return;
     }
-    if (!form.price || form.price <= 0) {
-      showToast("يرجى إدخال سعر صحيح للعرض", "error");
-      return;
-    }
-    if (!form.image.trim()) {
-      showToast("صورة العرض مطلوبة", "error");
-      return;
-    }
-
-    if (editOffer) {
-      setOffers((prev) =>
-        prev.map((o) => (o.id === editOffer.id ? { ...o, ...form } : o))
-      );
-      showToast("تم تحديث العرض بنجاح", "success");
-    } else {
-      const newOffer: AdminOffer = {
-        ...form,
-        id: `deal-${Date.now()}`,
-        createdAt: new Date().toISOString().split("T")[0],
-      };
-      setOffers((prev) => [newOffer, ...prev]);
-      showToast("تمت إضافة العرض الجديد بنجاح", "success");
-    }
-    setModalOpen(false);
+    setSaving(true);
+    try {
+      const url = editOffer ? `/api/admin/offers/${editOffer.id}` : "/api/admin/offers";
+      const method = editOffer ? "PATCH" : "POST";
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      const d = await res.json();
+      if (d.success) { showToast(editOffer ? "تم التحديث" : "تمت الإضافة", "success"); setModalOpen(false); fetchOffers(); }
+      else showToast(d.error?.message ?? "فشل", "error");
+    } catch { showToast("خطأ", "error"); }
+    finally { setSaving(false); }
   };
 
-  const toggleActive = (id: string) => {
-    setOffers((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, isActive: !o.isActive } : o))
-    );
-    showToast("تم تغيير حالة تفعيل العرض", "warning");
+  const toggleActive = async (id: string, cur: boolean) => {
+    if (USE_MOCK) {
+      setOffers((prev) => prev.map((o) => o.id === id ? { ...o, isActive: !cur } : o));
+      return;
+    }
+    await fetch(`/api/admin/offers/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !cur }) });
+    fetchOffers();
   };
 
-  const deleteOffer = (id: string) => {
-    setOffers((prev) => prev.filter((o) => o.id !== id));
-    showToast("تم حذف العرض", "warning");
+  const deleteOffer = async (id: string) => {
+    if (USE_MOCK) {
+      setOffers((prev) => prev.filter((o) => o.id !== id));
+      showToast("تم الحذف", "warning");
+      setDeleteId(null);
+      return;
+    }
+    const res = await fetch(`/api/admin/offers/${id}`, { method: "DELETE" });
+    const d = await res.json();
+    if (d.success) { showToast("تم الحذف", "warning"); fetchOffers(); }
     setDeleteId(null);
   };
 
-  // احتساب نسبة الخصم
-  const calcDiscount = (price: number, original: number) => {
-    if (!original || original <= price) return null;
-    return Math.round(((original - price) / original) * 100);
-  };
+  const calcDiscount = (price: number, original: number) => original && original > price ? Math.round(((original - price) / original) * 100) : null;
+
+  if (loading) return <div className="py-12 text-center text-sm text-[#5a4f45] animate-pulse">جاري التحميل...</div>;
 
   return (
-    <div className="space-y-6 select-none">
-      {/* رأس الصفحة والمقدمة */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="select-none space-y-4 sm:space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-black text-white">
-              إدارة عروض التوفير والكومبو
-            </h1>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#ff7a00]/15 border border-[#ff7a00]/30 px-2.5 py-0.5 text-xs font-bold text-[#ff9838]">
-              <Flame className="h-3 w-3 text-[#ff7a00]" />
-              <span>صفحة العروض</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-[18px] font-black text-[#333B2E] sm:text-[20px]">إدارة عروض التوفير والكومبو</h1>
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#DEE3D5] px-2.5 py-0.5 text-[11px] font-bold text-[#50604D]">
+              <Flame className="h-3 w-3" strokeWidth={2} /> صفحة العروض
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-[#8a8076] mt-1">
-            إضافة وتعديل عروض الكومبو والتوفير التي تظهر للعملاء في صفحة العروض الخاصة (/offers)
-          </p>
+          <p className="mt-1 text-[12px] font-semibold text-[#9A9C90]">عروض الكومبو التي تظهر في /offers</p>
         </div>
-
-        <button
-          onClick={openAdd}
-          className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] hover:scale-105 active:scale-95 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#ff7a00]/20 transition-all"
-        >
-          <Plus className="h-4 w-4" />
-          <span>إضافة عرض جديد</span>
+        <button onClick={openAdd} className="flex items-center justify-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[13px] font-bold text-[#fff] transition-colors hover:bg-[#435241]">
+          <Plus className="h-4 w-4" /> إضافة عرض جديد
         </button>
       </div>
 
-      {/* قائمة العروض */}
       {offers.length === 0 ? (
-        <EmptyState
-          icon={Flame}
-          title="لا توجد عروض ترويجية حالياً"
-          description="اضغط على زر 'إضافة عرض جديد' لنشر أول عرض في صفحة عروض روزماري."
-        />
+        <EmptyState icon={Flame} title="لا توجد عروض" description="أضف عرضاً جديداً" />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {offers.map((offer) => {
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {offers.map(offer => {
             const discount = calcDiscount(offer.price, offer.originalPrice);
-
             return (
-              <div
-                key={offer.id}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-[#141210] border border-[#26201a] transition-all duration-300 hover:border-[#ff7a00]/50 hover:shadow-2xl hover:shadow-black/70"
-              >
-                {/* الجزء العلوي: صورة العرض مع شارة الخصم والمدة */}
-                <div className="relative aspect-[16/9] w-full bg-[#1a1512] overflow-hidden p-2">
-                  {offer.image ? (
-                    <Image
-                      src={offer.image} unoptimized={offer.image.startsWith("data:")}
-                      alt={offer.title}
-                      fill
-                      className="object-contain object-center"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-[#5a4f45]">
-                      <Flame className="h-10 w-10" />
-                    </div>
-                  )}
-
-                  {/* شارة الخصم */}
-                  {discount && (
-                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-red-600 to-[#ff7a00] px-3 py-1 text-xs font-black text-white shadow-lg border border-white/20">
-                      <Percent className="h-3 w-3" />
-                      <span>خصم {discount}%</span>
-                    </span>
-                  )}
-
-                  {/* شارة المدة */}
-                  <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/70 backdrop-blur-md px-2.5 py-1 text-[11px] font-bold text-white border border-white/15">
-                    <Clock className="h-3 w-3 text-[#ff7a00]" />
-                    <span>{Math.round(offer.durationMinutes / 60)} ساعات</span>
+              <div key={offer.id} className="group relative flex flex-col justify-between overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] transition-all hover:border-[#D6DCCF] hover:shadow-[0_20px_40px_-28px_rgba(38,53,43,0.4)]">
+                <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#F1EEE7] p-2">
+                  {offer.image ? <Image src={offer.image} alt={offer.title} fill className="object-contain object-center" sizes="400px" /> : <div className="flex h-full items-center justify-center text-[#B5B2A8]"><Flame className="h-10 w-10" /></div>}
+                  {discount && <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#C25B4F] px-3 py-1 text-[11px] font-black text-[#fff]"><Percent className="h-3 w-3" /> {discount}%</span>}
+                  <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-[#333B2E]/80 px-2.5 py-1 text-[10.5px] font-bold text-[#fff] backdrop-blur-md">
+                    <Clock className="h-3 w-3 text-[#D9DFD2]" /> {Math.round(offer.durationMinutes / 60)} ساعات
                   </span>
                 </div>
-
-                {/* المحتوى والبيانات */}
-                <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div className="flex flex-1 flex-col justify-between space-y-4 p-4 sm:p-5">
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-base font-bold text-white group-hover:text-[#ff7a00] transition-colors leading-tight">
-                        {offer.title}
-                      </h3>
+                      <h3 className="text-[14px] font-black text-[#333B2E] transition-colors group-hover:text-[#50604D]">{offer.title}</h3>
                       <ActiveBadge active={offer.isActive} />
                     </div>
-
-                    <p className="text-xs text-[#8a8076] leading-relaxed line-clamp-2">
-                      {offer.subtitle}
-                    </p>
+                    <p className="line-clamp-2 text-[11.5px] font-medium leading-relaxed text-[#9A9C90]">{offer.subtitle}</p>
                   </div>
-
-                  {/* الأسعار */}
-                  <div className="flex items-baseline justify-between pt-2 border-t border-[#1f1915]">
+                  <div className="flex items-baseline justify-between border-t border-[#F0EDE5] pt-2">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-xl font-black text-[#ff7a00]">
-                        {offer.price} ج.م
-                      </span>
-                      {offer.originalPrice > offer.price && (
-                        <span className="text-xs text-[#736a61] line-through font-medium">
-                          {offer.originalPrice} ج.م
-                        </span>
-                      )}
+                      <span className="text-[17px] font-black text-[#333B2E]">{offer.price} ج.م</span>
+                      {offer.originalPrice > offer.price && <span className="text-[11px] text-[#9A9C90] line-through">{offer.originalPrice} ج.م</span>}
                     </div>
-
-                    <span className="text-[11px] font-mono text-[#5a4f45]">
-                      ترتيب #{offer.sortOrder}
-                    </span>
+                    <span className="font-mono text-[11px] text-[#B5B2A8]">#{offer.sortOrder}</span>
                   </div>
-
-                  {/* أزرار التحكم */}
-                  <div className="flex items-center gap-2 pt-2 border-t border-[#1f1915]">
-                    <button
-                      onClick={() => toggleActive(offer.id)}
-                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#1c1714] border border-[#2a231d] py-2 text-xs font-bold text-[#8a8076] hover:text-white transition-colors"
-                    >
-                      {offer.isActive ? (
-                        <>
-                          <EyeOff className="h-3.5 w-3.5 text-amber-400" />
-                          <span>إيقاف</span>
-                        </>
-                      ) : (
-                        <>
-                          <Eye className="h-3.5 w-3.5 text-emerald-400" />
-                          <span>تفعيل</span>
-                        </>
-                      )}
+                  <div className="flex items-center gap-2 border-t border-[#F0EDE5] pt-2">
+                    <button onClick={() => toggleActive(offer.id, offer.isActive)} className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#F4F2EE] py-2 text-[11px] font-bold text-[#6B7264] transition-colors hover:bg-[#EDEAE1] hover:text-[#333B2E]">
+                      {offer.isActive ? <><EyeOff className="h-3.5 w-3.5 text-[#C08A2E]" /> إيقاف</> : <><Eye className="h-3.5 w-3.5 text-[#4F8A57]" /> تفعيل</>}
                     </button>
-
-                    <button
-                      onClick={() => openEdit(offer)}
-                      className="flex items-center justify-center gap-1.5 rounded-xl bg-[#1c1714] border border-[#2a231d] px-3 py-2 text-xs font-bold text-[#8a8076] hover:text-[#ff7a00] transition-colors"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                      <span>تعديل</span>
+                    <button onClick={() => openEdit(offer)} className="flex items-center gap-1.5 rounded-full bg-[#F4F2EE] px-3 py-2 text-[11px] font-bold text-[#6B7264] transition-colors hover:bg-[#EDEAE1] hover:text-[#50604D]">
+                      <Pencil className="h-3.5 w-3.5" /> تعديل
                     </button>
-
-                    <button
-                      onClick={() => setDeleteId(offer.id)}
-                      className="flex items-center justify-center rounded-xl bg-[#1c1714] border border-[#2a231d] p-2 text-[#8a8076] hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    >
+                    <button onClick={() => setDeleteId(offer.id)} className="flex items-center rounded-full bg-[#F4F2EE] p-2 text-[#6B7264] transition-colors hover:bg-[#FBE4E0] hover:text-[#C25B4F]">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -264,157 +165,62 @@ export default function OffersAdminPage() {
         </div>
       )}
 
-      {/* موديل إضافة / تعديل عرض */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editOffer ? "تعديل بيانات العرض" : "إضافة عرض توفير جديد"}
-      >
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editOffer ? "تعديل العرض" : "إضافة عرض جديد"}>
         <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-[#8a8076] mb-1.5">
-              عنوان العرض أو اسم الوجبة *
-            </label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-              placeholder="مثال: كومبو ميكس روزماري العملاق"
-              className="w-full rounded-xl bg-[#1c1714] border border-[#2a231d] px-3.5 py-2.5 text-sm text-white placeholder-[#5a4f45] focus:outline-none focus:border-[#ff7a00]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#8a8076] mb-1.5">
-              محتويات وتفاصيل العرض *
-            </label>
-            <textarea
-              rows={2}
-              value={form.subtitle}
-              onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))}
-              placeholder="مثال: 3 ساندوتشات من اختيارك + باكت بطاطس عائلي + كريب حلو + كانز بيبسي"
-              className="w-full rounded-xl bg-[#1c1714] border border-[#2a231d] p-3 text-sm text-white placeholder-[#5a4f45] focus:outline-none focus:border-[#ff7a00] resize-none"
-            />
-          </div>
-
+          {[{ label: "عنوان العرض *", key: "title", ph: "كومبو روزماري" }, { label: "محتويات العرض *", key: "subtitle", ph: "بيتزا + كريب + مشروب" }].map(({ label, key, ph }) => (
+            <div key={key}>
+              <label className="mb-1.5 block text-xs font-bold text-[#8F9186]">{label}</label>
+              {key === "subtitle" ? (
+                <textarea rows={2} value={(form as Record<string, unknown>)[key] as string} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))} placeholder={ph}
+                  className="w-full resize-none rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] p-3 text-[13px] text-[#333B2E] placeholder-[#B0B1A6] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+              ) : (
+                <input type="text" value={(form as Record<string, unknown>)[key] as string} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))} placeholder={ph}
+                  className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-3.5 py-2.5 text-[13px] text-[#333B2E] placeholder-[#B0B1A6] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+              )}
+            </div>
+          ))}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#8a8076] mb-1.5">
-                سعر العرض (ج.م) *
-              </label>
-              <input
-                type="number"
-                value={form.price || ""}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, price: Number(e.target.value) || 0 }))
-                }
-                placeholder="199"
-                min={1}
-                className="w-full rounded-xl bg-[#1c1714] border border-[#2a231d] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff7a00]"
-              />
+              <label className="mb-1.5 block text-xs font-bold text-[#8F9186]">سعر العرض *</label>
+              <input type="number" value={form.price || ""} onChange={e => setForm(p => ({ ...p, price: Number(e.target.value) || 0 }))} min={1}
+                className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-3.5 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
             </div>
-
             <div>
-              <label className="block text-xs font-bold text-[#8a8076] mb-1.5">
-                السعر الأصلي قبل الخصم (ج.م)
-              </label>
-              <input
-                type="number"
-                value={form.originalPrice || ""}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, originalPrice: Number(e.target.value) || 0 }))
-                }
-                placeholder="280"
-                min={1}
-                className="w-full rounded-xl bg-[#1c1714] border border-[#2a231d] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff7a00]"
-              />
+              <label className="mb-1.5 block text-xs font-bold text-[#8F9186]">السعر الأصلي</label>
+              <input type="number" value={form.originalPrice || ""} onChange={e => setForm(p => ({ ...p, originalPrice: Number(e.target.value) || 0 }))} min={0}
+                className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-3.5 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
             </div>
           </div>
-
-          <ImageUpload
-            value={form.image}
-            onChange={(image) => setForm((p) => ({ ...p, image }))}
-            label="صورة العرض *"
-            hint="ارفع صورة العرض كملف من جهازك — بتظهر كاملة من غير قص"
-            previewClassName="aspect-[16/9]"
-          />
-
+          <ImageUpload value={form.image}
+            onChange={img => setForm(p => ({ ...p, image: img }))}
+            onPublicIdChange={pid => setForm(p => ({ ...p, imagePublicId: pid }))}
+            label="صورة العرض *" folder="rozmaly/offers" previewClassName="aspect-[16/9]" />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#8a8076] mb-1.5">
-                مدة صلاحية العرض (بالدقائق)
-              </label>
-              <input
-                type="number"
-                value={form.durationMinutes}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, durationMinutes: Number(e.target.value) || 60 }))
-                }
-                placeholder="180 (3 ساعات)"
-                min={10}
-                className="w-full rounded-xl bg-[#1c1714] border border-[#2a231d] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff7a00]"
-              />
+              <label className="mb-1.5 block text-xs font-bold text-[#8F9186]">المدة (دقيقة)</label>
+              <input type="number" value={form.durationMinutes} onChange={e => setForm(p => ({ ...p, durationMinutes: Number(e.target.value) || 60 }))} min={10}
+                className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-3.5 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
             </div>
-
             <div>
-              <label className="block text-xs font-bold text-[#8a8076] mb-1.5">
-                ترتيب العرض
-              </label>
-              <input
-                type="number"
-                value={form.sortOrder}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, sortOrder: Number(e.target.value) || 1 }))
-                }
-                min={1}
-                className="w-full rounded-xl bg-[#1c1714] border border-[#2a231d] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff7a00]"
-              />
+              <label className="mb-1.5 block text-xs font-bold text-[#8F9186]">الترتيب</label>
+              <input type="number" value={form.sortOrder} onChange={e => setForm(p => ({ ...p, sortOrder: Number(e.target.value) || 1 }))} min={1}
+                className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-3.5 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
             </div>
           </div>
-
-          <div className="flex items-center gap-2 pt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-white">
-              <input
-                type="checkbox"
-                checked={form.isActive}
-                onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.checked }))}
-                className="rounded border-[#2a231d] bg-[#1c1714] text-[#ff7a00] focus:ring-[#ff7a00]"
-              />
-              <span>تفعيل العرض فوراً في صفحة العروض</span>
-            </label>
-          </div>
-
-          <div className="flex justify-end gap-2.5 pt-4 border-t border-[#231d17]">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="rounded-xl bg-[#1f1915] border border-[#2a231d] px-4 py-2.5 text-xs font-bold text-[#8a8076] hover:text-white transition-colors"
-            >
-              إلغاء
-            </button>
-            <button
-              type="button"
-              onClick={save}
-              className="rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#ff7a00]/20 hover:scale-105 active:scale-95 transition-all"
-            >
-              {editOffer ? "حفظ التعديلات" : "إضافة العرض"}
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-[#6B7264]">
+            <input type="checkbox" checked={form.isActive} onChange={e => setForm(p => ({ ...p, isActive: e.target.checked }))} className="h-4 w-4 rounded accent-[#50604D]" />
+            تفعيل العرض فوراً
+          </label>
+          <div className="flex justify-end gap-2.5 border-t border-[#F0EDE5] pt-4">
+            <button onClick={() => setModalOpen(false)} className="rounded-full bg-[#F0EDE5] px-4 py-2.5 text-[12px] font-bold text-[#50604D] transition-colors hover:bg-[#E7E3D8]">إلغاء</button>
+            <button onClick={save} disabled={saving} className="rounded-full bg-[#50604D] px-5 py-2.5 text-[12px] font-bold text-[#fff] transition-colors hover:bg-[#435241] disabled:opacity-70">
+              {saving ? "جاري..." : editOffer ? "حفظ" : "إضافة"}
             </button>
           </div>
         </div>
       </Modal>
-
-      {/* حوار تأكيد الحذف */}
-      <ConfirmDialog
-        isOpen={!!deleteId}
-        onClose={() => setDeleteId(null)}
-        onConfirm={() => {
-          if (deleteId) deleteOffer(deleteId);
-        }}
-        title="حذف العرض الترويجي"
-        message="هل أنت متأكد من حذف هذا العرض؟ لن يظهر مجدداً في صفحة العروض."
-        confirmText="نعم، حذف العرض"
-        variant="danger"
-      />
+      <ConfirmDialog isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={() => deleteOffer(deleteId!)}
+        title="حذف العرض" message="هل أنت متأكد؟" confirmText="حذف" variant="danger" />
     </div>
   );
 }

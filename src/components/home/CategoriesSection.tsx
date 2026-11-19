@@ -1,63 +1,62 @@
 "use client";
 
 import Image from "next/image";
-import { CATEGORIES } from "@/data/mockData";
+import type { Category } from "@/types";
 import SectionHeading from "./SectionHeading";
+// Mock data معلّق — يُستخدم كـ fallback فارغ إذا لم تُمرَّر categories
+// import { CATEGORIES } from "@/data/mockData";
 
-export default function CategoriesSection() {
+interface CategoriesSectionProps {
+  categories?: Category[];
+}
+
+export default function CategoriesSection({ categories = [] }: CategoriesSectionProps) {
+  // map من slug الـ API إلى id القسم في الصفحة
+  const slugToSectionId: Record<string, string> = {
+    pizza: "pizza",
+    chicken: "crepe",
+    burger: "sandwiches",
+    pasta: "pasta",
+    drinks: "drinks",
+    desserts: "desserts",
+  };
+
   const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, slug: string) => {
     e.preventDefault();
-    const target = document.getElementById(slug);
+    const sectionId = slugToSectionId[slug] ?? slug;
+    const target = document.getElementById(sectionId);
     if (target) {
       const headerOffset = 90;
       const elementPosition = target.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-
-      window.history.pushState(null, "", `#${slug}`);
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+      window.history.pushState(null, "", `#${sectionId}`);
     }
   };
 
+  if (categories.length === 0) return null;
+
   return (
-    <section id="categories" className="w-full bg-[#0b0a09] py-8 sm:py-10 select-none scroll-mt-24">
+    <section id="categories" className="w-full bg-[#F2F2ED] py-8 sm:py-10 select-none scroll-mt-24">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        {/* رأس القسم الموحّد */}
         <SectionHeading title="التصنيفات" />
-
-        {/* تصنيفين في كل صف — صف تحت صف على كل المقاسات */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
-          {CATEGORIES.map((category) => (
-            <a
-              key={category.id}
-              href={`#${category.slug}`}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 lg:gap-5">
+          {categories.map((category) => (
+            <a key={category.id} href={`#${slugToSectionId[category.slug] ?? category.slug}`}
               onClick={(e) => handleScrollTo(e, category.slug)}
-              className="group relative flex aspect-[1.75/1] w-full items-center overflow-hidden rounded-2xl bg-[#0d0c0b] border border-[#242018] shadow-lg transition-all duration-300 hover:border-[#ff7a00]/40 hover:shadow-2xl hover:shadow-black cursor-pointer"
-            >
-              {/* الجانب الأيمن: صورة الطعام تغطي اليمين بالكامل وحتى الحواف */}
-              <div className="absolute right-0 top-0 bottom-0 h-full w-[68%] sm:w-[70%] overflow-hidden">
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  fill
-                  className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
-                  sizes="(max-width: 1024px) 50vw, 350px"
-                />
-
-                {/* تدرج لوني ناعم يدمج الصورة تدريجياً ناحية اليسار */}
-                <div
-                  className="absolute inset-0 pointer-events-none bg-[linear-gradient(to_right,#0d0c0b_0%,#0d0c0b_12%,rgba(13,12,11,0.75)_35%,rgba(13,12,11,0.2)_60%,transparent_80%)]"
-                />
-              </div>
-
-              {/* الجانب الأيسر: اسم التصنيف مثبت في أقصى يسار الكارت في المنتصف */}
-              <div className="absolute left-0 top-0 bottom-0 z-10 flex h-full w-[45%] items-center justify-center p-4 sm:p-5 text-center">
-                <span className="text-base font-black leading-tight text-white tracking-wide drop-shadow-md transition-colors duration-200 group-hover:text-[#ff7a00] sm:text-lg">
+              className="group relative flex aspect-[2.6/1] w-full items-stretch overflow-hidden rounded-2xl border border-[#e3ded4] bg-white shadow-[0_6px_18px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ff7a00]/40 hover:shadow-lg cursor-pointer">
+              {/* اسم التصنيف يمين الكارت */}
+              <div className="relative flex w-[41%] shrink-0 items-center justify-center px-2 text-center">
+                <span className="text-sm font-black leading-tight text-[#26352B] transition-colors group-hover:text-[#ff7a00] sm:text-base lg:text-lg">
                   {category.name}
                 </span>
+              </div>
+              {/* صورة التصنيف يسار الكارت مع تلاشٍ أبيض عند حد الاسم */}
+              <div className="relative w-[59%] overflow-hidden">
+                <Image src={category.image || "/images/logo-rosemary-green.png"} alt={category.name} fill
+                  className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
+                  sizes="(max-width: 1024px) 50vw, 350px" />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_left,#ffffff_0%,rgba(255,255,255,0.85)_7%,rgba(255,255,255,0.35)_18%,rgba(255,255,255,0)_38%)]" />
               </div>
             </a>
           ))}

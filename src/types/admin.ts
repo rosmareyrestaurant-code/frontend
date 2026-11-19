@@ -21,26 +21,62 @@ export const ORDER_STATUS_COLORS: Record<
   cancelled: { bg: "#f87171/15", text: "#f87171", border: "#f87171/30" },
 };
 
+/** الحالات التي يُسمح للعميل بإلغاء الطلب عندها */
+export const CUSTOMER_CANCELABLE_STATUSES: OrderStatus[] = ["pending"];
+
+/** انتقالات الحالة المسموح بها (للأدمن) */
+export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  pending: ["delivered", "cancelled"],
+  delivered: [],
+  cancelled: [],
+};
+
+// ─── طريقة الدفع ───────────────────────────────────────────────────
+export type PaymentMethod = "cash" | "vodafone_cash" | "instapay";
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: "كاش عند الاستلام",
+  vodafone_cash: "فودافون كاش",
+  instapay: "إنستاباي",
+};
+
 // ─── عنصر في الطلب ─────────────────────────────────────────────────
+export interface AdminOrderAddon {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export interface AdminOrderItem {
   productId: string;
   productName: string;
   productImage: string;
-  price: number;
+  selectedSize?: { id: string; name: string; price: number };
+  selectedAddons?: AdminOrderAddon[];
+  price: number; // سعر الوحدة بعد الحجم والإضافات
   quantity: number;
+  itemTotal?: number;
   notes?: string;
 }
 
 // ─── طلب الأدمن ────────────────────────────────────────────────────
 export interface AdminOrder {
   id: string;
+  orderNumber?: string;
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  area?: string;
   items: AdminOrderItem[];
   subtotal: number;
+  deliveryFee?: number;
+  discount?: number;
   total: number;
-  paymentMethod: "cash";
+  paymentMethod: PaymentMethod;
+  /** رابط صورة التحويل (فودافون كاش / إنستاباي) */
+  paymentProofUrl?: string;
+  paymentProofPublicId?: string;
+  paymentStatus?: "pending" | "paid";
   status: OrderStatus;
   notes?: string;
   createdAt: string; // ISO string
@@ -49,10 +85,18 @@ export interface AdminOrder {
 // ─── حجم / قطعة للمنتج ────────────────────────────────────────────
 export interface AdminProductSize {
   id: string;
-  name: string;       // كبير / وسط / صغير أو قطعة / 2 قطع ...
+  name: string; // كبير / وسط / صغير أو قطعة / 2 قطع ...
   detail?: string;
   price: number;
   originalPrice?: number;
+  isDefault?: boolean;
+}
+
+// ─── إضافة للمنتج ─────────────────────────────────────────────────
+export interface AdminProductAddon {
+  id: string;
+  name: string;
+  price: number;
   isDefault?: boolean;
 }
 
@@ -67,6 +111,8 @@ export interface AdminProduct {
   originalPrice?: number;
   /** الأحجام أو القطع — فاضية يعني المنتج سعره واحد */
   sizes?: AdminProductSize[];
+  /** الإضافات الاختيارية المتاحة للمنتج */
+  addons?: AdminProductAddon[];
   /** بيانات ملف الإكسيل الأصلية عشان التصدير يرجع بنفس الشكل */
   nameEn?: string;
   categoryNameAr?: string;
@@ -124,7 +170,7 @@ export interface AdminOffer {
   createdAt?: string;
 }
 
-// ─── عميل الأدمن ───────────────────────────────────────────────────
+// ─── عميل الأدمن (مُشتق من الطلبات) ────────────────────────────────
 export interface AdminCustomer {
   id: string;
   name: string;
@@ -145,6 +191,18 @@ export interface StoreSettings {
   address: string;
   logoUrl: string;
   currency: string;
+  deliveryFee?: number;
+  minimumOrder?: number;
+  estimatedDeliveryTime?: string;
+  isStoreOpen?: boolean;
+  closedMessage?: string;
+  /** رقم استلام فودافون كاش */
+  vodafoneCashNumber?: string;
+  /** حساب استلام إنستاباي (IPA أو رقم محفظة) */
+  instapayAccount?: string;
+  latitude?: number;
+  longitude?: number;
+  googleMapsUrl?: string;
   workingHours: {
     day: string;
     isOpen: boolean;
@@ -157,6 +215,8 @@ export interface StoreSettings {
     tiktok: string;
     whatsapp: string;
   };
+  /** صور معرض صفحة «من نحن» */
+  galleryImages?: { src: string; alt: string }[];
 }
 
 // ─── إحصائيات الداشبورد ────────────────────────────────────────────
@@ -167,6 +227,9 @@ export interface DashboardStats {
   totalProducts: number;
   totalCustomers: number;
   ordersByStatus: Record<OrderStatus, number>;
+  recentOrders: AdminOrder[];
+  topProducts: { id: string; name: string; image: string; count: number }[];
+  salesByDay: { date: string; total: number }[];
 }
 
 // ─── نوع فلتر الطلبات ──────────────────────────────────────────────
@@ -188,7 +251,4 @@ export interface ProductFilters {
 }
 
 // ─── طريقة الدفع ───────────────────────────────────────────────────
-/** الدفع حالياً كاش فقط */
-export const PAYMENT_METHOD_LABELS: Record<AdminOrder["paymentMethod"], string> = {
-  cash: "كاش",
-};
+/** الدفع: كاش عند الاستلام أو تحويل فودافون كاش / إنستاباي */

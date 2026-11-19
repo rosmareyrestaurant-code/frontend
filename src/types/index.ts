@@ -1,33 +1,46 @@
 /**
- * تعريفات الأنواع المشتركة لمشروع Rosemary
+ * تعريفات الأنواع المشتركة لمشروع Rozmaly — واجهة العملاء والـ API
+ * الأنواع القديمة محفوظة كما هي لكي لا تنكسر الواجهات الحالية أثناء الربط التدريجي.
  */
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
   data?: T;
-  error?: string;
+  error?: { code: string; message: string };
 }
 
 export type ArabicDirection = "rtl" | "ltr";
 
+/* ─── التصنيفات ─────────────────────────────────────────────────── */
 export interface Category {
   id: string;
   name: string;
+  nameEn?: string;
   slug: string;
   image: string;
+  description?: string;
   itemCount?: number;
 }
 
+/* ─── أحجام وإضافات المنتج ──────────────────────────────────────── */
 export interface ProductSize {
   id: string;
-  name: string;        // اسم الحجم مثل: صغير، وسط، كبير، سنجل، دبل
-  detail?: string;      // تفاصيل توضيحية مثل: 24 سم، شخصين، 300 جم
-  price: number;       // سعر هذا الحجم
+  name: string; // اسم الحجم مثل: صغير، وسط، كبير، سنجل، دبل
+  detail?: string; // تفاصيل توضيحية مثل: 24 سم، شخصين، 300 جم
+  price: number; // سعر هذا الحجم
   originalPrice?: number;
   isDefault?: boolean;
 }
 
+export interface ProductAddon {
+  id: string;
+  name: string; // اسم الإضافة مثل: جبنة إضافية، صوص حار
+  price: number;
+  isDefault?: boolean;
+}
+
+/* ─── المنتج (واجهة العميل) ─────────────────────────────────────── */
 export interface Product {
   id: string;
   name: string;
@@ -38,8 +51,10 @@ export interface Product {
   category: string;
   isPopular?: boolean;
   sizes?: ProductSize[];
+  addons?: ProductAddon[];
 }
 
+/* ─── البانرات والعروض (واجهة العميل) ───────────────────────────── */
 export interface OfferBannerData {
   id: string;
   title: string;
@@ -65,7 +80,7 @@ export interface HeroSlideData {
   ctaLink?: string;
 }
 
-/** بيانات العميل في فورم الشيكاوت */
+/* ─── العميل والسلة ─────────────────────────────────────────────── */
 export interface CustomerInfo {
   name: string;
   phone: string;
@@ -73,18 +88,78 @@ export interface CustomerInfo {
   notes: string;
   lat?: number;
   lng?: number;
-  /** منطقة التوصيل المستنتجة من العنوان الذي كتبه العميل (من إعدادات الإدمن) */
+  /** منطقة التوصيل المختارة (من إعدادات الإدمن) */
   areaId?: string;
   areaName?: string;
 }
 
-/** بيانات الطلب المكتمل */
+/** عنصر السلة المخزّن في Session Storage (مراجع فقط — بدون أسعار) */
+export interface CartItemInput {
+  productId: string;
+  quantity: number;
+  sizeId?: string;
+  addonIds?: string[];
+  notes?: string;
+}
+
+/**
+ * عنصر السلة المعروض في الواجهة (بعد hydratation من الـ API).
+ * حقل product كائن كامل عشان أي مكوّن موجود يستهلك item.product.price/name/image يظل يعمل.
+ */
+export interface CartItem {
+  product: Product;
+  quantity: number;
+  sizeId?: string;
+  addonIds?: string[];
+  notes?: string;
+}
+
+/* ─── حالات الطلب ───────────────────────────────────────────────── */
+export type OrderStatus = "pending" | "delivered" | "cancelled";
+
+/** طرق الدفع المتاحة */
+export type PaymentMethod = "cash" | "vodafone_cash" | "instapay";
+
+/** snapshot لعنصر داخل الطلب (محفوظ وقت إنشاء الطلب) */
+export interface OrderItemSnapshot {
+  productId: string;
+  productName: string;
+  productImage: string;
+  selectedSize?: { id: string; name: string; price: number };
+  selectedAddons: { id: string; name: string; price: number }[];
+  quantity: number;
+  unitPrice: number;
+  itemTotal: number;
+  notes?: string;
+}
+
+/** الطلب كما يراه العميل من الـ Public API (بيانات محدودة) */
+export interface PublicOrder {
+  id: string;
+  orderNumber: string;
+  accessToken: string;
+  customer: CustomerInfo;
+  items: OrderItemSnapshot[];
+  subtotal: number;
+  deliveryFee: number;
+  discount: number;
+  total: number;
+  paymentMethod: PaymentMethod;
+  paymentProofUrl?: string;
+  orderStatus: OrderStatus;
+  createdAt: string;
+}
+
+/**
+ * النوع القديم للطلب المستخدم حالياً في ShopContext وصفحة order-confirmation.
+ * محفوظ للتوافق مع الواجهات الحالية؛ سيتم استبداله بـ PublicOrder عند ربط الواجهة.
+ */
 export interface Order {
   id: string;
-  items: import("@/context/ShopContext").CartItem[];
+  items: CartItem[];
   customer: CustomerInfo;
   subtotal: number;
   total: number;
-  status: "pending" | "confirmed" | "cancelled";
+  status: "pending" | "delivered" | "cancelled";
   createdAt: string;
 }

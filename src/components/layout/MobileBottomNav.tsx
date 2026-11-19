@@ -2,23 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, UtensilsCrossed, BookImage, Tag, Heart, ShoppingBag } from "lucide-react";
+import { Home, UtensilsCrossed, Tag, Heart, ShoppingBag } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 
 const navItems = [
-  { icon: Home,            label: "الرئيسية", href: "/",       action: null },
-  { icon: UtensilsCrossed, label: "الأكلات",  href: "/menu",   action: null },
+  { icon: Home,            label: "الرئيسية", href: "/",     action: null },
+  { icon: UtensilsCrossed, label: "الأكلات",  href: "/menu", action: null },
   { icon: Tag,             label: "العروض",   href: "/offers", action: null },
-  { icon: BookImage,       label: "المنيو",   href: null,      action: "menuImage"  as const },
-  { icon: Heart,           label: "المفضلة", href: null,      action: "favorites"  as const },
-  { icon: ShoppingBag,     label: "السلة",    href: null,      action: "cart"       as const },
+  { icon: Heart,           label: "المفضلة", href: null,     action: "favorites" as const },
+  { icon: ShoppingBag,     label: "السلة",    href: null,     action: "cart" as const },
 ];
 
-type Action = "cart" | "favorites" | "menuImage" | null;
+type Action = "cart" | "favorites" | null;
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const { cartCount, favoritesCount, setIsCartOpen, setIsFavoritesOpen, setIsMenuImageOpen } = useShop();
+  const { cartCount, favoritesCount, setIsCartOpen, setIsFavoritesOpen } = useShop();
 
   const getBadge = (action: Action) => {
     if (action === "cart"      && cartCount      > 0) return cartCount;
@@ -32,7 +31,6 @@ export default function MobileBottomNav() {
   const handleAction = (action: Action) => {
     if (action === "cart")      setIsCartOpen(true);
     if (action === "favorites") setIsFavoritesOpen(true);
-    if (action === "menuImage") setIsMenuImageOpen(true);
   };
 
   return (
@@ -41,7 +39,7 @@ export default function MobileBottomNav() {
       className="fixed bottom-0 inset-x-0 z-50 lg:hidden"
       aria-label="قائمة الموبايل السفلية"
     >
-      <div className="rounded-t-2xl border-t border-[#25201c] bg-[#0e0d0c]/95 px-1 pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] backdrop-blur-md pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+      <div className="rounded-t-2xl border-t border-[#25201c] bg-[#F2F2ED]/95 px-1 pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] backdrop-blur-md pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
         <div className="flex items-end justify-around gap-0.5 h-16">
           {navItems.map((item) => {
             const Icon   = item.icon;
@@ -59,7 +57,7 @@ export default function MobileBottomNav() {
                       transition-all duration-200
                       ${isActive
                         ? "bg-[#ff7a00]/12 border-[#ff7a00]/30"
-                        : "bg-[#1b1714]/60 border-[#2d2620]/70"}
+                        : "bg-[#F2F2ED]/60 border-[#2d2620]/70"}
                       group-hover:border-[#ff7a00]/40 group-active:scale-95
                     `}
                   >
@@ -70,8 +68,8 @@ export default function MobileBottomNav() {
                     <Icon
                       className={`
                         relative z-10 h-4 w-4 transition-colors duration-200
-                        ${isActive ? "text-[#ff7a00]" : "text-[#9e9188]"}
-                        group-hover:text-white
+                        ${isActive ? "text-[#fff]" : "text-[#9e9188]"}
+                        group-hover:!text-[#fff]
                       `}
                       strokeWidth={isActive ? 2.2 : 1.8}
                     />
@@ -81,7 +79,7 @@ export default function MobileBottomNav() {
                   {badge !== null && (
                     <span className={`
                       absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center
-                      rounded-full text-[8px] font-bold text-white z-30 shadow-md
+                      rounded-full text-[8px] font-bold text-[#fff] z-30 shadow-md
                       ${getBadgeColor(item.action)}
                     `}>
                       {badge}
@@ -91,7 +89,7 @@ export default function MobileBottomNav() {
 
                 {/* التسمية */}
                 <span className={`
-                  text-[9px] font-semibold leading-none transition-colors duration-200 mb-1
+                  text-[10px] font-semibold leading-none transition-colors duration-200 mb-1
                   ${isActive ? "text-[#ff7a00]" : "text-[#6b6259]"}
                   group-hover:text-[#ff7a00]
                 `}>

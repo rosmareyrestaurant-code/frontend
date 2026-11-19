@@ -46,101 +46,84 @@ export default function ProductCard({ product: baseProduct }: ProductCardProps) 
           setSelectedProduct(product);
         }
       }}
-      className="group relative flex h-full flex-col justify-between rounded-2xl bg-gradient-to-b from-[#181411] to-[#100e0c] p-3.5 border border-[#26201a] shadow-lg shadow-black/40 cursor-pointer select-none sm:p-3"
+      className="group relative flex h-full flex-col rounded-2xl border border-[#e8e3d8] bg-white shadow-[0_2px_10px_rgba(24,24,14,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(24,24,14,0.12)] cursor-pointer select-none"
     >
-      {/* بادج الخصم: نصه فوق الكارت ونصه جوه — زي عدّاد بانرات العروض */}
+      {/* بادج الخصم: نصه متداخل مع الكارت ونصه خارجه */}
       {discountPercent && (
-        <span className="absolute top-0 right-3 z-20 inline-flex -translate-y-1/2 items-center rounded-full bg-gradient-to-r from-[#ef4444] to-[#ff7a00] px-3 py-1 text-[11px] font-black text-white shadow-lg shadow-black/50 ring-2 ring-[#0b0a09] select-none">
+        <span className="absolute -top-2.5 left-3 z-20 rounded-md bg-[#b45309] px-2.5 py-1 text-[10px] font-bold leading-none text-[#fff] shadow-md shadow-black/20">
           خصم {discountPercent}%
         </span>
       )}
 
-      {/* صورة المنتج — مع مسافة تفصل بين البادج المعلق والصورة */}
-      <div className="group/img relative mx-auto mt-2.5 h-32 w-full overflow-hidden rounded-xl bg-[#14110e] sm:h-36">
+      {/* صورة المنتج — تغطي أعلى الكارت وجوانبه بدون فراغ */}
+      <div className="relative aspect-[5/3] w-full overflow-hidden rounded-t-2xl bg-[#f4f1ea]">
         <Image
           src={product.image} unoptimized={product.image.startsWith("data:")}
           alt={product.name}
           fill
-          className="object-cover transition-transform duration-500 ease-out group-hover/img:scale-110"
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           sizes="(max-width: 640px) 220px, 260px"
         />
       </div>
 
       {/* تفاصيل المنتج */}
-      <div className="mt-2.5 space-y-1 text-right">
-        <h3 className="text-sm font-bold text-white transition-colors line-clamp-1">
+      <div className="flex flex-1 flex-col px-2.5 pb-2.5 pt-2 text-center">
+        <h3 className="line-clamp-1 text-[13px] font-black leading-snug text-[#26352B] transition-colors group-hover:text-[#5E7054] sm:text-sm">
           {product.name}
         </h3>
         {product.description && (
-          <p className="text-[11px] text-[#8c8277] line-clamp-1 leading-relaxed">
+          <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-[#9a938a]">
             {product.description}
           </p>
         )}
-      </div>
 
-      {/* منطقة السعر والأزرار في الأسفل */}
-      <div className="mt-3 flex items-center justify-between pt-2.5 border-t border-[#231e18]">
-        {/* السعر الحالي وبجانبه السعر القديم المشطوب بخط خفيف */}
-        <div className="flex min-w-0 flex-1 items-baseline gap-2 flex-wrap">
-          {/* السعر الحالي */}
-          <div className="flex items-baseline gap-1">
-            <span className="text-base sm:text-lg font-black text-[#ff7a00]">
+        <div className="mt-auto pt-2.5">
+          {/* السعر الحالي وبجانبه السعر القديم المشطوب */}
+          <div className="flex items-baseline justify-center gap-2">
+            <span className="text-[17px] font-black leading-none text-[#26352B]">
               {product.price}
+              <span className="mr-1 text-[11px] font-bold">ج.م</span>
             </span>
-            <span className="text-[11px] font-bold text-[#a89f94]">
-              ج.م
-            </span>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className="text-[11px] font-medium text-[#a29a90] line-through decoration-[#a29a90]/70 decoration-1">
+                {product.originalPrice} ج.م
+              </span>
+            )}
           </div>
 
-          {/* السعر القديم المشطوب بخط خفيف وأنيق */}
-          {product.originalPrice && product.originalPrice > product.price && (
-            <span className="text-xs sm:text-sm font-medium text-[#8a8175] line-through decoration-[#8a8175]/60 decoration-1">
-              {product.originalPrice} ج.م
-            </span>
-          )}
-        </div>
+          {/* زر إضافة للسلة + المفضلة */}
+          <div className="mt-2.5 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleOpenModal}
+              aria-label={`تحديد كمية وملاحظات ${product.name}`}
+              className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#5E7054] text-[12px] font-bold leading-none text-[#fff] transition-colors duration-200 hover:bg-[#526247] active:scale-[0.99]"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              أضف للسلة
+            </button>
 
-        {/* أزرار الإجراءات: المفضلة (أحمر) + السلة (برتقالي) بتصميم مربع rounded-xl متناسق */}
-        <div className="flex shrink-0 items-center gap-1">
-          {/* زر المفضلة — مربع rounded-xl ويمتلئ بالأحمر عند الهاوفر */}
-          <button
-            type="button"
-            onClick={handleToggleFavorite}
-            aria-label={favorited ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
-            className={`group/fav relative flex h-9 w-9 items-center justify-center rounded-xl border transition-all duration-200 overflow-hidden active:scale-90 ${
-              favorited
-                ? "bg-[#ff3b30] border-[#ff3b30] text-white shadow-md shadow-red-900/30"
-                : "bg-[#1c1815] border-[#2b241e] hover:border-[#ff3b30]/60"
-            }`}
-          >
-            {!favorited && (
-              <span
-                className="absolute inset-0 bg-[#ff3b30] translate-y-full group-hover/fav:translate-y-0 transition-transform duration-300 ease-out rounded-xl"
-                aria-hidden="true"
+            <button
+              type="button"
+              onClick={handleToggleFavorite}
+              aria-label={favorited ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
+              className="group/fav relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#899B83] bg-white transition-colors duration-200 active:scale-95"
+            >
+              {!favorited && (
+                <span
+                  className="absolute inset-0 translate-y-full rounded-lg bg-[#526B58] transition-transform duration-300 ease-out group-hover/fav:translate-y-0"
+                  aria-hidden="true"
+                />
+              )}
+              <Heart
+                className={`relative z-10 h-4 w-4 transition-colors duration-200 ${
+                  favorited
+                    ? "fill-[#ff3b30] text-[#ff3b30]"
+                    : "text-[#526B58] group-hover/fav:text-[#fff]"
+                }`}
               />
-            )}
-            <Heart
-              className={`relative z-10 h-4 w-4 transition-colors duration-200 sm:h-3.5 sm:w-3.5 ${
-                favorited
-                  ? "fill-white text-white"
-                  : "text-[#a89f94] group-hover/fav:text-white"
-              }`}
-            />
-          </button>
-
-          {/* زر السلة — يفتح نافذة تفاصيل الوجبة والملاحظات والكميات */}
-          <button
-            type="button"
-            onClick={handleOpenModal}
-            aria-label={`تحديد كمية وملاحظات ${product.name}`}
-            className="group/cart relative flex h-9 w-9 items-center justify-center rounded-xl font-bold transition-all duration-200 active:scale-90 overflow-hidden shadow-sm bg-[#1c1815] border border-[#2b241e] hover:border-[#ff7a00]/60"
-          >
-            <span
-              className="absolute inset-0 bg-[#ff7a00] translate-y-full group-hover/cart:translate-y-0 transition-transform duration-300 ease-out rounded-xl"
-              aria-hidden="true"
-            />
-            <ShoppingCart className="relative z-10 h-4 w-4 text-[#a89f94] group-hover/cart:text-white transition-colors duration-200 sm:h-3.5 sm:w-3.5" />
-          </button>
+            </button>
+          </div>
         </div>
       </div>
     </div>

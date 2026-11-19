@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, Bell, ShieldCheck } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard":            "الرئيسية",
@@ -23,35 +24,47 @@ interface AdminTopbarProps {
 export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
   const pathname = usePathname();
   const title = PAGE_TITLES[pathname] ?? "لوحة التحكم";
+  const isHome = pathname === "/dashboard";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-[#1f1a17] bg-[#0e0d0c]/95 backdrop-blur-sm px-4 sm:px-6 shrink-0">
-      {/* Right: menu toggle + title */}
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-30 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-[#ECE7DC] bg-[#F6F4EF]/95 px-4 backdrop-blur-sm sm:px-6">
+      <div className="flex min-w-0 items-center gap-3">
         <button
           onClick={onMenuToggle}
-          className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl bg-[#1c1613] border border-[#2a231d] text-[#a89f94] hover:text-white transition-colors"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#E7E2D6] text-[#6B7264] transition-colors hover:bg-[#ECE9E0] lg:hidden"
           aria-label="فتح القائمة"
         >
           <Menu className="h-4 w-4" />
         </button>
-        <h1 className="text-base font-black text-white">{title}</h1>
+        {!isHome && (
+          <h1 className="truncate text-[13px] font-black text-[#333B2E]">{title}</h1>
+        )}
       </div>
 
-      {/* Left: actions + admin info */}
-      <div className="flex items-center gap-2">
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-[#1c1613] border border-[#2a231d] text-[#a89f94] hover:text-white transition-colors">
-          <Bell className="h-4 w-4" />
-          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-[#ff7a00]" />
+      <div className="flex shrink-0 items-center gap-2.5">
+        <button
+          className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#E7E2D6] bg-[#FBF9F6] text-[#6B7264] transition-colors hover:bg-[#EFECE3]"
+          aria-label="الإشعارات"
+        >
+          <Bell className="h-[17px] w-[17px]" />
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#D9534F] px-1 text-[9px] font-bold text-[#fff]">
+            3
+          </span>
         </button>
 
-        <div className="flex items-center gap-2 rounded-xl bg-[#1c1613] border border-[#2a231d] px-3 py-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#ff7a00]/15 text-[#ff7a00]">
-            <ShieldCheck className="h-3.5 w-3.5" />
+        <div className="flex items-center gap-2.5 rounded-full border border-[#ECE7DC] bg-[#FBF9F6] py-1 pe-1 ps-2.5">
+          <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-[#D6DCCF]">
+            <Image
+              src="/images/admin/admin-avatar.png"
+              alt="صورة المدير"
+              fill
+              sizes="32px"
+              className="object-cover"
+            />
           </div>
-          <div className="hidden sm:block">
-            <p className="text-xs font-bold text-white leading-none">أ/ محمد هشام</p>
-            <p className="text-[10px] text-[#8a8076] leading-none mt-0.5">المدير العام • مسؤول النظام</p>
+          <div className="min-w-0">
+            <p className="truncate text-[12px] font-black leading-none text-[#333B2E]">محمد هشام</p>
+            <p className="mt-1 text-[10px] font-semibold leading-none text-[#8F9186]">مدير النظام</p>
           </div>
         </div>
       </div>

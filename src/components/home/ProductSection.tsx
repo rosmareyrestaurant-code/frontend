@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Product } from "@/types";
 import { useCatalogProducts } from "@/hooks/useCatalog";
+import SliderArrow from "@/components/common/SliderArrow";
 import ProductScroller from "./ProductScroller";
 import SectionHeading from "./SectionHeading";
 
@@ -34,7 +34,7 @@ export default function ProductSection({
   return (
     <section
       id={id}
-      className="w-full bg-[#0b0a09] py-8 sm:py-10 scroll-mt-20 sm:scroll-mt-24 transition-all"
+      className="w-full bg-[#F2F2ED] py-8 sm:py-10 scroll-mt-20 sm:scroll-mt-24 transition-all"
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* رأس القسم الموحّد: شريط برتقالي + كلمة تمهيدية + العنوان + أسهم التمرير */}
@@ -42,22 +42,20 @@ export default function ProductSection({
           title={title}
           actions={
             <>
-              {/* سهم يمين (للخلف في RTL) */}
-              <button
+              {/* سهم يمين (للخلف في RTL) — يتملّى من اليمين عند الهاوفر */}
+              <SliderArrow
+                direction="right"
                 onClick={() => scroll("right")}
-                aria-label={`تمرير ${title} يميناً`}
-                className="hidden h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-[#2b241e] bg-[#1a1613] text-[#a89f94] transition-all duration-200 hover:border-[#ff7a00] hover:bg-[#ff7a00] hover:text-white hover:scale-105 active:scale-95 shadow-sm sm:flex"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              {/* سهم يسار (للأمام في RTL) */}
-              <button
+                ariaLabel={`تمرير ${title} يميناً`}
+                className="relative hidden h-9 w-9 sm:flex sm:h-10 sm:w-10"
+              />
+              {/* سهم يسار (للأمام في RTL) — يتملّى من الشمال عند الهاوفر */}
+              <SliderArrow
+                direction="left"
                 onClick={() => scroll("left")}
-                aria-label={`تمرير ${title} يساراً`}
-                className="hidden h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-[#2b241e] bg-[#1a1613] text-[#a89f94] transition-all duration-200 hover:border-[#ff7a00] hover:bg-[#ff7a00] hover:text-white hover:scale-105 active:scale-95 shadow-sm sm:flex"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
+                ariaLabel={`تمرير ${title} يساراً`}
+                className="relative hidden h-9 w-9 sm:flex sm:h-10 sm:w-10"
+              />
             </>
           }
         />

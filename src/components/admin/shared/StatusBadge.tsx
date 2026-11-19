@@ -1,15 +1,15 @@
 import { OrderStatus, ORDER_STATUS_LABELS } from "@/types/admin";
 
 const STATUS_STYLES: Record<OrderStatus, string> = {
-  pending:   "bg-yellow-500/15  text-yellow-400  border-yellow-500/30",
-  delivered: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  cancelled: "bg-red-500/15     text-red-400     border-red-500/30",
+  pending: "bg-[#FEF3D9] text-[#B98A2C]",
+  delivered: "bg-[#E3F0DE] text-[#4F8A57]",
+  cancelled: "bg-[#FAE4E0] text-[#C25B4F]",
 };
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLES[status]}`}
+      className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-[10.5px] font-bold ${STATUS_STYLES[status]}`}
     >
       {ORDER_STATUS_LABELS[status]}
     </span>
@@ -19,10 +19,10 @@ export function StatusBadge({ status }: { status: OrderStatus }) {
 export function AvailabilityBadge({ available }: { available: boolean }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10.5px] font-bold ${
         available
-          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-          : "bg-red-500/15 text-red-400 border-red-500/30"
+          ? "bg-[#E3F0DE] text-[#4F8A57]"
+          : "bg-[#FBE4E0] text-[#C25B4F]"
       }`}
     >
       {available ? "متاح" : "غير متاح"}
@@ -33,10 +33,10 @@ export function AvailabilityBadge({ available }: { available: boolean }) {
 export function VisibilityBadge({ visible }: { visible: boolean }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10.5px] font-bold ${
         visible
-          ? "bg-sky-500/15 text-sky-400 border-sky-500/30"
-          : "bg-zinc-500/15 text-zinc-400 border-zinc-500/30"
+          ? "bg-[#E8EFF7] text-[#5B7FA3]"
+          : "bg-[#F0EDE5] text-[#8F9186]"
       }`}
     >
       {visible ? "ظاهر" : "مخفي"}
@@ -47,10 +47,10 @@ export function VisibilityBadge({ visible }: { visible: boolean }) {
 export function ActiveBadge({ active }: { active: boolean }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10.5px] font-bold ${
         active
-          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-          : "bg-zinc-500/15 text-zinc-400 border-zinc-500/30"
+          ? "bg-[#E3F0DE] text-[#4F8A57]"
+          : "bg-[#F0EDE5] text-[#8F9186]"
       }`}
     >
       {active ? "مفعّل" : "معطّل"}

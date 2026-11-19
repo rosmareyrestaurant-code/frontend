@@ -1,92 +1,107 @@
-import type { Metadata } from "next";
-import { Bike, ChefHat, Leaf } from "lucide-react";
-import StackedGallery from "@/components/about/StackedGallery";
-import { GALLERY_IMAGES } from "@/data/aboutData";
+"use client";
 
-export const metadata: Metadata = {
-  title: "عن روزماري | مطعم روزماري",
-  description: "تعرّف على روزماري — قصتنا ومكوناتنا الطازجة",
-};
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, Bike, ChefHat, Leaf } from "lucide-react";
+import StackedGallery from "@/components/about/StackedGallery";
+
+// ─── Mock Data fallback مؤقت للتصميم ───────────────────────────────
+// TODO: أعِد تعليق هذا بعد الانتهاء من اختبار التصميم
+import { GALLERY_IMAGES } from "@/data/aboutData";
+// ────────────────────────────────────────────────────────────────────
+
+const DEFAULT_GALLERY = GALLERY_IMAGES;
+
+const FEATURES = [
+  { icon: Leaf, text: "مكونات طازجة دائماً" },
+  { icon: ChefHat, text: "مذاق لا يُقاوم" },
+  { icon: Bike, text: "توصيل سريع لكل أنحاء مصر" },
+];
 
 export default function AboutPage() {
+  const [gallery, setGallery] = useState(DEFAULT_GALLERY);
+
+  useEffect(() => {
+    fetch("/api/settings/public").then(r => r.json()).then(d => {
+      if (d.success) {
+        const s = d.data;
+        if (s.galleryImages?.length) setGallery(s.galleryImages);
+      }
+    }).catch(() => {});
+  }, []);
+
   return (
-    <main className="min-h-screen bg-[#0b0a09] text-white">
-
-      {/* ══════════════════════════════════════════
-          Section 1 — Page Hero
-      ══════════════════════════════════════════ */}
-      <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">
-        <div
-          className="pointer-events-none absolute -top-32 right-0 h-[500px] w-[500px] rounded-full opacity-[0.07]"
-          style={{ background: "radial-gradient(circle, #ff7a00 0%, transparent 70%)" }}
-          aria-hidden="true"
-        />
-
-        <div className="relative mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight text-white">
-            عن روزماري
+    <main className="min-h-screen bg-[#F2F2ED] text-[#56624A]">
+      {/* ─── الهيرو: من نحن ─── */}
+      <section className="pt-10 pb-6 text-center sm:pt-14 lg:pt-16">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <h1 className="text-4xl font-black leading-tight text-[#56624A] sm:text-5xl lg:text-[54px]">
+            من نحن
           </h1>
-
-          <p className="mx-auto mt-5 max-w-xl text-sm sm:text-base text-[#8c8277] leading-relaxed">
-            روزماري — بيتزا وكريب ووجبات بتتعمل طازجة كل يوم. خلينا نعرّفك علينا.
+          <p className="mt-3 text-sm font-semibold text-[#5E7054] sm:text-base lg:text-lg">
+            قصة روزماري .. نكهة مختلفة
           </p>
+          <span
+            className="mx-auto mt-4 block h-[3px] w-16 rounded-full bg-[#3F4A3C]"
+            aria-hidden="true"
+          />
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════
-          Section 2 — About + Stacked Gallery
-      ══════════════════════════════════════════ */}
-      <section className="py-14 sm:py-18 lg:py-20 border-t border-[#141210]">
+      {/* ─── الحكاية: صورة + نص ─── */}
+      <section className="py-10 sm:py-14">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-14 lg:grid-cols-2 lg:gap-20 items-center">
+          <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
+            {/* النص — يمين الصفحة في RTL */}
+            <div className="order-1">
+              <h2 className="text-3xl font-black leading-[1.2] text-[#56624A] sm:text-4xl lg:text-[50px]">
+                حكايتنا تبدأ
+                <br />
+                من هنا
+              </h2>
+              <span
+                className="mt-5 block h-[3px] w-24 rounded-full bg-[#3F4A3C]"
+                aria-hidden="true"
+              />
 
-            {/* ── الجانب الأيمن: النص ── */}
-            <div className="order-1 space-y-7">
-              <div>
-                <h2 className="text-3xl sm:text-4xl font-black text-white leading-snug">
-                  حكايتنا تبدأ
-                  <br />
-                  <span className="text-[#ff7a00]">من هنا</span>
-                </h2>
-              </div>
-
-              <div className="space-y-4 text-[#8c8277] text-sm sm:text-base leading-relaxed">
+              <div className="mt-7 space-y-5 text-sm font-bold leading-relaxed text-[#4E5C4C] sm:text-base lg:text-lg">
                 <p>
-                  بدأنا روزماري بفكرة بسيطة: الأكل الحلو مش محتاج بهرجة. وجبة
-                  تتعمل بجد، وتوصلك سخنة، وسعرها يستاهل.
+                  روزماري هو موقع مصري لطلب الطعام أونلاين، متخصص في البيتزا
+                  والبرجر والكريب والباستا.
                 </p>
                 <p>
-                  بنجيب المكونات طازجة كل يوم، وبنحضّر طلبك بعد ما تطلبه — مش
-                  قبلها. مفيش أسرار كبيرة عندنا؛ السر كله في التفاصيل: العجينة
-                  تخمر صح، والجبنة تذوب صح، والبطاطس توصلك مقرمشة.
-                </p>
-                <p>
-                  من البيتزا والكريب للسندوتشات والمكرونة والمشروبات — عندنا
-                  حاجة تناسب كل مزاج، في أي وقت.
+                  نحن نؤمن أن الطعام ليس مجرد وجبة، بل تجربة ممتعة تجمع العائلة
+                  والأصدقاء بأفضل نكهة وأعلى جودة.
                 </p>
               </div>
 
-              <ul className="space-y-3">
-                {[
-                  { icon: Leaf, text: "مكونات بنجيبها طازجة كل يوم" },
-                  { icon: ChefHat, text: "كل وجبة بتتعمل بعد طلبك، مش متحضّرة من قبل" },
-                  { icon: Bike, text: "توصيل سريع عشان توصلك سخنة" },
-                ].map(({ icon: Icon, text }) => (
-                  <li key={text} className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#ff7a00]/10 border border-[#ff7a00]/15">
-                      <Icon className="h-3.5 w-3.5 text-[#ff7a00]" />
+              <ul className="mt-8 space-y-4">
+                {FEATURES.map(({ icon: Icon, text }) => (
+                  <li key={text} className="flex items-center gap-3.5">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#BCC8B4] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+                      <Icon className="h-5 w-5 text-[#56624A]" strokeWidth={1.9} />
                     </span>
-                    <span className="text-sm text-[#c4b9ad] leading-relaxed">
+                    <span className="text-base font-bold text-[#56624A] sm:text-lg">
                       {text}
                     </span>
                   </li>
                 ))}
               </ul>
+
+              <div className="mt-9">
+                <Link
+                  href="/menu"
+                  className="inline-flex items-center gap-3 rounded-full bg-[#56624A] px-8 py-3.5 text-sm font-bold text-[#fff] shadow-[0_10px_24px_rgba(86,98,74,0.35)] transition-all duration-200 hover:bg-[#4A5540] hover:scale-[1.02] active:scale-95 sm:text-base"
+                >
+                  <span>اعرف المزيد</span>
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                </Link>
+              </div>
             </div>
 
-            {/* ── الجانب الأيسر: معرض الصور ── */}
+            {/* الصورة — يسار الصفحة في RTL */}
             <div className="order-2">
-              <StackedGallery images={GALLERY_IMAGES} />
+              <StackedGallery images={gallery} />
             </div>
           </div>
         </div>

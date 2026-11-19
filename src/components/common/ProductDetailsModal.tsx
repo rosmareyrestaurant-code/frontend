@@ -82,13 +82,6 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
     ? selectedSize.originalPrice
     : product.originalPrice;
 
-  const discountPercent =
-    effectiveOriginalPrice && effectiveOriginalPrice > effectivePrice
-      ? Math.round(
-          ((effectiveOriginalPrice - effectivePrice) / effectiveOriginalPrice) * 100
-        )
-      : null;
-
   const lineTotal = effectivePrice * quantity;
 
   const handleAddToCart = () => {
@@ -117,27 +110,44 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
   };
 
   const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const touchStartY = useRef<number | null>(null);
+  const dragYRef = useRef(0);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (window.matchMedia("(min-width: 640px)").matches) return;
     touchStartY.current = e.touches[0]?.clientY ?? null;
+    dragYRef.current = 0;
+    setIsDragging(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartY.current === null) return;
     const distance = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
-    if (distance > 0) setDragY(Math.min(distance, 180));
+    const nextY = distance > 0 ? Math.min(distance, 520) : 0;
+    dragYRef.current = nextY;
+    setDragY(nextY);
   };
 
   const handleTouchEnd = () => {
-    if (dragY > 90) requestClose();
+    if (dragYRef.current >= 120) requestClose();
+    else {
+      setDragY(0);
+      dragYRef.current = 0;
+    }
+    setIsDragging(false);
+    touchStartY.current = null;
+  };
+
+  const handleTouchCancel = () => {
     setDragY(0);
+    dragYRef.current = 0;
+    setIsDragging(false);
     touchStartY.current = null;
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden select-none">
+    <div className="fixed inset-0 z-50 overflow-hidden">
       {/* خلفية معتمة (Backdrop) */}
       <div
         onClick={requestClose}
@@ -153,78 +163,58 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
           role="dialog"
           aria-modal="true"
           aria-labelledby="product-modal-title"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ transform: dragY > 0 ? `translateY(${dragY}px)` : undefined, transition: dragY > 0 ? "none" : undefined }}
-          className={`w-full sm:max-w-lg bg-[#130f0d] border border-[#2b241e] shadow-2xl flex flex-col text-white max-sm:rounded-t-[30px] sm:rounded-3xl max-sm:max-h-[88vh] sm:max-h-[90vh] overflow-hidden ${
+          style={{
+            transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
+            transition: isDragging ? "none" : "transform 280ms cubic-bezier(.16,1,.3,1)",
+          }}
+          className={`w-full sm:max-w-lg bg-[#F2F2ED] border border-[#2b241e] shadow-2xl flex flex-col text-white max-sm:rounded-t-[30px] sm:rounded-3xl max-sm:max-h-[88vh] sm:max-h-[90vh] overflow-hidden ${
             isClosing
               ? "anim-sheet-or-modal-out pointer-events-none"
               : "anim-sheet-or-modal pointer-events-auto"
           }`}
         >
-          {/* مقبض السحب للموبايل */}
-          <div className="w-12 h-1.5 rounded-full bg-[#3d332a] mx-auto mt-3 mb-1 sm:hidden shrink-0" />
+          {/* صورة المنتج تغطي أعلى الموديل وجوانبه بالكامل */}
+          <div
+            className={`relative w-full overflow-hidden bg-[#F2F2ED] group shrink-0 ${
+              product.image.includes("/promo/")
+                ? "aspect-[3967/1475]"
+                : "h-48 sm:h-56"
+            }`}
+          >
+            <Image
+              src={product.image} unoptimized={product.image.startsWith("data:")}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, 500px"
+              priority
+            />
 
-          {/* رأس الموديل مع زر الإغلاق وزر المفضلة */}
-          <div className="flex items-center justify-between px-5 pt-3 sm:pt-4 pb-2 shrink-0">
-            {/* شارة الخصم */}
-            <div className="flex items-center gap-2">
-              {discountPercent && (
-                <span className="inline-flex items-center rounded-full bg-gradient-to-r from-[#ef4444] to-[#ff7a00] px-3.5 py-1 text-xs font-black text-white shadow-lg border border-white/20">
-                  خصم {discountPercent}%
-                </span>
-              )}
+            {/* مقبض السحب للموبايل — فوق الصورة */}
+            <div
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchCancel}
+              className="absolute top-1.5 left-1/2 z-20 flex h-8 w-24 -translate-x-1/2 touch-none items-center justify-center sm:hidden"
+              aria-label="اسحب لأسفل لإغلاق تفاصيل المنتج"
+            >
+              <span className="h-1.5 w-11 rounded-full bg-white/85 shadow-[0_1px_5px_rgba(0,0,0,0.45)]" />
             </div>
 
-            <div className="flex items-center gap-2">
-              {/* زر المفضلة */}
-              <button
-                type="button"
-                onClick={handleToggleFavorite}
-                aria-label={favorited ? "إزالة من المفضلة" : "إضافة للمفضلة"}
-                className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all active:scale-90 ${
-                  favorited
-                    ? "bg-[#ff3b30] border-[#ff3b30] text-white shadow-md shadow-red-900/40"
-                    : "bg-[#1c1613] border-[#2b241e] text-[#a89f94] hover:text-white hover:bg-[#251e19]"
-                }`}
-              >
-                <Heart
-                  className={`h-4 w-4 ${favorited ? "fill-white" : ""}`}
-                />
-              </button>
-
-              {/* زر إغلاق الموديل */}
-              <button
-                type="button"
-                onClick={requestClose}
-                aria-label="إغلاق النافذة"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1c1613] border border-[#2b241e] text-[#a89f94] hover:text-white hover:bg-[#251e19] transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            {/* زر إغلاق الموديل — واضح فوق الصورة */}
+            <button
+              type="button"
+              onClick={requestClose}
+              aria-label="إغلاق النافذة"
+              className="absolute left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/95 text-[#26352B] shadow-[0_4px_14px_rgba(0,0,0,0.35)] backdrop-blur-sm transition-all duration-200 hover:bg-white hover:scale-105 active:scale-95"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
 
           {/* محتوى الموديل القابل للتمرير */}
           <div className="flex-1 overflow-y-auto px-5 py-3 space-y-4">
-            {/* صورة المنتج الكبيرة أو البانر */}
-            <div
-              className={`relative w-full rounded-2xl overflow-hidden bg-[#181310] border border-[#26201a] group ${
-                product.image.includes("/promo/")
-                  ? "aspect-[3967/1475]"
-                  : "h-48 sm:h-56"
-              }`}
-            >
-              <Image
-                src={product.image} unoptimized={product.image.startsWith("data:")}
-                alt={product.name}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 640px) 100vw, 500px"
-                priority
-              />
-            </div>
 
             {/* تفاصيل المنتج: الاسم والأسعار والوصف */}
             <div className="space-y-2">
@@ -275,30 +265,38 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                         className={`flex flex-col items-center gap-0.5 rounded-xl border p-2.5 transition-all duration-200 ${
                           isSelected
                             ? "border-[#ff7a00] bg-[#ff7a00]/10 shadow-md shadow-[#ff7a00]/15 scale-[1.03]"
-                            : "border-[#2b241e] bg-[#181411] hover:border-[#ff7a00]/50 hover:bg-[#201712]"
+                            : "border-[#2b241e] bg-[#F2F2ED] hover:border-[#ff7a00]/50 hover:bg-[#F2F2ED]"
                         }`}
                       >
                         <span
                           className={`text-xs font-black ${
-                            isSelected ? "text-[#ff7a00]" : "text-white"
+                            isSelected ? "text-[#fff]" : "text-white"
                           }`}
                         >
                           {size.name}
                         </span>
                         {size.detail && (
-                          <span className="text-[9px] text-[#857b72] leading-tight text-center">
+                          <span
+                            className={`text-[9px] leading-tight text-center ${
+                              isSelected ? "text-[#fff]/85" : "text-[#857b72]"
+                            }`}
+                          >
                             {size.detail}
                           </span>
                         )}
                         <span
                           className={`text-xs font-bold mt-0.5 ${
-                            isSelected ? "text-[#ff7a00]" : "text-[#c4b9b0]"
+                            isSelected ? "text-[#fff]" : "text-[#c4b9b0]"
                           }`}
                         >
                           {size.price} ج.م
                         </span>
                         {size.originalPrice && size.originalPrice > size.price && (
-                          <span className="text-[9px] text-[#6b6259] line-through">
+                          <span
+                            className={`text-[9px] line-through ${
+                              isSelected ? "text-[#fff]/70" : "text-[#6b6259]"
+                            }`}
+                          >
                             {size.originalPrice} ج.م
                           </span>
                         )}
@@ -311,7 +309,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
             )}
 
             {/* اختيار الكمية */}
-            <div className="rounded-2xl bg-[#181411] border border-[#26201a] p-3.5 flex items-center justify-between">
+            <div className="rounded-2xl bg-[#F2F2ED] border border-[#26201a] p-3.5 flex items-center justify-between">
               <div>
                 <span className="text-xs sm:text-sm font-bold text-white block">
                   الكمية المطلوبة
@@ -327,7 +325,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                   disabled={quantity <= 1}
                   aria-label="تقليل الكمية"
-                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-[#231b16] border border-[#30251e] text-white hover:bg-[#ff7a00] hover:border-[#ff7a00] disabled:opacity-30 disabled:hover:bg-[#231b16] disabled:hover:border-[#30251e] transition-colors"
+                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-[#F2F2ED] border border-[#30251e] text-white hover:bg-[#ff7a00] hover:border-[#ff7a00] disabled:opacity-30 disabled:hover:bg-[#F2F2ED] disabled:hover:border-[#30251e] transition-colors"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
@@ -340,7 +338,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                   type="button"
                   onClick={() => setQuantity((prev) => prev + 1)}
                   aria-label="زيادة الكمية"
-                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-[#231b16] border border-[#30251e] text-white hover:bg-[#ff7a00] hover:border-[#ff7a00] transition-colors"
+                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-[#F2F2ED] border border-[#30251e] text-white hover:bg-[#ff7a00] hover:border-[#ff7a00] transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
@@ -371,7 +369,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                     ? "مثل: اختيارات الساندوتشات، صوصات إضافية، كانز دايت أو عادي..."
                     : "مثل: بدون بصل، صوص زيادة، درجة التسوية، بدون كاتشب..."
                 }
-                className="w-full rounded-xl bg-[#181411] border border-[#2b241e] p-3 text-xs sm:text-sm text-white placeholder-[#685f55] focus:outline-none focus:border-[#ff7a00] transition-colors resize-none"
+                className="w-full rounded-xl bg-[#F2F2ED] border border-[#2b241e] p-3 text-xs sm:text-sm text-white placeholder-[#685f55] focus:outline-none focus:border-[#ff7a00] transition-colors resize-none"
               />
               <div className="flex justify-between items-center text-[10px] text-[#736a61] px-1">
                 <span>
@@ -384,34 +382,58 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
             </div>
           </div>
 
-          {/* تذييل الموديل: زر الإضافة للسلة مع الإجمالي */}
-          <div className="p-4 sm:p-5 border-t border-[#231d17] bg-[#15110e] shrink-0">
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              disabled={isAdded}
-              className={`w-full py-3.5 rounded-xl font-bold text-sm text-white shadow-lg shadow-black/50 transition-all flex items-center justify-center gap-2 ${
-                isAdded
-                  ? "bg-emerald-600 scale-[0.99]"
-                  : "bg-gradient-to-r from-[#ff7a00] to-[#e66e00] hover:scale-[1.01] active:scale-95"
-              }`}
-            >
-              {isAdded ? (
-                <>
-                  <Check className="h-5 w-5" />
-                  <span>
-                    تمت إضافة {product.category === "offers" ? "العرض" : "الوجبة"} للسلة بنجاح!
-                  </span>
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="h-4 w-4" />
-                  <span>
-                    {product.category === "offers" ? "اطلب العرض الآن" : "أضف إلى السلة"} • {lineTotal} ج.م
-                  </span>
-                </>
-              )}
-            </button>
+          {/* تذييل الموديل: زر الإضافة للسلة مع المفضلة والإجمالي */}
+          <div className="p-4 sm:p-5 border-t border-[#231d17] bg-[#F2F2ED] shrink-0">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={isAdded}
+                className={`flex-1 py-3.5 rounded-xl font-bold text-sm text-white shadow-lg shadow-black/50 transition-all flex items-center justify-center gap-2 ${
+                  isAdded
+                    ? "bg-emerald-600 scale-[0.99]"
+                    : "bg-gradient-to-r from-[#ff7a00] to-[#e66e00] hover:scale-[1.01] active:scale-95"
+                }`}
+              >
+                {isAdded ? (
+                  <>
+                    <Check className="h-5 w-5" />
+                    <span>
+                      تمت إضافة {product.category === "offers" ? "العرض" : "الوجبة"} للسلة بنجاح!
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>
+                      {product.category === "offers" ? "اطلب العرض الآن" : "أضف إلى السلة"} • {lineTotal} ج.م
+                    </span>
+                  </>
+                )}
+              </button>
+
+              {/* زر المفضلة — بنفس هوفر كارت المنتج (امتلاء #526B58) */}
+              <button
+                type="button"
+                onClick={handleToggleFavorite}
+                aria-label={favorited ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
+                className="group/fav relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#899B83] bg-white transition-colors duration-200 active:scale-95"
+              >
+                {!favorited && (
+                  <span
+                    className="absolute inset-0 translate-y-full rounded-xl bg-[#526B58] transition-transform duration-300 ease-out group-hover/fav:translate-y-0"
+                    aria-hidden="true"
+                  />
+                )}
+                <Heart
+                  className={`relative z-10 h-5 w-5 transition-colors duration-200 ${
+                    favorited
+                      ? "fill-[#ff3b30] text-[#ff3b30]"
+                      : "text-[#526B58] group-hover/fav:text-[#fff]"
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </div>
       </div>

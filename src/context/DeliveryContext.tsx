@@ -47,7 +47,7 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
+  const loadFromStorage = useCallback(() => {
     try {
       const savedZones = localStorage.getItem(ZONES_KEY);
       const parsedZones = savedZones ? parseZones(savedZones) : null;
@@ -61,6 +61,28 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
       queueMicrotask(() => setIsLoaded(true));
     }
   }, []);
+
+  useEffect(() => {
+    // أولاً: حاول جلب المناطق من الـ API
+    fetch("/api/delivery-zones")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && Array.isArray(d.data) && d.data.length > 0) {
+          // استخدم بيانات الـ API مباشرة
+          queueMicrotask(() => {
+            setZones(d.data as DeliveryZone[]);
+            setIsLoaded(true);
+          });
+        } else {
+          // fallback للـ localStorage
+          loadFromStorage();
+        }
+      })
+      .catch(() => {
+        // API غير متاح — fallback للـ localStorage
+        loadFromStorage();
+      });
+  }, [loadFromStorage]);
 
   useEffect(() => {
     if (!isLoaded) return;

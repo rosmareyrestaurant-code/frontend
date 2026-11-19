@@ -3,27 +3,35 @@
 @theme {
   --font-sans: var(--font-cairo), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* الهوية البصرية لمطعم روزماري */
-  --color-brand-orange: #ff7a00;
-  --color-brand-orange-hover: #e66e00;
-  --color-brand-orange-light: #ff9838;
-  --color-brand-dark-bg: #0b0a09;
-  --color-brand-dark-surface: #141210;
-  --color-brand-dark-card: #1a1714;
-  --color-brand-dark-card-hover: #221e1a;
-  --color-brand-dark-border: #2a241f;
-  --color-brand-dark-border-light: rgba(255, 255, 255, 0.08);
+  /* الهوية البصرية الجديدة لمطعم Rozmaly */
+  --rosemary-light: #899B83;
+  --rosemary-medium: #697F6B;
+  --rosemary-gray: #F2F2ED;
+  --rosemary-dark: #526B58;
+
+  --color-brand-primary: var(--rosemary-dark);
+  --color-brand-primary-hover: #465D4C;
+  --color-brand-secondary: var(--rosemary-medium);
+  --color-brand-light: var(--rosemary-light);
+  --color-page-bg: #F2F2ED;
+  --color-surface-soft: #E7ECE2;
+  --color-surface-card: #FFFFFF;
+  --color-surface-hover: #E5EBDF;
+  --color-text-primary: #26352B;
+  --color-text-secondary: #526B58;
+  --color-text-muted: #697F6B;
+  --color-border: #DCDCD3;
 }
 
 :root {
-  --background: #0b0a09;
-  --foreground: #ffffff;
+  --background: #F2F2ED;
+  --foreground: #26352B;
 }
 
 html {
   direction: rtl;
   scroll-behavior: smooth;
-  color-scheme: dark;
+  color-scheme: light;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -42,48 +50,60 @@ button, a {
 
 img { -webkit-user-drag: none; }
 
-/* Sonner — تنبيهات خفيفة تظهر وتنصرف من اليمين */
-.store-sonner-toast {
-  direction: rtl;
-  min-width: 280px;
-  max-width: calc(100vw - 32px);
-  margin-right: 16px;
-  padding: 10px 12px;
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 12px;
-  background: rgba(20,18,16,0.96);
-  color: #fff;
-  box-shadow: 0 10px 32px rgba(0,0,0,0.42);
-  backdrop-filter: blur(14px);
-  animation: sonner-enter-right 320ms cubic-bezier(.16,1,.3,1) both;
-}
-.store-sonner-title { font-size: 12px; font-weight: 800; line-height: 1.5; }
-.store-sonner-description { margin-top: 2px; color: #b9afa4; font-size: 11px; font-weight: 700; }
-.store-sonner-success { border-right: 2px solid #ff7a00; }
-.store-sonner-error { border-right: 2px solid #ef4444; }
-.store-sonner-warning { border-right: 2px solid #f59e0b; }
-[data-sonner-toast][data-removed="true"] { animation: sonner-exit-right 260ms ease-in forwards; }
-[data-sonner-toast] [data-icon] { display: none !important; }
-[data-sonner-toast] [data-close-button] { display: none !important; }
-
-@keyframes sonner-enter-right {
-  from { opacity: 0; transform: translateX(110%); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes sonner-exit-right {
-  from { opacity: 1; transform: translateX(0); }
-  to { opacity: 0; transform: translateX(110%); }
+/* خلفية موحدة لكل الموقع */
+[class*="bg-[#0b0a09]"], [class*="bg-[#080706]"], [class*="bg-[#0d0b0a]"],
+[class*="bg-[#0e0d0c]"], [class*="bg-[#1b1714]"], [class*="bg-[#1b1511]"],
+[class*="bg-[#1a1512]"], [class*="bg-[#1c1613]"], [class*="bg-[#1f1915]"],
+[class*="bg-[#1c1915]"], [class*="bg-[#1d1714]"], [class*="bg-[#201914]"],
+[class*="bg-[#141210]"], [class*="bg-[#120f0d]"], [class*="bg-[#130f0d]"],
+[class*="bg-[#14100e]"], [class*="bg-[#15110e]"], [class*="bg-[#181411]"],
+[class*="bg-[#100e0c]"], [class*="bg-[#191512]"], [class*="bg-[#12100e]"],
+[class*="bg-[#1a1714]"], [class*="bg-[#221e1a]"], [class*="bg-[#1c1714]"],
+[class*="bg-[#1e1713]"], [class*="bg-[#251e18]"], [class*="bg-[#251e19]"],
+[class*="bg-[#2a221b]"], [class*="bg-[#201a15]"], [class*="bg-[#1e1914]"],
+[class*="bg-[#26201a]"], [class*="bg-[#2b241e]"], [class*="bg-[#231d17]"],
+[class*="bg-[#29221c]"], [class*="bg-[#181310]"], [class*="bg-[#181512]"],
+[class*="bg-[#899B83]"], [class*="bg-[#899b83]"] {
+  background-color: #F2F2ED !important;
 }
 
-@media (max-width: 639px) {
-  .store-sonner-toast { width: 280px; min-width: 280px; margin-left: 8px; margin-right: 8px; }
+[class*="text-[#ff7a00]"], [class*="text-[#ff9838]"], [class*="text-[#ffb066]"],
+[class*="text-[#ff9a3d]"], [class*="text-[#c4b9ad]"], [class*="text-[#d1cbc4]"],
+[class*="text-[#a89f94]"], [class*="text-[#857b72]"], [class*="text-[#8a8076]"],
+[class*="text-[#736a61]"], [class*="text-white"] { color: #26352B !important; }
+
+[class*="hover:text-[#ff7a00]"], [class*="group-hover:text-[#ff7a00]"],
+[class*="focus:border-[#ff7a00]"], [class*="hover:border-[#ff7a00]"] {
+  color: var(--rosemary-dark) !important;
+  border-color: var(--rosemary-dark) !important;
+}
+
+[class*="border-[#2a241f]"], [class*="border-[#26201a]"], [class*="border-[#231d17]"],
+[class*="border-[#2d2620]"], [class*="border-[#25201c]"], [class*="border-[#2b241e]"],
+[class*="border-[#1f1a17]"], [class*="border-[#ff7a00]"] { border-color: var(--rosemary-light) !important; }
+
+[class*="bg-[#ff7a00]"], [class*="bg-[#e66e00]"], [class*="from-[#ff7a00]"],
+[class*="to-[#e66e00]"], [class*="via-[#ff7a00]"] {
+  background-color: var(--rosemary-dark) !important;
+  border-color: var(--rosemary-dark) !important;
+}
+
+button[class*="bg-[#ff7a00]"], a[class*="bg-[#ff7a00]"],
+button[class*="bg-gradient"], a[class*="bg-gradient"] {
+  background: #526B58 !important;
+  color: #FFFFFF !important;
+  border-color: #526B58 !important;
+}
+button[class*="bg-[#ff7a00]"]:hover, a[class*="bg-[#ff7a00]"]:hover,
+button[class*="bg-gradient"]:hover, a[class*="bg-gradient"]:hover {
+  background: #465D4C !important;
 }
 
 /* تخصيص شريط التمرير */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0b0a09; }
-::-webkit-scrollbar-thumb { background: #2a241f; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #ff7a00; }
+::-webkit-scrollbar-track { background: #F2F2ED; }
+::-webkit-scrollbar-thumb { background: #697F6B; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #526B58; }
 
 /* ============================================================
    1. أنيميشنات الموديلات والـ Drawers (ظهور/اختفاء)
@@ -201,3 +221,172 @@ img { -webkit-user-drag: none; }
 @media (prefers-reduced-motion: reduce) {
   .toast-drop-in, .toast-drop-out { animation-duration: 1ms; }
 }
+
+/* استثناءات الهيدر والشريط العلوي */
+.delivery-ticker-track span,
+.delivery-ticker-track svg { color: #FFFFFF !important; }
+
+/* حالات الهوية الوظيفية والتباين النهائي */
+.bg-black, [class*="bg-black"] {
+  background-color: #F2F2ED !important;
+}
+.text-white { color: #26352B !important; }
+.text-amber-300, .text-amber-400, .text-yellow-400,
+.text-orange-400 {
+  color: #526B58 !important;
+}
+.bg-amber-500\/10, .bg-yellow-500\/10, .bg-orange-500\/10 {
+  background-color: rgba(137,155,131,0.18) !important;
+}
+.border-amber-500\/25, .border-yellow-500\/30, .border-orange-500\/30 {
+  border-color: #899B83 !important;
+}
+.bg-red-500\/10, .bg-red-600, .text-red-400, .text-red-600 {
+  background-color: rgba(166,93,88,0.12) !important;
+  color: #7B4C48 !important;
+}
+.border-red-500\/30, .border-red-500\/70 {
+  border-color: rgba(166,93,88,0.55) !important;
+}
+.bg-emerald-500\/10, .text-emerald-400, .text-emerald-500 {
+  background-color: rgba(82,107,88,0.12) !important;
+  color: #526B58 !important;
+}
+.bg-blue-500\/15, .text-blue-400, .bg-purple-500\/15, .text-purple-400 {
+  background-color: rgba(105,127,107,0.14) !important;
+  color: #526B58 !important;
+}
+
+header [class*="text-[#526B58]"] { color: #526B58 !important; }
+header [class*="group-hover:text-white"] { color: #FFFFFF !important; }
+
+/* ============================================================
+   5. تنبيهات المتجر (Sonner) — كارت أبيض + شريط لون على اليمين
+   ============================================================ */
+
+.store-sonner-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 18px 12px 46px;
+  background: #FFFFFF;
+  border: 1px solid #E6EADF;
+  border-radius: 18px;
+  box-shadow: 0 16px 32px -20px rgba(38,53,43,0.45), 0 4px 10px rgba(38,53,43,0.05);
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+/* شريط اللون على الحافة اليمنى */
+.store-sonner-toast::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+  background: #3E5B45;
+}
+.store-sonner-success::before,
+.store-sonner-cart::before { background: #3E5B45; }
+.store-sonner-info::before,
+.store-sonner-favorite::before,
+.store-sonner-loading::before { background: #56624A; }
+.store-sonner-warning::before { background: #E2A23C; }
+.store-sonner-error::before { background: #D2524E; }
+
+/* خلفيات حالة الخطأ والتحذير */
+.store-sonner-error {
+  background: #FDF1F1;
+  border-color: #F3D9D9;
+}
+.store-sonner-warning {
+  background: #FFF9EE;
+  border-color: #F3E5C6;
+}
+
+/* حاوية الأيقونة */
+[data-sonner-toast] [data-icon] {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+
+.store-toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  background: #E7EFE4;
+  color: #3E5B45;
+}
+.store-toast-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.store-sonner-info .store-toast-icon,
+.store-sonner-favorite .store-toast-icon,
+.store-sonner-loading .store-toast-icon {
+  background: #EAEEE6;
+  color: #56624A;
+}
+.store-sonner-error .store-toast-icon {
+  background: #F8DCDC;
+  color: #C2453F;
+}
+.store-sonner-warning .store-toast-icon {
+  background: #FBEBCB;
+  color: #C68A2B;
+}
+
+.store-toast-icon.is-spinning svg { animation: toast-spin 900ms linear infinite; }
+@keyframes toast-spin { to { transform: rotate(360deg); } }
+
+/* النصوص */
+[data-sonner-toast] [data-content] {
+  flex: 1;
+  min-width: 0;
+}
+.store-sonner-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.45;
+  color: #3D4A3A;
+  text-align: right;
+}
+.store-sonner-description {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6B7A66;
+  text-align: right;
+}
+
+/* زر الإغلاق */
+[data-sonner-toast] [data-close-button] {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: #3D4A3A;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+[data-sonner-toast] [data-close-button]:hover { background: rgba(86,98,74,0.12); }
+[data-sonner-toast] [data-close-button] svg { width: 16px; height: 16px; }
+

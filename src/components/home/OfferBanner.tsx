@@ -9,7 +9,7 @@ interface OfferBannerProps {
 
 export default function OfferBanner({ banner }: OfferBannerProps) {
   return (
-    <section id="offers" className="w-full bg-[#0b0a09] py-6 sm:py-8 select-none">
+    <section id="offers" className="w-full bg-[#F2F2ED] py-6 sm:py-8 select-none">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1c1612] via-[#241c16] to-[#15110e] border border-[#ff7a00]/30 p-6 sm:p-10 lg:p-12 shadow-2xl shadow-black">
           {/* زخارف ضوئية دافئة في الخلفية */}

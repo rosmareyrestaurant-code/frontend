@@ -4,25 +4,29 @@
  */
 
 export const THEME_COLORS = {
-  primary: {
-    DEFAULT: "#FF7A00", // البرتقالي الدافئ الأساسي
-    hover: "#E66E00",
-    light: "#FF9838",
-    dark: "#CC6200",
+  rosemary: {
+    light: "#899B83",
+    medium: "#697F6B",
+    gray: "#F2F2ED",
+    dark: "#526B58",
   },
-  dark: {
-    bg: "#0B0A09", // خلفية الموقع الأساسية الفاحمة
-    surface: "#141210", // خلفية الأقسام
-    card: "#1A1714", // خلفية الكروت
-    cardHover: "#221E1A",
-    border: "#2A241F", // الحدود الخفيفة للكروت
-    borderLight: "rgba(255, 255, 255, 0.08)",
+  surface: {
+    page: "#F2F2ED",
+    soft: "#EAEAE4",
+    card: "#FFFFFF",
+    cardHover: "#E5EBDF",
+    border: "#DCDCD3",
   },
   text: {
-    primary: "#FFFFFF",
-    secondary: "#D1D5DB",
-    muted: "#9CA3AF",
-    accent: "#FF7A00",
+    primary: "#26352B",
+    secondary: "#526B58",
+    muted: "#697F6B",
+    inverse: "#FFFFFF",
+  },
+  state: {
+    success: "#526B58",
+    warning: "#697F6B",
+    danger: "#A65D58",
   },
 } as const;
 

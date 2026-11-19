@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ZoomIn, ZoomOut } from "lucide-react";
+import SliderArrow from "@/components/common/SliderArrow";
 
 interface MenuImageModalProps {
   isOpen: boolean;
@@ -113,13 +114,14 @@ export default function MenuImageModal({ isOpen, onClose }: MenuImageModalProps)
           {/* Navigation Arrows */}
           {menuImages.length > 1 && (
             <>
-              <button
+              <SliderArrow
+                direction="right"
                 onClick={handlePrev}
-                aria-label="الصفحة السابقة"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors backdrop-blur-sm"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+                ariaLabel="الصفحة السابقة"
+                onImage
+                iconClassName="h-5 w-5"
+                className="relative flex h-10 w-10"
+              />
             </>
           )}
 
@@ -149,13 +151,14 @@ export default function MenuImageModal({ isOpen, onClose }: MenuImageModalProps)
           {/* Navigation Arrows */}
           {menuImages.length > 1 && (
             <>
-              <button
+              <SliderArrow
+                direction="left"
                 onClick={handleNext}
-                aria-label="الصفحة التالية"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors backdrop-blur-sm"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
+                ariaLabel="الصفحة التالية"
+                onImage
+                iconClassName="h-5 w-5"
+                className="relative flex h-10 w-10"
+              />
             </>
           )}
         </div>

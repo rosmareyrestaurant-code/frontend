@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, ChevronLeft } from "lucide-react";
 import { HERO_SLIDES } from "@/data/mockData";
+import SliderArrow from "@/components/common/SliderArrow";
 
 export default function HeroSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -59,13 +59,13 @@ export default function HeroSlider() {
       aria-label="سلايدر العروض والوجبات الرئيسية"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full overflow-hidden bg-[#0b0a09] select-none"
+      className="relative w-full overflow-hidden bg-[#F2F2ED] select-none"
     >
       {/* حاوية السلايدر بنسبة 3:1 بالضبط مطابقة لأبعاد صور الهيرو (4096×1364) */}
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="relative w-full touch-pan-y overflow-hidden bg-[#0d0c0b]"
+        className="relative w-full touch-pan-y overflow-hidden bg-[#F2F2ED]"
         style={{ aspectRatio: "3 / 1" }}
       >
         {HERO_SLIDES.map((slide, index) => {
@@ -97,22 +97,24 @@ export default function HeroSlider() {
           );
         })}
 
-        {/* أسهم التنقل الجانبية بتأثير هوفر ناعم وطبيعي بدون امتلاء */}
-        <button
+        {/* أسهم التنقل الجانبية — بدون خلفية، وتمتلئ بلون أيقونات الموقع من جهة السهم */}
+        <SliderArrow
+          direction="left"
           onClick={prevSlide}
-          aria-label="الشريحة السابقة"
-          className="absolute left-3 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white/90 shadow-2xl backdrop-blur-md transition-all duration-300 hover:scale-110 hover:border-[#ff7a00] hover:bg-[#ff7a00] hover:text-white active:scale-95 lg:left-6 lg:flex lg:h-11 lg:w-11 xl:left-8 xl:h-12 xl:w-12"
-        >
-          <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-        </button>
+          ariaLabel="الشريحة السابقة"
+          onImage
+          iconClassName="h-5 w-5 sm:h-6 sm:w-6"
+          className="absolute left-3 top-1/2 z-20 -translate-y-1/2 hidden lg:flex lg:left-6 lg:h-11 lg:w-11 xl:left-8 xl:h-12 xl:w-12"
+        />
 
-        <button
+        <SliderArrow
+          direction="right"
           onClick={nextSlide}
-          aria-label="الشريحة التالية"
-          className="absolute right-3 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white/90 shadow-2xl backdrop-blur-md transition-all duration-300 hover:scale-110 hover:border-[#ff7a00] hover:bg-[#ff7a00] hover:text-white active:scale-95 lg:right-6 lg:flex lg:h-11 lg:w-11 xl:right-8 xl:h-12 xl:w-12"
-        >
-          <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
-        </button>
+          ariaLabel="الشريحة التالية"
+          onImage
+          iconClassName="h-5 w-5 sm:h-6 sm:w-6"
+          className="absolute right-3 top-1/2 z-20 -translate-y-1/2 hidden lg:flex lg:right-6 lg:h-11 lg:w-11 xl:right-8 xl:h-12 xl:w-12"
+        />
 
         {/* مؤشرات الشرائح السفلية */}
         <div className="absolute bottom-3 sm:bottom-5 md:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-black/50 px-3.5 py-1.5 backdrop-blur-md border border-white/15">

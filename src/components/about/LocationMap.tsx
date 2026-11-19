@@ -28,7 +28,7 @@ export default function LocationMap({
         /* ═══ الخريطة الحقيقية ═══ */
         <div className="relative rounded-2xl overflow-hidden border border-[#2a241f] shadow-2xl">
           {/* شريط علوي بالعنوان */}
-          <div className="flex items-center gap-3 px-4 py-3 bg-[#141210] border-b border-[#1f1a17]">
+          <div className="flex items-center gap-3 px-4 py-3 bg-[#F2F2ED] border-b border-[#1f1a17]">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#ff7a00]/15 text-[#ff7a00] border border-[#ff7a00]/20">
               <MapPin className="h-4 w-4" />
             </div>
@@ -47,7 +47,7 @@ export default function LocationMap({
           />
 
           {/* طبقة زر الاتجاهات */}
-          <div className="flex items-center justify-center p-4 bg-[#141210] border-t border-[#1f1a17]">
+          <div className="flex items-center justify-center p-4 bg-[#F2F2ED] border-t border-[#1f1a17]">
             <a
               href={googleMapsUrl}
               target="_blank"
@@ -61,7 +61,7 @@ export default function LocationMap({
         </div>
       ) : (
         /* ═══ حالة الموقع غير المحدد ═══ */
-        <div className="rounded-2xl border border-dashed border-[#2a241f] bg-[#0e0d0c] overflow-hidden">
+        <div className="rounded-2xl border border-dashed border-[#2a241f] bg-[#F2F2ED] overflow-hidden">
           {/* رسم توضيحي شبكة خريطة */}
           <div className="relative h-72 flex flex-col items-center justify-center gap-4 px-6 text-center">
             {/* خلفية شبكية decorative */}
@@ -97,7 +97,7 @@ export default function LocationMap({
               href={googleMapsUrl}
               target="_blank"
               rel="noreferrer noopener"
-              className="relative inline-flex items-center gap-2 rounded-xl border border-[#2a241f] bg-[#141210] px-5 py-2.5 text-sm font-semibold text-[#d1cbc4] hover:border-[#ff7a00]/40 hover:text-white transition-all"
+              className="relative inline-flex items-center gap-2 rounded-xl border border-[#2a241f] bg-[#F2F2ED] px-5 py-2.5 text-sm font-semibold text-[#d1cbc4] hover:border-[#ff7a00]/40 hover:text-white transition-all"
             >
               <Navigation className="h-4 w-4 text-[#ff7a00]" />
               فتح في Google Maps

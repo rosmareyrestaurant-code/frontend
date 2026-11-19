@@ -1,0 +1,224 @@
+/**
+ * مخطّطات Zod للتحقق من كل المدخلات القادمة من الواجهة.
+ * كل ما يصل من العميل يجب أن يمرّ من هنا قبل أي استعلام أو حفظ.
+ */
+import { z } from "zod";
+
+const EGY_PHONE = /^01[0-5]\d{8}$/;
+
+const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+/* ─── أحجام وإضافات ──────────────────────────────────────────────── */
+export const productSizeSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1, "اسم الحجم مطلوب"),
+  detail: z.string().optional(),
+  price: z.number().min(0),
+  originalPrice: z.number().min(0).optional(),
+  isDefault: z.boolean().optional(),
+});
+
+export const productAddonSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1, "اسم الإضافة مطلوب"),
+  price: z.number().min(0),
+  isDefault: z.boolean().optional(),
+});
+
+/* ─── المنتجات ───────────────────────────────────────────────────── */
+const baseProductFields = {
+  name: z.string().trim().min(2, "اسم المنتج مطلوب"),
+  nameEn: z.string().trim().optional(),
+  description: z.string().trim().optional().default(""),
+  descriptionEn: z.string().trim().optional(),
+  image: z.string().trim().min(1, "صورة المنتج مطلوبة"),
+  imagePublicId: z.string().trim().optional().default(""),
+  category: z.string().trim().min(1, "التصنيف مطلوب"),
+  categoryNameAr: z.string().trim().optional(),
+  categoryNameEn: z.string().trim().optional(),
+  price: z.number().min(0).default(0),
+  originalPrice: z.number().min(0).optional(),
+  sizes: z.array(productSizeSchema).optional(),
+  addons: z.array(productAddonSchema).optional(),
+  notes: z.string().trim().optional(),
+  menuOrder: z.number().int().min(0).optional(),
+  isAvailable: z.boolean().default(true),
+  isVisible: z.boolean().default(true),
+  isFeatured: z.boolean().default(false),
+};
+
+export const createProductSchema = z.object(baseProductFields);
+
+export const updateProductSchema = createProductSchema.partial();
+
+/** استيراد إكسيل: الصورة اختيارية (بتتظبط بعدين من لوحة التحكم) */
+export const importProductSchema = createProductSchema.extend({
+  image: z.string().trim().optional().default(""),
+});
+
+/* ─── التصنيفات ──────────────────────────────────────────────────── */
+const baseCategoryFields = {
+  nameAr: z.string().trim().min(1, "اسم التصنيف بالعربية مطلوب"),
+  nameEn: z.string().trim().optional(),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .regex(slugRegex, "الـ slug أحرف إنجليزية وأرقام وواصلات فقط"),
+  image: z.string().trim().optional().default(""),
+  imagePublicId: z.string().trim().optional().default(""),
+  description: z.string().trim().optional(),
+  sortOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+};
+
+export const createCategorySchema = z.object(baseCategoryFields);
+export const updateCategorySchema = createCategorySchema.partial();
+
+/* ─── البنرات ────────────────────────────────────────────────────── */
+const baseBannerFields = {
+  title: z.string().trim().min(1, "عنوان البانر مطلوب"),
+  description: z.string().trim().optional(),
+  image: z.string().trim().min(1, "صورة البانر مطلوبة"),
+  imagePublicId: z.string().trim().optional().default(""),
+  position: z.enum(["hero", "middle", "delivery"]).default("hero"),
+  ctaText: z.string().trim().optional(),
+  ctaLink: z.string().trim().optional(),
+  startDate: z.string().trim().optional(),
+  endDate: z.string().trim().optional(),
+  sortOrder: z.number().int().min(0).default(1),
+  isActive: z.boolean().default(true),
+};
+
+export const createBannerSchema = z.object(baseBannerFields);
+export const updateBannerSchema = createBannerSchema.partial();
+
+/* ─── العروض ─────────────────────────────────────────────────────── */
+const baseOfferFields = {
+  title: z.string().trim().min(1, "عنوان العرض مطلوب"),
+  subtitle: z.string().trim().min(1, "محتويات العرض مطلوبة"),
+  image: z.string().trim().min(1, "صورة العرض مطلوبة"),
+  imagePublicId: z.string().trim().optional().default(""),
+  price: z.number().min(0, "السعر مطلوب"),
+  originalPrice: z.number().min(0).default(0),
+  durationMinutes: z.number().int().min(1).default(180),
+  sortOrder: z.number().int().min(0).default(1),
+  isActive: z.boolean().default(true),
+};
+
+export const createOfferSchema = z.object(baseOfferFields);
+export const updateOfferSchema = createOfferSchema.partial();
+
+/* ─── مناطق التوصيل ──────────────────────────────────────────────── */
+export const deliveryZoneSchema = z.object({
+  name: z.string().trim().min(1, "اسم المنطقة مطلوب"),
+  days: z.array(z.string()).min(1, "اختر يوم توصيل مجاني واحد على الأقل"),
+  isActive: z.boolean().default(true),
+  note: z.string().trim().optional(),
+});
+
+/* ─── العميل والطلب ──────────────────────────────────────────────── */
+export const customerInfoSchema = z.object({
+  name: z.string().trim().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
+  phone: z
+    .string()
+    .trim()
+    .regex(EGY_PHONE, "رقم غير صحيح — يبدأ بـ 01 ومكوّن من 11 رقم"),
+  address: z.string().trim().min(8, "يرجى إدخال عنوان تفصيلي أكثر"),
+  notes: z.string().trim().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+  areaId: z.string().trim().optional(),
+  areaName: z.string().trim().optional(),
+});
+
+export const orderItemInputSchema = z.object({
+  productId: z.string().trim().min(1),
+  quantity: z.number().int().min(1, "الكمية يجب أن تكون 1 على الأقل"),
+  sizeId: z.string().trim().optional(),
+  addonIds: z.array(z.string().trim()).optional(),
+  notes: z.string().trim().optional(),
+});
+
+/** الحمولة المرسلة من العميل عند إنشاء طلب (POST /api/orders) */
+export const createOrderSchema = z.object({
+  items: z.array(orderItemInputSchema).min(1, "السلة فارغة"),
+  customer: customerInfoSchema,
+  paymentMethod: z.enum(["cash", "vodafone_cash", "instapay"]).optional().default("cash"),
+  paymentProofUrl: z.string().trim().url().optional(),
+  paymentProofPublicId: z.string().trim().optional(),
+});
+
+/* ─── إدارة الطلبات ──────────────────────────────────────────────── */
+export const updateOrderStatusSchema = z.object({
+  status: z.enum(["pending", "delivered", "cancelled"]),
+});
+
+/** تعديل بيانات العميل فقط (للأدمن) */
+export const updateOrderSchema = z.object({
+  customerName: z.string().trim().optional(),
+  customerPhone: z.string().trim().optional(),
+  customerAddress: z.string().trim().optional(),
+  area: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
+});
+
+/* ─── المصادقة ───────────────────────────────────────────────────── */
+export const adminLoginSchema = z.object({
+  email: z.string().trim().email("بريد إلكتروني غير صحيح"),
+  password: z.string().min(1, "كلمة المرور مطلوبة"),
+});
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8, "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل"),
+  })
+  .refine((d) => d.currentPassword !== d.newPassword, {
+    message: "كلمة المرور الجديدة يجب أن تكون مختلفة",
+    path: ["newPassword"],
+  });
+
+/* ─── إعدادات المتجر ─────────────────────────────────────────────── */
+const workingHourSchema = z.object({
+  day: z.string(),
+  isOpen: z.boolean(),
+  openTime: z.string(),
+  closeTime: z.string(),
+});
+
+const socialLinksSchema = z.object({
+  facebook: z.string().trim().optional(),
+  instagram: z.string().trim().optional(),
+  tiktok: z.string().trim().optional(),
+  whatsapp: z.string().trim().optional(),
+});
+
+const galleryImageSchema = z.object({
+  src: z.string().trim(),
+  alt: z.string().trim().optional().default(""),
+});
+
+export const storeSettingsSchema = z.object({
+  storeName: z.string().trim().optional(),
+  storeDescription: z.string().trim().optional(),
+  phone: z.string().trim().optional(),
+  email: z.string().trim().email().or(z.literal("")).optional(),
+  address: z.string().trim().optional(),
+  logoUrl: z.string().trim().optional(),
+  logoPublicId: z.string().trim().optional(),
+  currency: z.string().trim().optional(),
+  deliveryFee: z.number().min(0).optional(),
+  minimumOrder: z.number().min(0).optional(),
+  estimatedDeliveryTime: z.string().trim().optional(),
+  isStoreOpen: z.boolean().optional(),
+  closedMessage: z.string().trim().optional(),
+  vodafoneCashNumber: z.string().trim().optional(),
+  instapayAccount: z.string().trim().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  googleMapsUrl: z.string().trim().optional(),
+  workingHours: z.array(workingHourSchema).optional(),
+  socialLinks: socialLinksSchema.optional(),
+  galleryImages: z.array(galleryImageSchema).optional(),
+});

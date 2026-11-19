@@ -1,27 +1,37 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight, CheckCircle2, AlertTriangle,
   User, Phone, MapPin, StickyNote, Loader2, Pencil, Truck,
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { useDelivery } from "@/context/DeliveryContext";
-import { CustomerInfo } from "@/types";
+import { useStoreToast } from "@/components/common/StoreToast";
+import { CustomerInfo, Order, PaymentMethod } from "@/types";
+import { SITE_CONTACT } from "@/data/siteConfig";
+import PaymentMethodPicker, { PaymentConfig } from "./PaymentMethodPicker";
+
+export interface PlacedOrderResult {
+  order: Order;
+  accessToken: string;
+  orderNumber: string;
+}
 
 interface OrderReviewStepProps {
   customer: CustomerInfo;
-  onEditInfo: () => void;    // رجوع لتعديل بيانات العميل
-  onConfirmed: () => void;   // بعد التأكيد الناجح
-  onCancelAll: () => void;   // إلغاء وإغلاق
+  onEditInfo: () => void;                    // رجوع لتعديل بيانات العميل
+  onConfirmed: (result: PlacedOrderResult) => void; // بعد التأكيد الناجح
+  onCancelAll: () => void;                   // إلغاء وإغلاق
 }
 
 export default function OrderReviewStep({
   customer, onEditInfo, onConfirmed, onCancelAll,
 }: OrderReviewStepProps) {
-  const { cart, subtotal, total, placeOrder } = useShop();
+  const { cart, subtotal, total, placeOrderAsync } = useShop();
   const { activeZones } = useDelivery();
+  const { showMessage } = useStoreToast();
 
   // التوضيح بيتبني على المكان اللي العميل أدخله نفسه، مش على الاختيار الحالي في السياق.
   const isFreeArea = customer.areaId
@@ -30,13 +40,52 @@ export default function OrderReviewStep({
 
   const [confirming, setConfirming]           = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [paymentMethod, setPaymentMethod]     = useState<PaymentMethod>("cash");
+  const [proofUrl, setProofUrl]               = useState("");
+  const [proofPublicId, setProofPublicId]     = useState("");
+  const [paymentConfig, setPaymentConfig]     = useState<PaymentConfig>({
+    vodafoneCashNumber: SITE_CONTACT.phone,
+    instapayAccount: SITE_CONTACT.phone,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/settings/public")
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled || !d.success) return;
+        setPaymentConfig({
+          vodafoneCashNumber: d.data.vodafoneCashNumber || SITE_CONTACT.phone,
+          instapayAccount: d.data.instapayAccount || SITE_CONTACT.phone,
+        });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const proofMissing = paymentMethod !== "cash" && !proofUrl;
 
   const handleConfirm = async () => {
+    if (proofMissing) {
+      showMessage("ارفع صورة التحويل الأول عشان نأكد الطلب", "warning");
+      return;
+    }
     setConfirming(true);
-    await new Promise((r) => setTimeout(r, 700));
-    placeOrder(customer);
+    let result: PlacedOrderResult;
+    try {
+      result = await placeOrderAsync(customer, {
+        method: paymentMethod,
+        proofUrl: proofUrl || undefined,
+        proofPublicId: proofPublicId || undefined,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "فشل إرسال الطلب";
+      showMessage(msg, "error");
+      setConfirming(false);
+      return;
+    }
     setConfirming(false);
-    onConfirmed();
+    onConfirmed(result);
   };
 
   return (
@@ -44,7 +93,7 @@ export default function OrderReviewStep({
       {/* رأس */}
       <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-[#231d17] shrink-0">
         <button onClick={onEditInfo}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1c1613] text-[#a89f94] hover:text-white hover:bg-[#251e19] transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F2F2ED] text-[#a89f94] hover:text-white hover:bg-[#F2F2ED] transition-colors"
           aria-label="رجوع لتعديل البيانات">
           <ArrowRight className="h-5 w-5" />
         </button>
@@ -62,11 +111,11 @@ export default function OrderReviewStep({
           <p className="text-xs font-bold text-[#857b72] uppercase tracking-widest mb-3">
             الوجبات المطلوبة
           </p>
-          <div className="rounded-2xl border border-[#2a221b] bg-[#141210] overflow-hidden divide-y divide-[#201a15]">
+          <div className="rounded-2xl border border-[#2a221b] bg-[#F2F2ED] overflow-hidden divide-y divide-[#201a15]">
             {cart.map((item) => (
               <div key={`${item.product.id}-${item.notes ?? ""}`}
                 className="flex items-center gap-3 px-3 py-3">
-                <div className="relative h-13 w-13 shrink-0 overflow-hidden rounded-xl bg-[#1a1512] border border-[#2a221b]">
+                <div className="relative h-13 w-13 shrink-0 overflow-hidden rounded-xl bg-[#F2F2ED] border border-[#2a221b]">
                   <Image src={item.product.image} alt={item.product.name}
                     fill sizes="52px" className="object-cover" />
                 </div>
@@ -92,7 +141,7 @@ export default function OrderReviewStep({
         </div>
 
         {/* ─── ملخص المبالغ ─── */}
-        <div className="rounded-2xl border border-[#2a221b] bg-[#141210] px-4 py-3.5 space-y-2">
+        <div className="rounded-2xl border border-[#2a221b] bg-[#F2F2ED] px-4 py-3.5 space-y-2">
           <div className="flex justify-between text-xs text-[#a89f94]">
             <span>المجموع</span>
             <span className="font-bold text-white">{subtotal} ج.م</span>
@@ -116,7 +165,7 @@ export default function OrderReviewStep({
               <Pencil className="h-3 w-3" /> تعديل
             </button>
           </div>
-          <div className="rounded-2xl border border-[#2a221b] bg-[#141210] px-4 py-3.5 space-y-3">
+          <div className="rounded-2xl border border-[#2a221b] bg-[#F2F2ED] px-4 py-3.5 space-y-3">
             <InfoRow icon={User}       label="الاسم"    value={customer.name} />
             <InfoRow icon={Phone}      label="الهاتف"   value={customer.phone} />
             <InfoRow icon={MapPin}     label="العنوان"  value={customer.address} />
@@ -134,12 +183,27 @@ export default function OrderReviewStep({
             )}
           </div>
         </div>
+
+        {/* ─── طريقة الدفع ─── */}
+        <PaymentMethodPicker
+          method={paymentMethod}
+          onMethodChange={(m) => { setPaymentMethod(m); if (m === "cash") { setProofUrl(""); setProofPublicId(""); } }}
+          proofUrl={proofUrl}
+          onProofChange={(url, pid) => { setProofUrl(url); setProofPublicId(pid); }}
+          config={paymentConfig}
+          showMessage={showMessage}
+        />
       </div>
 
       {/* تذييل الأكشن */}
-      <div className="px-4 sm:px-5 py-4 border-t border-[#231d17] bg-[#15110e] space-y-2.5 shrink-0">
+      <div className="px-4 sm:px-5 py-4 border-t border-[#231d17] bg-[#F2F2ED] space-y-2.5 shrink-0">
+        {proofMissing && (
+          <p className="text-center text-[11px] font-bold text-amber-400">
+            ارفع صورة التحويل عشان تقدر تأكد الطلب
+          </p>
+        )}
         {/* تأكيد الطلب */}
-        <button onClick={handleConfirm} disabled={confirming}
+        <button onClick={handleConfirm} disabled={confirming || proofMissing}
           className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] font-bold text-sm text-white shadow-lg shadow-black/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2">
           {confirming
             ? <><Loader2 className="h-4 w-4 animate-spin" /><span>جاري تأكيد طلبك...</span></>
@@ -165,7 +229,7 @@ export default function OrderReviewStep({
                 نعم، ألغِ
               </button>
               <button onClick={() => setShowCancelConfirm(false)}
-                className="flex-1 py-2 rounded-lg bg-[#1e1713] text-xs font-bold text-[#a89f94] border border-[#2d2620] hover:text-white transition-colors">
+                className="flex-1 py-2 rounded-lg bg-[#F2F2ED] text-xs font-bold text-[#a89f94] border border-[#2d2620] hover:text-white transition-colors">
                 لا، تراجع
               </button>
             </div>
@@ -179,7 +243,7 @@ export default function OrderReviewStep({
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
     <div className="flex items-start gap-2.5">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#ff7a00]/10 border border-[#ff7a00]/20 text-[#ff7a00]">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#56624A] border border-[#435241] text-[#fff]">
         <Icon className="h-3.5 w-3.5" />
       </div>
       <div className="flex-1 min-w-0">

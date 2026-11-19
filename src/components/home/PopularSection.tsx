@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Flame } from "lucide-react";
 import { usePopularProducts } from "@/hooks/usePopularProducts";
+import SliderArrow from "@/components/common/SliderArrow";
 import ProductScroller from "./ProductScroller";
 import SectionHeading from "./SectionHeading";
 
@@ -21,29 +22,28 @@ export default function PopularSection() {
   };
 
   return (
-    <section className="w-full bg-[#0d0b0a] py-8 border-b border-[#1e1915]">
+    <section className="w-full bg-[#F2F2ED] py-8 border-b border-[#1e1915]">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* رأس القسم الموحّد + أسهم التمرير */}
         <SectionHeading
           title="الأكثر طلباً"
+          icon={<Flame className="h-[18px] w-[18px] fill-[#ef7a2a] text-[#ef7a2a] sm:h-5 sm:w-5" />}
           actions={
             <>
-              {/* سهم يمين (للخلف في RTL) */}
-              <button
+              {/* سهم يمين (للخلف في RTL) — يتملّى من اليمين عند الهاوفر */}
+              <SliderArrow
+                direction="right"
                 onClick={() => scroll("right")}
-                aria-label="تمرير يميناً"
-                className="hidden h-9 w-9 items-center justify-center rounded-full border border-[#2b241e] bg-[#1a1613] text-[#a89f94] transition-all duration-200 hover:border-[#ff7a00] hover:bg-[#ff7a00] hover:text-white hover:scale-105 active:scale-95 shadow-sm sm:flex"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              {/* سهم يسار (للأمام في RTL) */}
-              <button
+                ariaLabel="تمرير يميناً"
+                className="relative hidden h-9 w-9 sm:flex sm:h-10 sm:w-10"
+              />
+              {/* سهم يسار (للأمام في RTL) — يتملّى من الشمال عند الهاوفر */}
+              <SliderArrow
+                direction="left"
                 onClick={() => scroll("left")}
-                aria-label="تمرير يساراً"
-                className="hidden h-9 w-9 items-center justify-center rounded-full border border-[#2b241e] bg-[#1a1613] text-[#a89f94] transition-all duration-200 hover:border-[#ff7a00] hover:bg-[#ff7a00] hover:text-white hover:scale-105 active:scale-95 shadow-sm sm:flex"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
+                ariaLabel="تمرير يساراً"
+                className="relative hidden h-9 w-9 sm:flex sm:h-10 sm:w-10"
+              />
             </>
           }
         />

@@ -22,7 +22,9 @@ export default function FavoritesDrawer() {
   const [isVisible, setIsVisible] = useState(isFavoritesOpen);
   const [wasOpen, setWasOpen] = useState(isFavoritesOpen);
   const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const touchStartY = useRef<number | null>(null);
+  const dragYRef = useRef(0);
 
   // نُبقي الدرج محمّلاً أثناء أنيميشن الخروج ثم نلغيه بعد انتهاء الحركة
   if (isFavoritesOpen !== wasOpen) {
@@ -45,17 +47,32 @@ export default function FavoritesDrawer() {
   const handleTouchStart = (e: React.TouchEvent) => {
     if (window.matchMedia("(min-width: 640px)").matches) return;
     touchStartY.current = e.touches[0]?.clientY ?? null;
+    dragYRef.current = 0;
+    setIsDragging(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartY.current === null) return;
     const distance = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
-    if (distance > 0) setDragY(Math.min(distance, 180));
+    const nextY = distance > 0 ? Math.min(distance, 520) : 0;
+    dragYRef.current = nextY;
+    setDragY(nextY);
   };
 
   const handleTouchEnd = () => {
-    if (dragY > 90) setIsFavoritesOpen(false);
+    if (dragYRef.current >= 120) setIsFavoritesOpen(false);
+    else {
+      setDragY(0);
+      dragYRef.current = 0;
+    }
+    setIsDragging(false);
+    touchStartY.current = null;
+  };
+
+  const handleTouchCancel = () => {
     setDragY(0);
+    dragYRef.current = 0;
+    setIsDragging(false);
     touchStartY.current = null;
   };
 
@@ -75,24 +92,33 @@ export default function FavoritesDrawer() {
       {/* لوحة المفضلة المنزلقة: على الموبايل من الأسفل كـ Bottom Sheet مع انحناء في الأعلى، وعلى الديسكتوب من الجنب بدون أي فراغ */}
       <aside className="fixed max-sm:inset-x-0 max-sm:bottom-0 sm:inset-y-0 sm:left-0 z-50 flex pointer-events-none">
         <div
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ transform: dragY > 0 ? `translateY(${dragY}px)` : undefined, transition: dragY > 0 ? "none" : undefined }}
-          className={`w-full sm:w-[420px] max-w-full bg-[#120f0d] shadow-2xl flex flex-col text-white max-sm:h-[88vh] max-sm:max-h-[92vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[#2b241e] sm:h-full sm:border-r sm:border-[#26201a] ${
+          style={{
+            transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
+            transition: isDragging ? "none" : "transform 280ms cubic-bezier(.16,1,.3,1)",
+          }}
+          className={`w-full sm:w-[420px] max-w-full bg-[#F2F2ED] shadow-2xl flex flex-col text-white max-sm:h-[88vh] max-sm:max-h-[92vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[#2b241e] sm:h-full sm:border-r sm:border-[#26201a] ${
             isClosing
               ? "anim-sheet-or-drawer-out pointer-events-none"
               : "anim-sheet-or-drawer pointer-events-auto"
           }`}>
           
           {/* مقبض سحب أنيق للموبايل */}
-          <div className="w-12 h-1.5 rounded-full bg-[#3a3129] mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchCancel}
+            className="mx-auto mt-1 flex h-9 w-20 touch-none items-center justify-center sm:hidden shrink-0"
+            aria-label="اسحب لأسفل لإغلاق المفضلة"
+          >
+            <span className="h-1.5 w-12 rounded-full bg-[#C9D2C4]" />
+          </div>
 
           {/* رأس المفضلة */}
-          <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#231d17]">
+          <div className="flex items-center justify-between px-4 pb-3.5 pt-1.5 sm:p-5 border-b border-[#231d17]">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ff3b30]/15 text-[#ff3b30] border border-[#ff3b30]/30">
-                <Heart className="h-5 w-5 fill-[#ff3b30]" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#56624A] bg-[#56624A] text-[#fff] shadow-[0_8px_16px_-8px_rgba(86,98,74,0.8)]">
+                <Heart className="h-5 w-5 fill-[#fff]" />
               </div>
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-white">
@@ -107,7 +133,7 @@ export default function FavoritesDrawer() {
             <button
               onClick={() => setIsFavoritesOpen(false)}
               aria-label="إغلاق المفضلة"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1c1613] text-[#a89f94] hover:text-white hover:bg-[#251e19] transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#56624A] bg-[#56624A] text-[#fff] shadow-[0_6px_14px_-6px_rgba(86,98,74,0.8)] transition-colors hover:bg-[#435241] active:scale-95"
             >
               <X className="h-5 w-5" />
             </button>
@@ -116,7 +142,7 @@ export default function FavoritesDrawer() {
           {/* محتوى المفضلة */}
           {favorites.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-              <div className="h-20 w-20 rounded-2xl bg-[#1b1512] border border-[#2b241e] text-[#736a61] flex items-center justify-center mb-4">
+              <div className="h-20 w-20 rounded-2xl border border-[#435241] bg-[#56624A] text-[#fff] shadow-[0_14px_28px_-14px_rgba(86,98,74,0.9)] flex items-center justify-center mb-4">
                 <Heart className="h-10 w-10 stroke-[1.5]" />
               </div>
               <h3 className="text-lg font-bold text-white mb-1">
@@ -139,7 +165,7 @@ export default function FavoritesDrawer() {
               {favorites.map((product) => (
                 <div key={product.id} className="pt-3.5 first:pt-0 flex gap-3.5 items-center">
                   {/* صورة الوجبة */}
-                  <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden bg-[#1a1412] shrink-0 border border-[#26201a]">
+                  <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden bg-[#F2F2ED] shrink-0 border border-[#26201a]">
                     <Image
                       src={product.image}
                       alt={product.name}
@@ -180,7 +206,7 @@ export default function FavoritesDrawer() {
                       <button
                         onClick={() => toggleFavorite(product)}
                         aria-label="إزالة من المفضلة"
-                        className="text-[#736a61] hover:text-[#ff3b30] p-1.5 rounded-lg hover:bg-[#1a1412] transition-colors"
+                        className="text-[#736a61] hover:text-[#ff3b30] p-1.5 rounded-lg hover:bg-[#E4E8DE] transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -193,11 +219,11 @@ export default function FavoritesDrawer() {
 
           {/* تذييل المفضلة */}
           {favorites.length > 0 && (
-            <div className="p-4 sm:p-5 border-t border-[#231d17] bg-[#15110e]">
+            <div className="p-4 sm:p-5 border-t border-[#231d17] bg-[#F2F2ED]">
               <Link
                 href="/menu"
                 onClick={() => setIsFavoritesOpen(false)}
-                className="w-full py-3 rounded-xl bg-[#1f1915] border border-[#2f251f] hover:border-[#ff7a00]/50 text-center font-bold text-sm text-[#d1cbc4] hover:text-white transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-[#F2F2ED] border border-[#2f251f] hover:border-[#ff7a00]/50 text-center font-bold text-sm text-[#d1cbc4] hover:text-white transition-all flex items-center justify-center gap-2"
               >
                 <span>تصفح المزيد من الأكلات</span>
                 <ArrowLeft className="h-4 w-4" />

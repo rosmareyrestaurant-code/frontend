@@ -1,0 +1,1282 @@
+[
+ {
+  "n": 1,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "جلاكسي",
+  "nameEn": "Galaxy",
+  "ingAr": "فراخ جريل + تركي + سلامي",
+  "ingEn": "Chicken Grilled + Turkey + Salami",
+  "slug": "pizza-special-001-galaxy"
+ },
+ {
+  "n": 2,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "سي أر سفن",
+  "nameEn": "CR7",
+  "ingAr": "كرسبي + تركي + روزبيف + جبن",
+  "ingEn": "Crispy + Turkey + RoastBeef + Cheese",
+  "slug": "pizza-special-002-cr7"
+ },
+ {
+  "n": 3,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "تشيكن سوبر سوبريم",
+  "nameEn": "Chicken S.Supreme",
+  "ingAr": "فراخ جريل + مشروم + هوت دوج",
+  "ingEn": "Chicken Grilled + Mushroom + Hotdog",
+  "slug": "pizza-special-003-chicken-s-supreme"
+ },
+ {
+  "n": 4,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "مان سيتي",
+  "nameEn": "Man City",
+  "ingAr": "سلامي + تركي + روزبيف + جبن",
+  "ingEn": "Salami + Turkey + RoastBeef + Cheese",
+  "slug": "pizza-special-004-man-city"
+ },
+ {
+  "n": 5,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "الأبطال",
+  "nameEn": "Champions",
+  "ingAr": "كرسبي + سلامي + تركي + روزبيف",
+  "ingEn": "Crispy + Salami + Turkey + RoastBeef",
+  "slug": "pizza-special-005-champions"
+ },
+ {
+  "n": 6,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "كلاسيك",
+  "nameEn": "Classic",
+  "ingAr": "كرسبي + سلامي + جبن",
+  "ingEn": "Crispy + Salami + Cheese",
+  "slug": "pizza-special-006-classic"
+ },
+ {
+  "n": 7,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "ميكس تشيكن",
+  "nameEn": "Mix Chicken",
+  "ingAr": "كرسبي + فراخ + شيش",
+  "ingEn": "Crispy + Chicken + Shish",
+  "slug": "pizza-special-007-mix-chicken"
+ },
+ {
+  "n": 8,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "نصين",
+  "nameEn": "Half+Half",
+  "ingAr": "نوعين من البيتزا حسب إختيارك",
+  "ingEn": "2 Types Pizza from your choice",
+  "slug": "pizza-special-008-half-half"
+ },
+ {
+  "n": 9,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "سوبر روزماري",
+  "nameEn": "Half+Half (Super Rosemary)",
+  "ingAr": "ميكس تشيكن + سلامي + تركي + روزبيف",
+  "ingEn": "Mix Chicken + Salami + Turkey + RoastBeef",
+  "slug": "pizza-special-009-half-half-super-rosemary"
+ },
+ {
+  "n": 10,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "أفاتار",
+  "nameEn": "Avatar",
+  "ingAr": "ميكس تشيكن + ميكس لحوم",
+  "ingEn": "Mix Chicken + Mix Beef",
+  "slug": "pizza-special-010-avatar"
+ },
+ {
+  "n": 11,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "سجق إسكندراني + كيري",
+  "nameEn": "Alex Sausage + Kiri",
+  "ingAr": "سجق إسكندراني + كيري",
+  "ingEn": "Alex Sausage + Kiri",
+  "slug": "pizza-special-011-alex-sausage-kiri"
+ },
+ {
+  "n": 12,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "تشامبيونز ليج",
+  "nameEn": "Champions League",
+  "ingAr": "سجق إسكندراني + بسطرمة + كفتة + جبن",
+  "ingEn": "Alex Sausage + Pastermi + Kofta + Cheese",
+  "slug": "pizza-special-012-champions-league"
+ },
+ {
+  "n": 13,
+  "cat": "pizza-special",
+  "catAr": "بيتزا سبيشال روزماري",
+  "nameAr": "ميكس لحوم",
+  "nameEn": "Mix Beef",
+  "ingAr": "سجق + سلامي + هوت دوج + بسطرمة",
+  "ingEn": "Sausage + Hotdog + Salami + Pastermi",
+  "slug": "pizza-special-013-mix-beef"
+ },
+ {
+  "n": 14,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "فراخ",
+  "nameEn": "Chicken",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-014-chicken"
+ },
+ {
+  "n": 15,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "شيش",
+  "nameEn": "Shish",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-015-shish"
+ },
+ {
+  "n": 16,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "كرسبي",
+  "nameEn": "Crispy",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-016-crispy"
+ },
+ {
+  "n": 17,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "فراخ باربيكيو",
+  "nameEn": "Chicken BBQ",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-017-chicken-bbq"
+ },
+ {
+  "n": 18,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "سلامي",
+  "nameEn": "Salami",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-018-salami"
+ },
+ {
+  "n": 19,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "تركي",
+  "nameEn": "Turkey",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-019-turkey"
+ },
+ {
+  "n": 20,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "روزبيف",
+  "nameEn": "Roast Beef",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-020-roast-beef"
+ },
+ {
+  "n": 21,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "تونة مفتتة",
+  "nameEn": "Tuna Shredded",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-021-tuna-shredded"
+ },
+ {
+  "n": 22,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "تونة قطع",
+  "nameEn": "Tuna Chunks",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-022-tuna-chunks"
+ },
+ {
+  "n": 23,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "هوت دوج",
+  "nameEn": "Hotdog",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-023-hotdog"
+ },
+ {
+  "n": 24,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "سجق مفروم",
+  "nameEn": "Minced Sausage",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-024-minced-sausage"
+ },
+ {
+  "n": 25,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "سجق إسكندراني",
+  "nameEn": "Alex Sausage",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-025-alex-sausage"
+ },
+ {
+  "n": 26,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "مشروم",
+  "nameEn": "Mushroom",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-026-mushroom"
+ },
+ {
+  "n": 27,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "مارجريتا",
+  "nameEn": "Margarita",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-027-margarita"
+ },
+ {
+  "n": 28,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "ميكس جبن",
+  "nameEn": "Mix Cheese",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-028-mix-cheese"
+ },
+ {
+  "n": 29,
+  "cat": "pizza-rosemary",
+  "catAr": "بيتزا روزماري",
+  "nameAr": "تشيز لافرز",
+  "nameEn": "Cheese Lovers",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "pizza-rosemary-029-cheese-lovers"
+ },
+ {
+  "n": 30,
+  "cat": "pizza-mix",
+  "catAr": "بيتزا ميكس روزماري",
+  "nameAr": "فراخ سلامي",
+  "nameEn": "Chicken+Salami",
+  "ingAr": "فراخ جريل + سلامي",
+  "ingEn": "Chicken Grilled + Salami",
+  "slug": "pizza-mix-030-chicken-salami"
+ },
+ {
+  "n": 31,
+  "cat": "pizza-mix",
+  "catAr": "بيتزا ميكس روزماري",
+  "nameAr": "فراخ مشروم",
+  "nameEn": "Chicken+Mushroom",
+  "ingAr": "فراخ جريل + مشروم",
+  "ingEn": "Chicken Grilled + Mushroom",
+  "slug": "pizza-mix-031-chicken-mushroom"
+ },
+ {
+  "n": 32,
+  "cat": "pizza-mix",
+  "catAr": "بيتزا ميكس روزماري",
+  "nameAr": "فراخ جبن",
+  "nameEn": "Chicken+Cheese",
+  "ingAr": "فراخ جريل + ميكس جبن",
+  "ingEn": "Chicken Grilled + Mix Cheese",
+  "slug": "pizza-mix-032-chicken-cheese"
+ },
+ {
+  "n": 33,
+  "cat": "pizza-mix",
+  "catAr": "بيتزا ميكس روزماري",
+  "nameAr": "فراخ رانش",
+  "nameEn": "Chicken+Ranch",
+  "ingAr": "فراخ جريل + رانش",
+  "ingEn": "Chicken Grilled + Ranch",
+  "slug": "pizza-mix-033-chicken-ranch"
+ },
+ {
+  "n": 34,
+  "cat": "pizza-mix",
+  "catAr": "بيتزا ميكس روزماري",
+  "nameAr": "بسطرمة كيري",
+  "nameEn": "Pastermi + Kiri",
+  "ingAr": "بسطرمة + جبن كيري",
+  "ingEn": "Pastermi + Kiri Cheese",
+  "slug": "pizza-mix-034-pastermi-kiri"
+ },
+ {
+  "n": 35,
+  "cat": "pizza-mix",
+  "catAr": "بيتزا ميكس روزماري",
+  "nameAr": "سوبر سوبريم",
+  "nameEn": "Super Supreme",
+  "ingAr": "هوت دوج + مشروم",
+  "ingEn": "Hotdog + Mushroom",
+  "slug": "pizza-mix-035-super-supreme"
+ },
+ {
+  "n": 36,
+  "cat": "pizza-mix",
+  "catAr": "بيتزا ميكس روزماري",
+  "nameAr": "روزماري",
+  "nameEn": "Rosemary",
+  "ingAr": "فراخ جريل + هوت دوج + بريزيدون",
+  "ingEn": "Chicken Grilled + Hotdog + President",
+  "slug": "pizza-mix-036-rosemary"
+ },
+ {
+  "n": 37,
+  "cat": "pizza-mix",
+  "catAr": "بيتزا ميكس روزماري",
+  "nameAr": "فانتاستيك",
+  "nameEn": "Fantastic",
+  "ingAr": "ربع فراخ جريل + ربع هوت دوج + ربع جبن + ربع سلامي",
+  "ingEn": "Quarter Chicken Grilled + Quarter Hotdog + Quarter Cheese + Quarter Salami",
+  "slug": "pizza-mix-037-fantastic"
+ },
+ {
+  "n": 38,
+  "cat": "pizza-mix",
+  "catAr": "بيتزا ميكس روزماري",
+  "nameAr": "ميكس جريل",
+  "nameEn": "Mix Grilled",
+  "ingAr": "فراخ جريل + هوت دوج + سجق",
+  "ingEn": "Chicken Grilled + Hotdog + Sausage",
+  "slug": "pizza-mix-038-mix-grilled"
+ },
+ {
+  "n": 39,
+  "cat": "desserts",
+  "catAr": "حلو روزماري",
+  "nameAr": "كريب نوتيلا",
+  "nameEn": "Nutella Crepe",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "desserts-039-nutella-crepe"
+ },
+ {
+  "n": 40,
+  "cat": "desserts",
+  "catAr": "حلو روزماري",
+  "nameAr": "رول نوتيلا",
+  "nameEn": "Nutella Roll",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "desserts-040-nutella-roll"
+ },
+ {
+  "n": 41,
+  "cat": "desserts",
+  "catAr": "حلو روزماري",
+  "nameAr": "مولتن كيك",
+  "nameEn": "Molten Cake",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "desserts-041-molten-cake"
+ },
+ {
+  "n": 42,
+  "cat": "desserts",
+  "catAr": "حلو روزماري",
+  "nameAr": "طاجن نوتيلا",
+  "nameEn": "Nutella Tajin",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "desserts-042-nutella-tajin"
+ },
+ {
+  "n": 43,
+  "cat": "drinks",
+  "catAr": "مشروبات",
+  "nameAr": "مياه غازية (كان)",
+  "nameEn": "Soft Drink (Can)",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "drinks-043-soft-drink-can"
+ },
+ {
+  "n": 44,
+  "cat": "drinks",
+  "catAr": "مشروبات",
+  "nameAr": "مياه صغيرة",
+  "nameEn": "Small Water",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "drinks-044-small-water"
+ },
+ {
+  "n": 45,
+  "cat": "drinks",
+  "catAr": "مشروبات",
+  "nameAr": "مياه كبيرة",
+  "nameEn": "Large Water",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "drinks-045-large-water"
+ },
+ {
+  "n": 46,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "كرسبي",
+  "nameEn": "Crispy",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-046-crispy"
+ },
+ {
+  "n": 47,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "فراخ",
+  "nameEn": "Chicken",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-047-chicken"
+ },
+ {
+  "n": 48,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "شيش",
+  "nameEn": "Shish",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-048-shish"
+ },
+ {
+  "n": 49,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "فاهيتا",
+  "nameEn": "Fajita",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-049-fajita"
+ },
+ {
+  "n": 50,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "بانيه",
+  "nameEn": "Pane",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-050-pane"
+ },
+ {
+  "n": 51,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "ستربس",
+  "nameEn": "Strips",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-051-strips"
+ },
+ {
+  "n": 52,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "هوت دوج",
+  "nameEn": "Hotdog",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-052-hotdog"
+ },
+ {
+  "n": 53,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "سجق",
+  "nameEn": "Sausage",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-053-sausage"
+ },
+ {
+  "n": 54,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "كرسبي + تركي",
+  "nameEn": "Crispy + Turkey",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-054-crispy-turkey"
+ },
+ {
+  "n": 55,
+  "cat": "sandwiches",
+  "catAr": "سندوتشات روزماري",
+  "nameAr": "بطاطس",
+  "nameEn": "Fries",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sandwiches-055-fries"
+ },
+ {
+  "n": 56,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "برجر ساده",
+  "nameEn": "Plain Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "burgers-056-plain-burger"
+ },
+ {
+  "n": 57,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "برجر جبن",
+  "nameEn": "Cheese Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "burgers-057-cheese-burger"
+ },
+ {
+  "n": 58,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "برجر بيض",
+  "nameEn": "Egg Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "burgers-058-egg-burger"
+ },
+ {
+  "n": 59,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "برجر ميكس جبن",
+  "nameEn": "Mix Cheese Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "burgers-059-mix-cheese-burger"
+ },
+ {
+  "n": 60,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "برجر بيض جبنة",
+  "nameEn": "Cheese,Egg Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "burgers-060-cheese-egg-burger"
+ },
+ {
+  "n": 61,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "برجر دوبل",
+  "nameEn": "Double Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "burgers-061-double-burger"
+ },
+ {
+  "n": 62,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "برجر روزبيف",
+  "nameEn": "Roast Beef Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "burgers-062-roast-beef-burger"
+ },
+ {
+  "n": 63,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "برجر سلامي",
+  "nameEn": "Salami Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "burgers-063-salami-burger"
+ },
+ {
+  "n": 64,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "برجر سنجل",
+  "nameEn": "Single Burger",
+  "ingAr": "برجر + بطاطس + صوص (الكتابة صغيرة وغير واضحة)",
+  "ingEn": "",
+  "slug": "burgers-064-single-burger"
+ },
+ {
+  "n": 65,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "روزماري برجر",
+  "nameEn": "Rosemary Burger",
+  "ingAr": "برجر دبل + برجر + بطاطس + صوص (الكتابة صغيرة وغير واضحة)",
+  "ingEn": "",
+  "slug": "burgers-065-rosemary-burger"
+ },
+ {
+  "n": 66,
+  "cat": "burgers",
+  "catAr": "سندوتشات برجر",
+  "nameAr": "تشيكن برجر",
+  "nameEn": "Chicken Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "burgers-066-chicken-burger"
+ },
+ {
+  "n": 67,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "بطاطس",
+  "nameEn": "Fries",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-067-fries"
+ },
+ {
+  "n": 68,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "موتزاريلا",
+  "nameEn": "Mozzarella",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-068-mozzarella"
+ },
+ {
+  "n": 69,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "مشروم",
+  "nameEn": "Mushroom",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-069-mushroom"
+ },
+ {
+  "n": 70,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "ميكس جبن",
+  "nameEn": "Mix Cheese",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-070-mix-cheese"
+ },
+ {
+  "n": 71,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "سلامي",
+  "nameEn": "Salami",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-071-salami"
+ },
+ {
+  "n": 72,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "تركي",
+  "nameEn": "Turkey",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-072-turkey"
+ },
+ {
+  "n": 73,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "روزبيف",
+  "nameEn": "Roast Beef",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-073-roast-beef"
+ },
+ {
+  "n": 74,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "كرسبي",
+  "nameEn": "Crispy",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-074-crispy"
+ },
+ {
+  "n": 75,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "فراخ",
+  "nameEn": "Chicken",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-075-chicken"
+ },
+ {
+  "n": 76,
+  "cat": "extras",
+  "catAr": "إضافات روزماري - أصناف",
+  "nameAr": "ستربس",
+  "nameEn": "Strips",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "extras-076-strips"
+ },
+ {
+  "n": 77,
+  "cat": "sides",
+  "catAr": "إضافات روزماري - جانبية",
+  "nameAr": "بانيه",
+  "nameEn": "Pane",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sides-077-pane"
+ },
+ {
+  "n": 78,
+  "cat": "sides",
+  "catAr": "إضافات روزماري - جانبية",
+  "nameAr": "هوت دوج",
+  "nameEn": "Hotdog",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sides-078-hotdog"
+ },
+ {
+  "n": 79,
+  "cat": "sides",
+  "catAr": "إضافات روزماري - جانبية",
+  "nameAr": "صوص شيدر",
+  "nameEn": "Cheddar Sauce",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sides-079-cheddar-sauce"
+ },
+ {
+  "n": 80,
+  "cat": "sides",
+  "catAr": "إضافات روزماري - جانبية",
+  "nameAr": "صوص رانش",
+  "nameEn": "Ranch Sauce",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sides-080-ranch-sauce"
+ },
+ {
+  "n": 81,
+  "cat": "sides",
+  "catAr": "إضافات روزماري - جانبية",
+  "nameAr": "باكت بطاطس",
+  "nameEn": "Fries Packet",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sides-081-fries-packet"
+ },
+ {
+  "n": 82,
+  "cat": "sides",
+  "catAr": "إضافات روزماري - جانبية",
+  "nameAr": "طبق بطاطس",
+  "nameEn": "Fries Plate",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sides-082-fries-plate"
+ },
+ {
+  "n": 83,
+  "cat": "sides",
+  "catAr": "إضافات روزماري - جانبية",
+  "nameAr": "روزماري فرايز",
+  "nameEn": "Rosemary Fries",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sides-083-rosemary-fries"
+ },
+ {
+  "n": 84,
+  "cat": "sides",
+  "catAr": "إضافات روزماري - جانبية",
+  "nameAr": "طبق بطاطس مع صوص شيدر",
+  "nameEn": "Fries Plate with Cheddar Sauce",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "sides-084-fries-plate-with-cheddar-sauce"
+ },
+ {
+  "n": 85,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "ميكس جريل",
+  "nameEn": "Mix Grilled",
+  "ingAr": "فراخ جريل + هوت دوج + بريزيدون",
+  "ingEn": "Chicken Grilled + Hotdog + Président",
+  "slug": "mix-sandwiches-085-mix-grilled"
+ },
+ {
+  "n": 86,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "ميكس ميلان",
+  "nameEn": "Mix Milan",
+  "ingAr": "كرسبي + بريزيدون",
+  "ingEn": "Crispy + Président",
+  "slug": "mix-sandwiches-086-mix-milan"
+ },
+ {
+  "n": 87,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "فانتاستيك",
+  "nameEn": "Fantastic",
+  "ingAr": "كرسبي + فاهيتا + هوت دوج",
+  "ingEn": "Crispy + Fajita + Hotdog",
+  "slug": "mix-sandwiches-087-fantastic"
+ },
+ {
+  "n": 88,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "مزاجنجي",
+  "nameEn": "Mazagangy",
+  "ingAr": "فراخ جريل + هوت دوج + بطاطس + بريزيدون",
+  "ingEn": "Chicken grilled + hotdog + fries + Président",
+  "slug": "mix-sandwiches-088-mazagangy"
+ },
+ {
+  "n": 89,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "كلاسيكو",
+  "nameEn": "Calssico",
+  "ingAr": "كرسبي + سلامي",
+  "ingEn": "Crispy + Salami",
+  "slug": "mix-sandwiches-089-calssico"
+ },
+ {
+  "n": 90,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "المكسيك",
+  "nameEn": "Mexic",
+  "ingAr": "فراخ جريل + سلامي + تركي",
+  "ingEn": "Chicken Grilled + Salami + Turkey",
+  "slug": "mix-sandwiches-090-mexic"
+ },
+ {
+  "n": 91,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "ميكس تشيكن",
+  "nameEn": "Chicken Mix",
+  "ingAr": "فراخ جريل + شيش + بانيه + تشيكن برجر",
+  "ingEn": "Chicken Grilled + Shish + Pane + Chicken Burger",
+  "slug": "mix-sandwiches-091-chicken-mix"
+ },
+ {
+  "n": 92,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "ميكس فرايد",
+  "nameEn": "Mexic (Mix Fried)",
+  "ingAr": "كرسبي + بانيه + تشيكن برجر",
+  "ingEn": "Crispy + Pane + Chicken Burger",
+  "slug": "mix-sandwiches-092-mexic-mix-fried"
+ },
+ {
+  "n": 93,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "ميكس برسا",
+  "nameEn": "Mix Barca",
+  "ingAr": "فراخ جريل + شيش + كرسبي",
+  "ingEn": "Chicken Grilled + Shish + Crispy",
+  "slug": "mix-sandwiches-093-mix-barca"
+ },
+ {
+  "n": 94,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "سوبر كرسبي",
+  "nameEn": "Super Crispy",
+  "ingAr": "كرسبي + سلامي + تركي + روزبيف",
+  "ingEn": "Crispy + Salami + Turkey + Roast",
+  "slug": "mix-sandwiches-094-super-crispy"
+ },
+ {
+  "n": 95,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "القاضية",
+  "nameEn": "AlQadya",
+  "ingAr": "فراخ جريل + شيش + بانيه + تشيكن برجر + سلامي + تركي + روزبيف",
+  "ingEn": "Chicken Grilled + Shish + Pane + Chicken Burger + Salami + Turkey + Roast beef",
+  "slug": "mix-sandwiches-095-alqadya"
+ },
+ {
+  "n": 96,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "ميكس لحوم",
+  "nameEn": "Super Crispy (Mix Beef)",
+  "ingAr": "سجق + هوت دوج + بسطرمة + سلامي",
+  "ingEn": "Sausage + Hotdog + Pastermi + Salami",
+  "slug": "mix-sandwiches-096-super-crispy-mix-beef"
+ },
+ {
+  "n": 97,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "أنتيكا",
+  "nameEn": "Antika",
+  "ingAr": "جبن + سلامي",
+  "ingEn": "Cheese + Salami",
+  "slug": "mix-sandwiches-097-antika"
+ },
+ {
+  "n": 98,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "قفشة",
+  "nameEn": "Afsha",
+  "ingAr": "فاهيتا + سلامي",
+  "ingEn": "Fajita + Salami",
+  "slug": "mix-sandwiches-098-afsha"
+ },
+ {
+  "n": 99,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "غزه",
+  "nameEn": "Ghaza",
+  "ingAr": "كرسبي + تركي + رانش",
+  "ingEn": "Crispy + Turkey + Ranch",
+  "slug": "mix-sandwiches-099-ghaza"
+ },
+ {
+  "n": 100,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "أباتشي",
+  "nameEn": "Apache (Ghaza)",
+  "ingAr": "كرسبي + بسطرمة + جبن + بطاطس + صوص شيدر",
+  "ingEn": "Crispy + Pastermi + Cheese + Fries + Cheddar Sauce",
+  "slug": "mix-sandwiches-100-apache-ghaza"
+ },
+ {
+  "n": 101,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "ع الرايق",
+  "nameEn": "3l Raye2",
+  "ingAr": "سجق إسكندراني + كفتة + بسطرمة",
+  "ingEn": "Alex Sausage + Kofta + Pastermi",
+  "slug": "mix-sandwiches-101-3l-raye2"
+ },
+ {
+  "n": 102,
+  "cat": "mix-sandwiches",
+  "catAr": "ميكس سندوتشات",
+  "nameAr": "الهضبة",
+  "nameEn": "AlHadaba",
+  "ingAr": "ميكس تشيكن + ميكس لحوم",
+  "ingEn": "Mix Chicken + Mix Beef",
+  "slug": "mix-sandwiches-102-alhadaba"
+ },
+ {
+  "n": 103,
+  "cat": "pasta",
+  "catAr": "باستا روزماري",
+  "nameAr": "نجريسكو",
+  "nameEn": "Negresco",
+  "ingAr": "فراخ + موتزاريلا",
+  "ingEn": "Chicken + Mozzarella",
+  "slug": "pasta-103-negresco"
+ },
+ {
+  "n": 104,
+  "cat": "pasta",
+  "catAr": "باستا روزماري",
+  "nameAr": "الفريدو",
+  "nameEn": "Alfredo",
+  "ingAr": "فراخ + مشروم",
+  "ingEn": "Chicken + Mushroom",
+  "slug": "pasta-104-alfredo"
+ },
+ {
+  "n": 105,
+  "cat": "pasta",
+  "catAr": "باستا روزماري",
+  "nameAr": "روزماري",
+  "nameEn": "Rosemary",
+  "ingAr": "فراخ + جبن + موتزاريلا",
+  "ingEn": "Chicken + Cheese + Mozzarella",
+  "slug": "pasta-105-rosemary"
+ },
+ {
+  "n": 106,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "بطاطس",
+  "nameEn": "Potatoes",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-106-potatoes"
+ },
+ {
+  "n": 107,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "سجق",
+  "nameEn": "Sausage",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-107-sausage"
+ },
+ {
+  "n": 108,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "برجر",
+  "nameEn": "Burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-108-burger"
+ },
+ {
+  "n": 109,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "تشيكن برجر",
+  "nameEn": "Chicken burger",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-109-chicken-burger"
+ },
+ {
+  "n": 110,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "هوت دوج",
+  "nameEn": "Hotdog",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-110-hotdog"
+ },
+ {
+  "n": 111,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "مشروم",
+  "nameEn": "Mushroom",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-111-mushroom"
+ },
+ {
+  "n": 112,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "ميكس جبن",
+  "nameEn": "Cheese mix",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-112-cheese-mix"
+ },
+ {
+  "n": 113,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "تشيز لافرز",
+  "nameEn": "Cheese Lovers",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-113-cheese-lovers"
+ },
+ {
+  "n": 114,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "كفتة",
+  "nameEn": "Kofta",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-114-kofta"
+ },
+ {
+  "n": 115,
+  "cat": "crepe",
+  "catAr": "كريب روزماري",
+  "nameAr": "سجق إسكندراني",
+  "nameEn": "Alex Sausage",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "crepe-115-alex-sausage"
+ },
+ {
+  "n": 116,
+  "cat": "chicken-crepe",
+  "catAr": "كريب فراخ",
+  "nameAr": "فراخ جريل",
+  "nameEn": "Chicken grill",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "chicken-crepe-116-chicken-grill"
+ },
+ {
+  "n": 117,
+  "cat": "chicken-crepe",
+  "catAr": "كريب فراخ",
+  "nameAr": "فراخ شيش",
+  "nameEn": "Chicken shish",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "chicken-crepe-117-chicken-shish"
+ },
+ {
+  "n": 118,
+  "cat": "chicken-crepe",
+  "catAr": "كريب فراخ",
+  "nameAr": "فراخ فاهيتا",
+  "nameEn": "Chicken fajita",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "chicken-crepe-118-chicken-fajita"
+ },
+ {
+  "n": 119,
+  "cat": "chicken-crepe",
+  "catAr": "كريب فراخ",
+  "nameAr": "فراخ كرسبي",
+  "nameEn": "Chicken crispy",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "chicken-crepe-119-chicken-crispy"
+ },
+ {
+  "n": 120,
+  "cat": "chicken-crepe",
+  "catAr": "كريب فراخ",
+  "nameAr": "فراخ مشروم",
+  "nameEn": "Chicken mushroom",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "chicken-crepe-120-chicken-mushroom"
+ },
+ {
+  "n": 121,
+  "cat": "chicken-crepe",
+  "catAr": "كريب فراخ",
+  "nameAr": "فراخ باربيكيو",
+  "nameEn": "Chicken barbecue",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "chicken-crepe-121-chicken-barbecue"
+ },
+ {
+  "n": 122,
+  "cat": "chicken-crepe",
+  "catAr": "كريب فراخ",
+  "nameAr": "فراخ ستربس",
+  "nameEn": "Chicken strips",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "chicken-crepe-122-chicken-strips"
+ },
+ {
+  "n": 123,
+  "cat": "chicken-crepe",
+  "catAr": "كريب فراخ",
+  "nameAr": "فراخ بانيه",
+  "nameEn": "Chicken pane",
+  "ingAr": "",
+  "ingEn": "",
+  "slug": "chicken-crepe-123-chicken-pane"
+ },
+ {
+  "n": 124,
+  "cat": "mix-crepe",
+  "catAr": "ميكس كريب روزماري",
+  "nameAr": "تشيلسي",
+  "nameEn": "Chelsea",
+  "ingAr": "ميكس جبن + بطاطس",
+  "ingEn": "Mix cheese + Fries",
+  "slug": "mix-crepe-124-chelsea"
+ },
+ {
+  "n": 125,
+  "cat": "mix-crepe",
+  "catAr": "ميكس كريب روزماري",
+  "nameAr": "أهلاوي",
+  "nameEn": "Ahlawy",
+  "ingAr": "تشيكن برجر + بطاطس",
+  "ingEn": "Chicken Burger + Fries",
+  "slug": "mix-crepe-125-ahlawy"
+ },
+ {
+  "n": 126,
+  "cat": "mix-crepe",
+  "catAr": "ميكس كريب روزماري",
+  "nameAr": "زملكاوي",
+  "nameEn": "Zamalkawy",
+  "ingAr": "كرسبي + شيش",
+  "ingEn": "Crispy + Shish",
+  "slug": "mix-crepe-126-zamalkawy"
+ },
+ {
+  "n": 127,
+  "cat": "mix-crepe",
+  "catAr": "ميكس كريب روزماري",
+  "nameAr": "يوفي",
+  "nameEn": "Juventus",
+  "ingAr": "فراخ جريل + شيش + مشروم",
+  "ingEn": "Chicken grilled + shish + mushroom",
+  "slug": "mix-crepe-127-juventus"
+ },
+ {
+  "n": 128,
+  "cat": "mix-crepe",
+  "catAr": "ميكس كريب روزماري",
+  "nameAr": "ليفربول",
+  "nameEn": "Liverpool",
+  "ingAr": "كرسبي + فاهيتا",
+  "ingEn": "Crispy + Fajita",
+  "slug": "mix-crepe-128-liverpool"
+ }
+]

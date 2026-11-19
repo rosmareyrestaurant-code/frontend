@@ -1,164 +1,265 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  ShoppingBag, TrendingUp, Package, Users,
-  Clock, ChevronLeft, Phone,
+  ArrowLeft,
+  BadgeDollarSign,
+  ChevronLeft,
+  ShoppingBag,
+  Tag,
+  TrendingUp,
+  Ticket,
+  UsersRound,
+  UtensilsCrossed,
 } from "lucide-react";
 import { StatCard } from "@/components/admin/shared/StatCard";
 import { AdminWelcomeHero } from "@/components/admin/dashboard/AdminWelcomeHero";
+import { StatusBadge } from "@/components/admin/shared/StatusBadge";
+import type { DashboardStats, AdminOrder } from "@/types/admin";
+
+// ─── Mock Data fallback مؤقت للتصميم ───────────────────────────────
+// TODO: أعِد تعليق هذه الـ imports بعد الانتهاء من اختبار التصميم
 import { MOCK_ORDERS } from "@/data/admin/orders";
 import { MOCK_ADMIN_PRODUCTS } from "@/data/admin/products";
 import { MOCK_ADMIN_CUSTOMERS } from "@/data/admin/customers";
+import { MOCK_ADMIN_OFFERS } from "@/data/admin/offers";
+import { ORDER_STATUSES } from "@/lib/constants";
+
+const MOCK_STATS: DashboardStats = {
+  totalOrders: MOCK_ORDERS.length,
+  newOrders: MOCK_ORDERS.filter((o) => o.status === "pending").length,
+  totalRevenue: MOCK_ORDERS.filter((o) => o.status !== "cancelled").reduce((s, o) => s + o.total, 0),
+  totalProducts: MOCK_ADMIN_PRODUCTS.length,
+  totalCustomers: MOCK_ADMIN_CUSTOMERS.length,
+  ordersByStatus: ORDER_STATUSES.reduce(
+    (acc, s) => ({ ...acc, [s]: MOCK_ORDERS.filter((o) => o.status === s).length }),
+    {} as DashboardStats["ordersByStatus"]
+  ),
+  recentOrders: MOCK_ORDERS.slice(0, 6),
+  topProducts: [],
+  salesByDay: [],
+};
+
+const ACTIVE_OFFERS = MOCK_ADMIN_OFFERS.filter((o) => o.isActive).length;
+const TOTAL_OFFERS = MOCK_ADMIN_OFFERS.length;
+
+const MOCK_TOP_PRODUCTS = (() => {
+  const counts: Record<string, { name: string; image: string; count: number; revenue: number }> = {};
+  MOCK_ORDERS.filter((o) => o.status !== "cancelled").forEach((order) => {
+    order.items.forEach((item) => {
+      if (!counts[item.productId]) {
+        counts[item.productId] = { name: item.productName, image: item.productImage, count: 0, revenue: 0 };
+      }
+      counts[item.productId].count += item.quantity;
+      counts[item.productId].revenue += item.price * item.quantity;
+    });
+  });
+  return Object.entries(counts)
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 6)
+    .map(([id, v]) => ({ id, ...v }));
+})();
+
+function formatOrderDate(iso: string) {
+  const d = new Date(iso);
+  const date = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
+  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return `${date} - ${time}`;
+}
 
 export default function DashboardPage() {
-  const stats = useMemo(() => {
-    const pending = MOCK_ORDERS.filter((o) => o.status === "pending").length;
-    const revenue = MOCK_ORDERS
-      .filter((o) => o.status !== "cancelled")
-      .reduce((sum, o) => sum + o.total, 0);
-    return { pending, revenue };
-  }, []);
+  const [stats, setStats] = useState<DashboardStats>(MOCK_STATS);
 
-  const topProducts = useMemo(() => {
-    const counts: Record<string, { name: string; image: string; count: number }> = {};
-    MOCK_ORDERS.filter((o) => o.status !== "cancelled").forEach((order) => {
-      order.items.forEach((item) => {
-        if (!counts[item.productId]) {
-          counts[item.productId] = { name: item.productName, image: item.productImage, count: 0 };
-        }
-        counts[item.productId].count += item.quantity;
+  useEffect(() => {
+    fetch("/api/admin/dashboard")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.data) setStats(d.data);
+        // إذا فشل أو أعاد بيانات فارغة، Mock Data تبقى ظاهرة
+      })
+      .catch(() => {
+        // API غير متاح — Mock Data ظاهرة
       });
-    });
-    return Object.entries(counts)
-      .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, 5)
-      .map(([id, v]) => ({ id, ...v }));
   }, []);
 
-  const recentOrders = MOCK_ORDERS.slice(0, 6);
+  const recentOrders: AdminOrder[] = (stats.recentOrders ?? []).slice(0, 5);
+  const pendingOrders = stats.ordersByStatus?.pending ?? 0;
+
+  const topProducts = (stats.topProducts?.length ? stats.topProducts : MOCK_TOP_PRODUCTS).slice(0, 6);
 
   return (
-    <div className="space-y-6">
-      {/* بانر الترحيب الهيرو الفاخر للوحة التحكم */}
-      <AdminWelcomeHero pendingOrdersCount={stats.pending} adminName="أ/ محمد هشام" />
+    <div className="space-y-4 sm:space-y-5">
+      <AdminWelcomeHero pendingOrders={pendingOrders} />
 
-      {/* البطاقات العلوية */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+      {/* بطاقات الإحصائيات */}
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard
           title="إجمالي الطلبات"
-          value={MOCK_ORDERS.length}
+          value={stats.totalOrders}
           icon={ShoppingBag}
-          trend={{ value: "+8% هذا الأسبوع", positive: true }}
-        />
-        <StatCard
-          title="في الانتظار"
-          value={stats.pending}
-          icon={Clock}
-          iconColor="text-yellow-400"
+          trend={{ value: "+12%", positive: true }}
+          spark={[4, 6, 5, 7, 6, 9, 8, 10]}
         />
         <StatCard
           title="إجمالي المبيعات"
-          value={`${stats.revenue.toLocaleString()} ج.م`}
-          icon={TrendingUp}
-          iconColor="text-emerald-400"
-          trend={{ value: "+12% هذا الشهر", positive: true }}
+          value={`${stats.totalRevenue.toLocaleString("en-US")} ج.م`}
+          icon={BadgeDollarSign}
+          trend={{ value: "+18%", positive: true }}
+          spark={[5, 7, 6, 8, 7, 9, 8, 11]}
         />
         <StatCard
-          title="المنتجات"
-          value={MOCK_ADMIN_PRODUCTS.length}
-          icon={Package}
-          iconColor="text-sky-400"
-          subtitle={`${MOCK_ADMIN_PRODUCTS.filter((p) => p.isAvailable).length} متاح`}
+          title="المستخدمين الجدد"
+          value={stats.totalCustomers}
+          icon={UsersRound}
+          trend={{ value: "+10%", positive: true }}
+          spark={[3, 5, 4, 6, 7, 6, 8, 9]}
         />
         <StatCard
-          title="إجمالي العملاء"
-          value={MOCK_ADMIN_CUSTOMERS.length}
-          icon={Users}
-          iconColor="text-violet-400"
+          title="العروض النشطة"
+          value={ACTIVE_OFFERS}
+          icon={Tag}
+          trend={{ value: "+0%", positive: true }}
+          spark={[4, 4, 5, 4, 5, 4, 4, 5]}
+        />
+        <StatCard
+          title="إجمالي العروض"
+          value={TOTAL_OFFERS}
+          icon={Ticket}
+          trend={{ value: "+0%", positive: true }}
+          spark={[4, 4, 5, 4, 5, 4, 4, 5]}
+        />
+        <StatCard
+          title="إجمالي المنتجات"
+          value={stats.totalProducts}
+          icon={UtensilsCrossed}
+          trend={{ value: "+0%", positive: true }}
+          spark={[6, 6, 7, 7, 8, 8, 8, 9]}
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* جدول الطلبات — بيانات العميل ورقم الطلب والسعر فقط */}
-        <section className="overflow-hidden rounded-2xl border border-[#26201a] bg-[#141210] lg:col-span-2">
-          <div className="flex items-center justify-between border-b border-[#231d17] px-5 py-4">
-            <h2 className="text-sm font-bold text-white">آخر الطلبات</h2>
+      {/* أحدث الطلبات + أفضل المنتجات مبيعاً */}
+      <div className="grid gap-4 xl:grid-cols-5">
+        <section className="flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] xl:col-span-3">
+          <div className="flex items-center justify-between px-5 pb-3 pt-4">
+            <h2 className="text-[15px] font-black text-[#333B2E]">أحدث الطلبات</h2>
             <Link
               href="/dashboard/orders"
-              className="flex items-center gap-1 text-xs font-bold text-[#ff7a00] hover:underline"
+              className="flex items-center gap-1 text-[12px] font-bold text-[#50604D] transition-colors hover:text-[#3C4A38]"
             >
-              عرض الكل <ChevronLeft className="h-3.5 w-3.5" />
+              عرض الكل <ArrowLeft className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-right text-sm">
-              <thead>
-                <tr className="border-b border-[#1e1914] text-[11px] text-[#6f655b]">
-                  <th className="px-5 py-3 font-bold">رقم الطلب</th>
-                  <th className="px-5 py-3 font-bold">العميل</th>
-                  <th className="px-5 py-3 font-bold">الهاتف</th>
-                  <th className="px-5 py-3 font-bold">الإجمالي</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#1e1914]">
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="transition-colors hover:bg-[#171310]">
-                    <td className="px-5 py-3.5">
-                      <span className="inline-flex rounded-lg bg-[#ff7a00]/10 px-2 py-1 text-xs font-black text-[#ff9838] ring-1 ring-[#ff7a00]/20">
-                        #{order.id}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-xs font-bold text-white">
-                      {order.customerName}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <span dir="ltr" className="text-[11px] text-[#8a8076]">
-                          {order.customerPhone}
-                        </span>
-                        <a
-                          href={`tel:${order.customerPhone}`}
-                          aria-label={`الاتصال بـ ${order.customerName}`}
-                          className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/25 transition-colors hover:bg-emerald-500/25"
-                        >
-                          <Phone className="h-3 w-3" />
-                        </a>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-sm font-black text-[#ff7a00]">
-                      {order.total} ج.م
-                    </td>
+
+          {recentOrders.length === 0 ? (
+            <p className="px-5 py-10 text-center text-[13px] text-[#9A9C90]">لا توجد طلبات بعد</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-right">
+                <thead>
+                  <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
+                    <th className="px-4 py-2.5 font-bold">رقم الطلب</th>
+                    <th className="px-4 py-2.5 font-bold">العميل</th>
+                    <th className="px-4 py-2.5 font-bold">المبلغ</th>
+                    <th className="px-4 py-2.5 font-bold">الحالة</th>
+                    <th className="px-4 py-2.5 font-bold">التاريخ</th>
+                    <th className="w-10 px-3 py-2.5" aria-label="عرض الطلب" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[#F0EDE5]">
+                  {recentOrders.map((order) => (
+                    <tr key={order.id} className="text-[12px] transition-colors hover:bg-[#F8F6F1]">
+                      <td className="px-4 py-3 font-black text-[#333B2E]" dir="ltr">
+                        #{order.orderNumber ?? order.id}
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-[#6B7264]">{order.customerName}</td>
+                      <td className="px-4 py-3 font-bold text-[#333B2E]">{order.total} ج.م</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={order.status} />
+                      </td>
+                      <td className="px-4 py-3 text-[11px] font-medium text-[#9A9C90]" dir="ltr">
+                        {formatOrderDate(order.createdAt)}
+                      </td>
+                      <td className="px-3 py-3">
+                        <Link
+                          href="/dashboard/orders"
+                          aria-label={`تفاصيل الطلب ${order.orderNumber ?? order.id}`}
+                          className="flex h-6 w-6 items-center justify-center rounded-full text-[#B5B2A8] transition-colors hover:bg-[#F0EDE5] hover:text-[#50604D]"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
-        {/* الأكثر طلباً */}
-        <section className="rounded-2xl border border-[#26201a] bg-[#141210]">
-          <div className="border-b border-[#231d17] px-5 py-4">
-            <h2 className="text-sm font-bold text-white">الأكثر طلباً</h2>
+        <section className="flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] xl:col-span-2">
+          <div className="flex items-center justify-between px-5 pb-3 pt-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-[18px] w-[18px] text-[#50604D]" strokeWidth={2} />
+              <h2 className="text-[15px] font-black text-[#333B2E]">أفضل المنتجات مبيعاً</h2>
+            </div>
+            <Link
+              href="/dashboard/products"
+              className="flex items-center gap-1 text-[12px] font-bold text-[#50604D] transition-colors hover:text-[#3C4A38]"
+            >
+              عرض الكل <ArrowLeft className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <div className="divide-y divide-[#1e1914]">
-            {topProducts.map((p, i) => (
-              <div key={p.id} className="flex items-center gap-3 px-4 py-3">
-                <span className="w-4 shrink-0 text-xs font-black text-[#5a4f45]">{i + 1}</span>
-                <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-[#1a1512]">
-                  <Image src={p.image} alt={p.name} fill className="object-cover" sizes="36px" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-white">{p.name}</p>
-                </div>
-                <span className="shrink-0 text-xs font-black text-[#ff7a00]">{p.count}×</span>
-              </div>
-            ))}
-          </div>
+
+          {topProducts.length === 0 ? (
+            <p className="px-5 py-10 text-center text-[13px] text-[#9A9C90]">لا توجد مبيعات بعد</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[360px] text-right">
+                <thead>
+                  <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
+                    <th className="w-12 px-4 py-2.5 font-bold">#</th>
+                    <th className="px-4 py-2.5 font-bold">المنتج</th>
+                    <th className="px-4 py-2.5 font-bold">عدد الطلبات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0EDE5]">
+                  {topProducts.map((product, index) => (
+                    <tr key={product.id} className="text-[12px] transition-colors hover:bg-[#F8F6F1]">
+                      <td className="px-4 py-2.5">
+                        <span
+                          className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${
+                            index < 3 ? "bg-[#DEE3D5] text-[#50604D]" : "bg-[#F0EDE5] text-[#9A9C90]"
+                          }`}
+                        >
+                          {index + 1}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            width={36}
+                            height={36}
+                            className="h-9 w-9 shrink-0 rounded-lg object-cover"
+                          />
+                          <span className="max-w-[170px] truncate font-semibold text-[#333B2E]">
+                            {product.name}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 font-bold text-[#333B2E]">{product.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </div>
+
     </div>
   );
 }

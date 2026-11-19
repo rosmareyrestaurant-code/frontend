@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0b0a09",
+  themeColor: "#F2F2ED",
   colorScheme: "dark",
   viewportFit: "cover",
 };
@@ -38,13 +38,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl" className={`${cairo.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans bg-[#0b0a09] text-white antialiased">
+      <body className="min-h-full flex flex-col font-sans bg-[#F2F2ED] text-[#26352B] antialiased">
         <DeliveryProvider>
           <Toaster
             position="top-right"
             expand={false}
             richColors={false}
-            closeButton={false}
+            closeButton
             visibleToasts={3}
             duration={2800}
             offset={16}
@@ -55,8 +55,10 @@ export default function RootLayout({
                 title: "store-sonner-title",
                 description: "store-sonner-description",
                 success: "store-sonner-success",
+                info: "store-sonner-info",
                 error: "store-sonner-error",
                 warning: "store-sonner-warning",
+                loading: "store-sonner-loading",
               },
             }}
           />

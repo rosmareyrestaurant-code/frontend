@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  X, Plus, Minus, Trash2, ShoppingBag, ArrowLeft, ChevronLeft, CheckCircle2, Truck,
+  X, Plus, Minus, Trash2, ShoppingBag, ArrowLeft, ChevronLeft, Check, CheckCircle2, Truck, Banknote,
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { useEffect, useRef, useState } from "react";
@@ -24,10 +25,11 @@ const STEPS_META: { key: Step; label: string }[] = [
 const STEP_INDEX: Record<Step, number> = { cart: 0, checkout: 1, review: 2, success: 3 };
 
 export default function CartDrawer() {
+  const router = useRouter();
   const {
     cart, isCartOpen, setIsCartOpen,
     updateQuantity, removeFromCart, clearCart,
-    subtotal, total, cartCount,
+    subtotal, total,
   } = useShop();
 
   /* ── حالة الخطوة والأنيميشن ── */
@@ -36,22 +38,39 @@ export default function CartDrawer() {
   const [animKey, setAnimKey]     = useState(0);   // يتغير عند كل انتقال لإعادة الأنيميشن
   const [customer, setCustomer]   = useState<CustomerInfo | null>(null);
   const [dragY, setDragY]         = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const touchStartY               = useRef<number | null>(null);
+  const dragYRef                  = useRef(0);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (window.matchMedia("(min-width: 640px)").matches) return;
     touchStartY.current = e.touches[0]?.clientY ?? null;
+    dragYRef.current = 0;
+    setIsDragging(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartY.current === null) return;
     const distance = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
-    if (distance > 0) setDragY(Math.min(distance, 180));
+    const nextY = distance > 0 ? Math.min(distance, 520) : 0;
+    dragYRef.current = nextY;
+    setDragY(nextY);
   };
 
   const handleTouchEnd = () => {
-    if (dragY > 90) setIsCartOpen(false);
+    if (dragYRef.current >= 120) setIsCartOpen(false);
+    else {
+      setDragY(0);
+      dragYRef.current = 0;
+    }
+    setIsDragging(false);
+    touchStartY.current = null;
+  };
+
+  const handleTouchCancel = () => {
     setDragY(0);
+    dragYRef.current = 0;
+    setIsDragging(false);
     touchStartY.current = null;
   };
 
@@ -104,77 +123,93 @@ export default function CartDrawer() {
       {/* لوحة الـ Drawer */}
       <aside className="fixed max-sm:inset-x-0 max-sm:bottom-0 sm:inset-y-0 sm:left-0 z-50 flex pointer-events-none">
         <div
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ transform: dragY > 0 ? `translateY(${dragY}px)` : undefined, transition: dragY > 0 ? "none" : undefined }}
-          className={`w-full sm:w-[440px] max-w-full bg-[#120f0d] shadow-2xl flex flex-col text-white max-sm:h-[91vh] max-sm:max-h-[94vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[#2b241e] sm:h-full sm:border-r sm:border-[#26201a] overflow-hidden ${
+          style={{
+            transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
+            transition: isDragging ? "none" : "transform 280ms cubic-bezier(.16,1,.3,1)",
+          }}
+          className={`w-full sm:w-[440px] max-w-full bg-[#F2F2ED] shadow-2xl flex flex-col text-white max-sm:h-[91vh] max-sm:max-h-[94vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[#2b241e] sm:h-full sm:border-r sm:border-[#26201a] overflow-hidden ${
             isClosing
               ? "anim-sheet-or-drawer-out pointer-events-none"
               : "anim-sheet-or-drawer pointer-events-auto"
           }`}>
 
-          {/* مقبض سحب — موبايل فقط */}
-          <div className="w-12 h-1.5 rounded-full bg-[#3a3129] mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
+          {/* مقبض السحب — الموبايل فقط */}
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchCancel}
+            className="mx-auto mt-1 flex h-9 w-20 touch-none items-center justify-center sm:hidden shrink-0"
+            aria-label="اسحب لأسفل لإغلاق السلة"
+          >
+            <span className="h-1.5 w-12 rounded-full bg-[#C9D2C4]" />
+          </div>
 
-          {/* ─── شريط رأس ثابت ─── */}
+          {/* ─── رأس الـ Drawer: العنوان + خطوات الطلب ─── */}
           {step !== "success" && (
-            <div className="flex items-center justify-between px-4 sm:px-5 pt-1 pb-3 shrink-0">
-              {/* عنوان */}
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ff7a00]/15 text-[#ff7a00] border border-[#ff7a00]/30">
-                  <ShoppingBag className="h-5 w-5" />
+            <div className="relative shrink-0 px-4 pb-4 pt-2 sm:px-5">
+              <div className="flex items-center gap-3">
+                {/* أيقونة السلة */}
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#56624A] shadow-[0_10px_20px_-10px_rgba(86,98,74,0.75)] sm:h-16 sm:w-16 sm:rounded-[20px]">
+                  <ShoppingBag className="h-6 w-6 text-[#fff] sm:h-7 sm:w-7" strokeWidth={2} />
                 </div>
-                <div>
-                  <h2 className="text-sm font-bold text-white">
+
+                {/* العنوان */}
+                <div className="min-w-0 flex-1 text-center">
+                  <h2 className="truncate text-lg font-black leading-tight text-[#56624A] sm:text-xl">
                     {step === "cart"     ? "سلة الطلبات" :
                      step === "checkout" ? "بيانات التوصيل" :
                                           "مراجعة الطلب"}
                   </h2>
-                  <span className="text-[11px] text-[#a89f94]">
-                    {step === "cart" ? `${cartCount} ${cartCount === 1 ? "وجبة" : "وجبات"}` :
+                  <p className="mt-0.5 truncate text-[11px] font-bold text-[#5E7054] sm:text-xs">
+                    {step === "cart" ? "الخطوة الأولى" :
                      step === "checkout" ? "الخطوة الثانية" : "الخطوة الأخيرة"}
-                  </span>
+                  </p>
                 </div>
-              </div>
-              {/* زر إغلاق */}
-              <button onClick={() => setIsCartOpen(false)} aria-label="إغلاق"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1c1613] text-[#a89f94] hover:text-white hover:bg-[#251e19] transition-colors">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          )}
 
-          {/* ─── شريط التقدم ─── */}
-          {showProgress && (
-            <div className="flex items-center px-4 sm:px-5 pb-3 gap-0 shrink-0">
-              {STEPS_META.map((s, i) => {
-                const isActive = i === currentStepIdx;
-                const isDone   = i < currentStepIdx;
-                return (
-                  <div key={s.key} className="flex items-center flex-1 last:flex-none">
-                    {/* نقطة الخطوة */}
-                    <div className="flex flex-col items-center gap-1 shrink-0">
-                      <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-black transition-all duration-300 ${
-                        isDone   ? "bg-emerald-500 text-white scale-90" :
-                        isActive ? "bg-[#ff7a00] text-white scale-110 shadow-lg shadow-[#ff7a00]/30" :
-                                   "bg-[#2a221b] text-[#6b6259]"
-                      }`}>
-                        {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
+                {/* زر إغلاق */}
+                <button onClick={() => setIsCartOpen(false)} aria-label="إغلاق"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#56624A] bg-[#56624A] text-[#fff] shadow-[0_6px_14px_-6px_rgba(86,98,74,0.8)] transition-colors hover:bg-[#435241] active:scale-95">
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.6} />
+                </button>
+              </div>
+
+              {/* خطوات الطلب */}
+              {showProgress && (
+                <div className="mt-5 flex items-start">
+                  {STEPS_META.map((s, i) => {
+                    const isActive = i === currentStepIdx;
+                    const isDone   = i < currentStepIdx;
+                    return (
+                      <div key={s.key} className={`flex items-start ${i === STEPS_META.length - 1 ? "flex-none" : "flex-1"}`}>
+                        <div className="flex shrink-0 flex-col items-center gap-1.5">
+                          <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-black transition-all duration-300 ${
+                            isDone || isActive
+                              ? "bg-[#56624A] text-[#fff] shadow-[0_8px_16px_-8px_rgba(86,98,74,0.8)]"
+                              : "bg-transparent text-[#B3BDB0]"
+                          }`}>
+                            {isDone ? <Check className="h-4 w-4" strokeWidth={3} /> : i + 1}
+                          </div>
+                          <span className={`whitespace-nowrap text-[11px] font-black leading-none transition-colors duration-300 ${
+                            isDone || isActive ? "text-[#56624A]" : "text-[#A9B3A5]"
+                          }`}>{s.label}</span>
+                        </div>
+                        {i < STEPS_META.length - 1 && (
+                          <span className={`mx-2 mt-[17px] h-[2px] flex-1 rounded-full transition-colors duration-500 ${
+                            isDone ? "bg-[#56624A]" : "bg-[#DDE3D8]"
+                          }`} />
+                        )}
                       </div>
-                      <span className={`text-[9px] font-bold leading-none whitespace-nowrap ${
-                        isActive ? "text-[#ff7a00]" : isDone ? "text-emerald-500" : "text-[#4a4440]"
-                      }`}>{s.label}</span>
-                    </div>
-                    {/* خط الوصل */}
-                    {i < STEPS_META.length - 1 && (
-                      <div className={`flex-1 h-0.5 mx-1.5 rounded-full transition-all duration-500 ${
-                        i < currentStepIdx ? "bg-emerald-500/50" : "bg-[#2a221b]"
-                      }`} />
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* خط فاصل تحت الهيدر */}
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 bottom-0 h-px bg-[#DDE3D8]"
+              />
             </div>
           )}
 
@@ -186,7 +221,7 @@ export default function CartDrawer() {
               <>
                 {cart.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                    <div className="h-20 w-20 rounded-2xl bg-[#1b1512] border border-[#2b241e] text-[#736a61] flex items-center justify-center mb-4">
+                    <div className="h-20 w-20 rounded-2xl border border-[#435241] bg-[#56624A] text-[#fff] shadow-[0_14px_28px_-14px_rgba(86,98,74,0.9)] flex items-center justify-center mb-4">
                       <ShoppingBag className="h-10 w-10 stroke-[1.5]" />
                     </div>
                     <h3 className="text-lg font-bold text-white mb-1">سلتك فارغة حالياً</h3>
@@ -206,7 +241,7 @@ export default function CartDrawer() {
                       {cart.map((item) => (
                         <div key={`${item.product.id}-${item.notes ?? ""}`}
                           className="pt-3 first:pt-0 flex gap-3.5 items-center">
-                          <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-xl overflow-hidden bg-[#1a1412] shrink-0 border border-[#26201a]">
+                          <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-xl overflow-hidden bg-[#F2F2ED] shrink-0 border border-[#26201a]">
                             <Image src={item.product.image} alt={item.product.name}
                               fill className="object-cover" sizes="72px" />
                           </div>
@@ -229,14 +264,14 @@ export default function CartDrawer() {
                               )}
                             </div>
                             <div className="flex items-center gap-2.5">
-                              <div className="inline-flex items-center rounded-lg bg-[#1a1512] border border-[#2a231d] p-0.5">
+                              <div className="inline-flex items-center rounded-lg bg-[#F2F2ED] border border-[#2a231d] p-0.5">
                                 <button onClick={() => updateQuantity(item.product.id, -1)} aria-label="تقليل"
-                                  className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-[#251e18] text-[#a89f94] hover:text-white transition-colors">
+                                  className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-[#F2F2ED] text-[#a89f94] hover:text-white transition-colors">
                                   <Minus className="h-3 w-3" />
                                 </button>
                                 <span className="px-2.5 text-xs font-black text-white">{item.quantity}</span>
                                 <button onClick={() => updateQuantity(item.product.id, 1)} aria-label="زيادة"
-                                  className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-[#251e18] text-[#a89f94] hover:text-white transition-colors">
+                                  className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-[#F2F2ED] text-[#a89f94] hover:text-white transition-colors">
                                   <Plus className="h-3 w-3" />
                                 </button>
                               </div>
@@ -251,7 +286,7 @@ export default function CartDrawer() {
                     </div>
 
                     {/* تذييل السلة */}
-                    <div className="px-4 sm:px-5 py-4 border-t border-[#231d17] bg-[#15110e] space-y-3 shrink-0">
+                    <div className="px-4 sm:px-5 py-4 border-t border-[#231d17] bg-[#F2F2ED] space-y-3 shrink-0">
                       <div className="space-y-1.5 text-xs">
                         <div className="flex justify-between text-[#a89f94]">
                           <span>المجموع الفرعي</span>
@@ -269,11 +304,19 @@ export default function CartDrawer() {
 
                       <button onClick={() => goTo("checkout", "forward")}
                         className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] font-bold text-sm text-white shadow-lg shadow-black/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
-                        <span>إتمام الطلب والدفع</span>
+                        <span>إتمام الطلب</span>
                         <ChevronLeft className="h-4 w-4" />
                       </button>
 
-                      <button onClick={clearCart}
+                      <p className="flex items-center justify-center gap-1.5 text-[11px] text-[#8e8479]">
+                        <Banknote className="h-3.5 w-3.5 text-[#ff7a00] shrink-0" />
+                        الدفع عند الاستلام
+                      </p>
+
+                      <button
+                        onClick={() => {
+                          if (window.confirm("هل تريد تفريغ السلة بالكامل؟")) clearCart();
+                        }}
                         className="w-full py-1.5 text-center text-xs text-[#736a61] hover:text-[#a89f94] transition-colors">
                         تفريغ السلة بالكامل
                       </button>
@@ -297,7 +340,10 @@ export default function CartDrawer() {
               <OrderReviewStep
                 customer={customer}
                 onEditInfo={() => goTo("checkout", "back")}
-                onConfirmed={() => goTo("success", "forward")}
+                onConfirmed={(result) => {
+                  setIsCartOpen(false);
+                  router.push(`/order-confirmation?id=${encodeURIComponent(result.accessToken)}`);
+                }}
                 onCancelAll={() => { goTo("cart", "back"); }}
               />
             )}

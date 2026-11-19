@@ -1,17 +1,21 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Search, Users, Phone, X, ChevronLeft } from "lucide-react";
 import { Modal } from "@/components/admin/shared/Modal";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
-import { MOCK_ADMIN_CUSTOMERS } from "@/data/admin/customers";
-import { MOCK_ORDERS } from "@/data/admin/orders";
-import { AdminCustomer } from "@/types/admin";
 import { useToast } from "@/components/admin/shared/Toast";
 import { StatusBadge } from "@/components/admin/shared/StatusBadge";
+import type { AdminCustomer, AdminOrder } from "@/types/admin";
 
-const PER_PAGE = 7;
+// Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
+import { MOCK_ADMIN_CUSTOMERS } from "@/data/admin/customers";
+import { MOCK_ORDERS } from "@/data/admin/orders";
+
+const USE_MOCK = true;
+
+const PER_PAGE = 10;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("ar-EG", { year: "numeric", month: "short", day: "2-digit" });
@@ -19,130 +23,117 @@ function formatDate(iso: string) {
 
 export default function CustomersPage() {
   const { showToast } = useToast();
+  const [customers, setCustomers] = useState<AdminCustomer[]>(MOCK_ADMIN_CUSTOMERS);
+  const [total, setTotal] = useState(MOCK_ADMIN_CUSTOMERS.length);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<AdminCustomer | null>(null);
+  const [customerOrders, setCustomerOrders] = useState<AdminOrder[]>([]);
   const [page, setPage] = useState(1);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return MOCK_ADMIN_CUSTOMERS;
-    return MOCK_ADMIN_CUSTOMERS.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.phone.includes(q)
-    );
-  }, [search]);
+  const fetchCustomers = useCallback(async () => {
+    if (USE_MOCK) {
+      const q = search.trim();
+      const filtered = MOCK_ADMIN_CUSTOMERS.filter((c) => !q || c.name.includes(q) || c.phone.includes(q));
+      setCustomers(filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE));
+      setTotal(filtered.length);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const sp = new URLSearchParams({ page: String(page), limit: String(PER_PAGE) });
+      if (search) sp.set("q", search);
+      const res = await fetch(`/api/admin/customers?${sp}`);
+      const d = await res.json();
+      if (d.success) { setCustomers(d.data.customers); setTotal(d.data.pagination.total); }
+      else showToast(d.error?.message ?? "فشل", "error");
+    } catch { showToast("خطأ", "error"); }
+    finally { setLoading(false); }
+  }, [page, search, showToast]);
 
-  const totalPages = Math.ceil(filtered.length / PER_PAGE);
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  useEffect(() => { queueMicrotask(() => { void fetchCustomers(); }); }, [fetchCustomers]);
 
-  // طلبات العميل المحدد
-  const customerOrders = useMemo(
-    () => MOCK_ORDERS.filter((o) => selected && o.customerPhone === selected.phone),
-    [selected]
-  );
+  const totalPages = Math.ceil(total / PER_PAGE);
 
-  /**
-   * الدفع كاش فقط، والإحصاء يُحسب من الطلبات المُسلّمة فعلياً.
-   * لا نعرض أرقاماً ثابتة حتى لا نبالغ في اللي العميل أنفقه.
-   */
-  const deliveredStats = useMemo(() => {
-    const map = new Map<string, { count: number; spent: number }>();
-    MOCK_ORDERS.filter((o) => o.status === "delivered").forEach((o) => {
-      const prev = map.get(o.customerPhone) ?? { count: 0, spent: 0 };
-      map.set(o.customerPhone, { count: prev.count + 1, spent: prev.spent + o.total });
-    });
-    return map;
-  }, []);
-
-  const getStats = (phone: string) => deliveredStats.get(phone) ?? { count: 0, spent: 0 };
+  const openCustomer = async (c: AdminCustomer) => {
+    setSelected(c);
+    if (USE_MOCK) {
+      setCustomerOrders(MOCK_ORDERS.filter((o) => o.customerPhone === c.phone));
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/customers/${encodeURIComponent(c.phone)}`);
+      const d = await res.json();
+      if (d.success) setCustomerOrders(d.data.orders ?? []);
+    } catch { setCustomerOrders([]); }
+  };
 
   const copyPhone = (phone: string) => {
     navigator.clipboard.writeText(phone).then(() => showToast("تم نسخ الهاتف", "success"));
   };
 
   return (
-    <div className="space-y-5">
-      {/* بحث */}
+    <div className="space-y-4 sm:space-y-5">
       <div className="relative max-w-sm">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#5a4f45]" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+        <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9A9C90]" />
+        <input type="text" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
           placeholder="ابحث بالاسم أو الهاتف..."
-          className="w-full rounded-xl bg-[#141210] border border-[#2a241f] py-2.5 pr-9 pl-4 text-sm text-white placeholder-[#5a4f45] focus:border-[#ff7a00] focus:outline-none transition-colors"
-        />
-        {search && (
-          <button onClick={() => setSearch("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5a4f45] hover:text-white">
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
+          className="w-full rounded-full border border-[#E9E5DA] bg-[#FBF9F6] py-2.5 pe-4 ps-10 text-[13px] text-[#333B2E] placeholder-[#A6A79C] transition-colors focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+        {search && <button onClick={() => setSearch("")} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9A9C90] transition-colors hover:text-[#50604D]" aria-label="مسح البحث"><X className="h-3.5 w-3.5" /></button>}
       </div>
 
-      {/* جدول */}
-      <div className="rounded-2xl bg-[#141210] border border-[#26201a] overflow-hidden">
-        <div className="px-5 py-3 border-b border-[#231d17]">
-          <h2 className="text-sm font-bold text-white">العملاء ({filtered.length})</h2>
+      <div className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
+        <div className="px-5 pb-3 pt-4">
+          <h2 className="text-[15px] font-black text-[#333B2E]">
+            العملاء <span className="text-[12px] font-bold text-[#9A9C90]">({total})</span>
+          </h2>
         </div>
-
-        {paginated.length === 0 ? (
-          <EmptyState icon={Users} title="لا يوجد عملاء" description="لم يتم العثور على عملاء مطابقين" />
+        {loading ? (
+          <div className="py-12 text-center text-[13px] text-[#9A9C90] animate-pulse">جاري التحميل...</div>
+        ) : customers.length === 0 ? (
+          <EmptyState icon={Users} title="لا يوجد عملاء" description="لم يتم العثور على عملاء" />
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-sm min-w-[640px]">
+              <table className="w-full min-w-[640px] text-right">
                 <thead>
-                  <tr className="text-[11px] text-[#5a4f45] border-b border-[#1e1914]">
-                    <th className="px-5 py-3 font-bold">العميل</th>
-                    <th className="px-5 py-3 font-bold">طلبات مُسلّمة</th>
-                    <th className="px-5 py-3 font-bold">المنفق (مُسلّمة)</th>
-                    <th className="px-5 py-3 font-bold">آخر طلب</th>
-                    <th className="px-5 py-3 font-bold">التفاصيل</th>
+                  <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
+                    <th className="px-5 py-2.5 font-bold">العميل</th>
+                    <th className="px-5 py-2.5 font-bold">الطلبات</th>
+                    <th className="px-5 py-2.5 font-bold">المنفق</th>
+                    <th className="px-5 py-2.5 font-bold">آخر طلب</th>
+                    <th className="px-5 py-2.5 font-bold">التفاصيل</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1a1612]">
-                  {paginated.map((c) => (
-                    <tr
-                      key={c.id}
-                      onClick={() => setSelected(c)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setSelected(c);
-                        }
-                      }}
-                      tabIndex={0}
-                      role="button"
-                      aria-label={`عرض بيانات العميل ${c.name}`}
-                      className="cursor-pointer transition-colors hover:bg-[#1a1512] focus:outline-none focus-visible:bg-[#1a1512] focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#ff7a00]/40"
-                    >
-                      <td className="px-5 py-3.5">
+                <tbody className="divide-y divide-[#F0EDE5]">
+                  {customers.map(c => (
+                    <tr key={c.id} onClick={() => openCustomer(c)} tabIndex={0} role="button"
+                      className="cursor-pointer text-[12px] transition-colors hover:bg-[#F8F6F1] focus:outline-none focus-visible:bg-[#F8F6F1]">
+                      <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#ff7a00]/15 text-[#ff7a00] font-black text-sm border border-[#ff7a00]/20">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#DEE3D5] text-[13px] font-black text-[#50604D]">
                             {c.name.charAt(0)}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-white">{c.name}</p>
+                            <p className="text-[13px] font-bold text-[#333B2E]">{c.name}</p>
                             <div className="flex items-center gap-1.5">
-                              <p className="text-[11px] text-[#5a4f45]" dir="ltr">{c.phone}</p>
-                              <button onClick={(e) => { e.stopPropagation(); copyPhone(c.phone); }} aria-label={`نسخ هاتف ${c.name}`} className="text-[#5a4f45] hover:text-[#ff7a00] transition-colors">
+                              <p className="text-[11px] text-[#9A9C90]" dir="ltr">{c.phone}</p>
+                              <button onClick={e => { e.stopPropagation(); copyPhone(c.phone); }} className="text-[#B5B2A8] transition-colors hover:text-[#50604D]">
                                 <Phone className="h-3 w-3" />
                               </button>
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5">
-                        <span className="inline-flex items-center rounded-full bg-[#ff7a00]/15 text-[#ff7a00] border border-[#ff7a00]/25 px-2.5 py-0.5 text-xs font-black">
-                          {getStats(c.phone).count}
-                        </span>
+                      <td className="px-5 py-3">
+                        <span className="inline-flex items-center rounded-full bg-[#F4F2EE] px-2.5 py-1 text-[11px] font-black text-[#50604D]">{c.ordersCount}</span>
                       </td>
-                      <td className="px-5 py-3.5 font-black text-[#ff7a00] text-sm">{getStats(c.phone).spent.toLocaleString()} ج.م</td>
-                      <td className="px-5 py-3.5 text-xs text-[#5a4f45]">{formatDate(c.lastOrderAt)}</td>
-                      <td className="px-5 py-3.5">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setSelected(c); }}
-                          className="flex items-center gap-1 rounded-lg bg-[#1f1915] border border-[#2a231d] px-3 py-1.5 text-xs font-bold text-[#a89f94] hover:text-white hover:border-[#ff7a00]/40 transition-colors"
-                        >
+                      <td className="px-5 py-3 text-[13px] font-black text-[#333B2E]">{c.totalSpent.toLocaleString()} ج.م</td>
+                      <td className="px-5 py-3 text-[11px] font-medium text-[#9A9C90]">{formatDate(c.lastOrderAt)}</td>
+                      <td className="px-5 py-3">
+                        <button onClick={e => { e.stopPropagation(); openCustomer(c); }}
+                          className="flex items-center gap-1 rounded-full border border-[#E7E3D8] bg-[#F4F2EE] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#EDEAE1]">
                           تفاصيل <ChevronLeft className="h-3.5 w-3.5" />
                         </button>
                       </td>
@@ -152,61 +143,46 @@ export default function CustomersPage() {
               </table>
             </div>
             <div className="px-5 py-3">
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={filtered.length} itemsPerPage={PER_PAGE} />
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={total} itemsPerPage={PER_PAGE} />
             </div>
           </>
         )}
       </div>
 
-      {/* Modal تفاصيل العميل */}
-      <Modal isOpen={!!selected} onClose={() => setSelected(null)} title={selected ? `تفاصيل العميل — ${selected.name}` : ""} size="lg">
+      <Modal isOpen={!!selected} onClose={() => { setSelected(null); setCustomerOrders([]); }}
+        title={selected ? `تفاصيل العميل — ${selected.name}` : ""} size="lg">
         {selected && (
           <div className="space-y-5">
-            {/* بيانات العميل */}
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid gap-3 sm:grid-cols-2">
               {[
-                { label: "الاسم",         value: selected.name },
-                { label: "الهاتف",        value: selected.phone, ltr: true },
-                { label: "أول طلب",       value: formatDate(selected.firstOrderAt) },
-                { label: "آخر طلب",       value: formatDate(selected.lastOrderAt) },
-                { label: "الطلبات المُسلّمة", value: `${getStats(selected.phone).count} طلب` },
-                { label: "المنفق (مُسلّمة)", value: `${getStats(selected.phone).spent.toLocaleString()} ج.م` },
+                { label: "الاسم", value: selected.name },
+                { label: "الهاتف", value: selected.phone, ltr: true },
+                { label: "أول طلب", value: formatDate(selected.firstOrderAt) },
+                { label: "آخر طلب", value: formatDate(selected.lastOrderAt) },
+                { label: "الطلبات", value: `${selected.ordersCount} طلب` },
+                { label: "المنفق", value: `${selected.totalSpent.toLocaleString()} ج.م` },
               ].map(({ label, value, ltr }) => (
-                <div key={label} className="rounded-xl bg-[#1a1512] border border-[#2a231d] p-3.5">
-                  <p className="text-[10px] text-[#5a4f45] mb-1">{label}</p>
-                  <p className="text-sm font-bold text-white" dir={ltr ? "ltr" : undefined}>{value}</p>
+                <div key={label} className="rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-3.5">
+                  <p className="mb-1 text-[10px] font-semibold text-[#9A9C90]">{label}</p>
+                  <p className="text-[13px] font-bold text-[#333B2E]" dir={ltr ? "ltr" : undefined}>{value}</p>
                 </div>
               ))}
             </div>
-
-            {/* عناوين */}
-            {selected.addresses.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold text-[#ff7a00] uppercase tracking-wider">العناوين المسجلة</h3>
-                {selected.addresses.map((addr, i) => (
-                  <div key={i} className="rounded-xl bg-[#1a1512] border border-[#2a231d] px-4 py-3 text-sm text-[#c4b9ad]">
-                    {addr}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* سجل الطلبات */}
             <div className="space-y-2">
-              <h3 className="text-xs font-bold text-[#ff7a00] uppercase tracking-wider">سجل الطلبات ({customerOrders.length})</h3>
+              <h3 className="text-[11px] font-black tracking-wide text-[#50604D]">سجل الطلبات ({customerOrders.length})</h3>
               {customerOrders.length === 0 ? (
-                <p className="text-sm text-[#5a4f45] py-4 text-center">لا توجد طلبات مسجلة في النظام الحالي</p>
+                <p className="py-4 text-center text-[13px] text-[#9A9C90]">لا توجد طلبات</p>
               ) : (
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {customerOrders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between rounded-xl bg-[#1a1512] border border-[#2a231d] px-4 py-3">
+                <div className="max-h-64 space-y-2 overflow-y-auto">
+                  {customerOrders.map(order => (
+                    <div key={order.id} className="flex items-center justify-between rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-black text-white">#{order.id}</span>
+                        <span className="text-[12px] font-black text-[#333B2E]">#{order.orderNumber}</span>
                         <StatusBadge status={order.status} />
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-black text-[#ff7a00]">{order.total} ج.م</p>
-                        <p className="text-[10px] text-[#5a4f45]">{formatDate(order.createdAt)}</p>
+                        <p className="text-[13px] font-black text-[#333B2E]">{order.total} ج.م</p>
+                        <p className="text-[10px] text-[#9A9C90]">{formatDate(order.createdAt)}</p>
                       </div>
                     </div>
                   ))}

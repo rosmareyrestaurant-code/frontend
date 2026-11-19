@@ -7,8 +7,11 @@ import {
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { useDelivery } from "@/context/DeliveryContext";
+import { useStoreToast } from "@/components/common/StoreToast";
 import { CustomerInfo } from "@/types";
 import { formatDays } from "@/types/delivery";
+import { normalizeArabic } from "@/lib/arabic";
+import { reverseGeocode } from "@/lib/geocode";
 
 interface CheckoutFormProps {
   onBack: () => void;
@@ -17,16 +20,6 @@ interface CheckoutFormProps {
 }
 
 type Field = "name" | "phone" | "address" | "notes";
-
-/** توحيد كتابة النص عشان مقارنة العنوان بأسماء مناطق التوصيل المجاني */
-function normalizeText(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[\u064B-\u065F]/g, "")
-    .replace(/[أإآ]/g, "ا")
-    .replace(/ة/g, "ه")
-    .trim();
-}
 
 const FIELDS: {
   key: Field;
@@ -45,6 +38,7 @@ const FIELDS: {
 export default function CheckoutForm({ onBack, onNext, initialValues }: CheckoutFormProps) {
   const { subtotal, total } = useShop();
   const { activeZones, selectArea } = useDelivery();
+  const { showMessage } = useStoreToast();
 
   const [form, setForm] = useState<CustomerInfo>(
     initialValues ?? { name: "", phone: "", address: "", notes: "", lat: undefined, lng: undefined }
@@ -53,9 +47,9 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
 
   // المكان مش بيختاره العميل من قائمة — بيستنتج من العنوان اللي كتبه
   const matchedZone = useMemo(() => {
-    const address = normalizeText(form.address);
+    const address = normalizeArabic(form.address);
     if (!address) return null;
-    return activeZones.find((zone) => address.includes(normalizeText(zone.name))) ?? null;
+    return activeZones.find((zone) => address.includes(normalizeArabic(zone.name))) ?? null;
   }, [activeZones, form.address]);
 
   useEffect(() => {
@@ -68,24 +62,30 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
 
   /* ── GPS ── */
   const handleLocate = useCallback(() => {
-    if (!navigator.geolocation) { alert("متصفحك مش بيدعم تحديد الموقع."); return; }
+    if (!navigator.geolocation) {
+      showMessage("متصفحك مش بيدعم تحديد الموقع.", "error");
+      return;
+    }
     setGpsLoading(true); setGpsSuccess(false);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
+        let address = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
         try {
-          const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`);
-          const data = await res.json();
-          const display = data?.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-          setForm((p) => ({ ...p, address: display, lat, lng }));
+          address = await reverseGeocode(lat, lng);
         } catch {
-          setForm((p) => ({ ...p, address: `${lat.toFixed(5)}, ${lng.toFixed(5)}`, lat, lng }));
-        } finally { setGpsLoading(false); setGpsSuccess(true); }
+          showMessage("تعذّر تحويل الإحداثيات لعنوان — أضف العنوان يدوياً.", "warning");
+        }
+        setForm((p) => ({ ...p, address, lat, lng }));
+        setGpsLoading(false); setGpsSuccess(true);
       },
-      () => { setGpsLoading(false); alert("تعذّر تحديد موقعك. تأكد من منح صلاحية الموقع."); },
+      () => {
+        setGpsLoading(false);
+        showMessage("تعذّر تحديد موقعك. تأكد من منح صلاحية الموقع.", "error");
+      },
       { enableHighAccuracy: true, timeout: 10000 }
     );
-  }, []);
+  }, [showMessage]);
 
   /* ── Validation ── */
   const validate = (): boolean => {
@@ -127,7 +127,7 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
       {/* رأس */}
       <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-[#231d17] shrink-0">
         <button type="button" onClick={onBack}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1c1613] text-[#a89f94] hover:text-white hover:bg-[#251e19] transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F2F2ED] text-[#a89f94] hover:text-white hover:bg-[#F2F2ED] transition-colors"
           aria-label="رجوع للسلة">
           <ArrowRight className="h-5 w-5" />
         </button>
@@ -156,31 +156,31 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
             </label>
 
             {key === "address" ? (
-              <div className="relative">
-                <textarea
-                  value={form.address} rows={2}
-                  onChange={(e) => change("address", e.target.value)}
-                  placeholder={placeholder}
-                  className={`w-full resize-none rounded-xl bg-[#1a1512] border ${errors.address ? "border-red-500/70" : "border-[#2d2620]"} px-3 pt-2.5 pb-2.5 pl-11 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
-                />
-                {/* GPS button */}
-                <button type="button" onClick={handleLocate} disabled={gpsLoading}
-                  aria-label="تحديد موقعي تلقائياً"
-                  className={`absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg border transition-all ${
-                    gpsSuccess
-                      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                      : "bg-[#ff7a00]/12 text-[#ff7a00] hover:bg-[#ff7a00]/22 border-[#ff7a00]/20"
-                  }`}>
-                  {gpsLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> :
-                   gpsSuccess  ? <CheckCircle2 className="h-3.5 w-3.5" /> :
-                                 <LocateFixed className="h-3.5 w-3.5" />}
-                </button>
-              </div>
+              <>
+              <textarea
+                value={form.address} rows={2}
+                onChange={(e) => change("address", e.target.value)}
+                placeholder={placeholder}
+                className={`w-full resize-none rounded-xl bg-[#F2F2ED] border ${errors.address ? "border-red-500/70" : "border-[#2d2620]"} px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
+              />
+              <button type="button" onClick={handleLocate} disabled={gpsLoading}
+                className={`flex w-full items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-[12px] font-bold transition-all disabled:opacity-60 ${
+                  gpsSuccess
+                    ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-400"
+                    : "border-[#ff7a00]/30 bg-[#ff7a00]/10 text-[#ff7a00] hover:bg-[#ff7a00]/20"
+                }`}>
+                {gpsLoading
+                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> جاري تحديد موقعك...</>
+                  : gpsSuccess
+                    ? <><CheckCircle2 className="h-3.5 w-3.5" /> تم إضافة مكانك بالجي بي اس — اضغط لتحديثه</>
+                    : <><LocateFixed className="h-3.5 w-3.5" /> إضافة مكاني بالجي بي اس</>}
+              </button>
+              </>
             ) : multiline ? (
               <textarea value={form[key] as string} rows={2}
                 onChange={(e) => change(key, e.target.value)}
                 placeholder={placeholder}
-                className={`w-full resize-none rounded-xl bg-[#1a1512] border ${errors[key] ? "border-red-500/70" : "border-[#2d2620]"} px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
+                className={`w-full resize-none rounded-xl bg-[#F2F2ED] border ${errors[key] ? "border-red-500/70" : "border-[#2d2620]"} px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
               />
             ) : (
               <input type={type || "text"}
@@ -188,7 +188,7 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
                 value={form[key] as string}
                 onChange={(e) => change(key, e.target.value)}
                 placeholder={placeholder}
-                className={`w-full rounded-xl bg-[#1a1512] border ${errors[key] ? "border-red-500/70" : "border-[#2d2620]"} px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
+                className={`w-full rounded-xl bg-[#F2F2ED] border ${errors[key] ? "border-red-500/70" : "border-[#2d2620]"} px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
               />
             )}
 
@@ -210,7 +210,7 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
       </div>
 
       {/* تذييل */}
-      <div className="px-4 sm:px-5 py-4 border-t border-[#231d17] bg-[#15110e] space-y-3 shrink-0">
+      <div className="px-4 sm:px-5 py-4 border-t border-[#231d17] bg-[#F2F2ED] space-y-3 shrink-0">
         {/* ملخص مبسط */}
         <div className="space-y-1.5 text-xs">
           <div className="flex items-center justify-between text-[#a89f94]">
