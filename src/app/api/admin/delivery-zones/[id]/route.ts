@@ -4,7 +4,7 @@ import { DeliveryZoneModel } from "@/models/DeliveryZone";
 import { success, notFound, badRequest, serverError, AppError } from "@/lib/api-response";
 import { requireAdmin } from "@/lib/auth";
 import { toDeliveryZone } from "@/lib/serialize";
-import { deliveryZoneSchema } from "@/lib/validation";
+import { updateDeliveryZoneSchema } from "@/lib/validation";
 
 
 export const instant = false;
@@ -16,7 +16,7 @@ export async function PATCH(
     await requireAdmin();
     const { id } = await params;
     const body = await req.json();
-    const parsed = deliveryZoneSchema.partial().safeParse(body);
+    const parsed = updateDeliveryZoneSchema.safeParse(body);
     if (!parsed.success)
       return badRequest(parsed.error.issues[0]?.message ?? "بيانات غير صحيحة");
 

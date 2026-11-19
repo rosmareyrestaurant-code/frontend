@@ -170,9 +170,22 @@ export default function ProductsPage() {
   };
 
   const updateSize = (index: number, patch: Partial<AdminProductSize>) =>
-    setForm(p => ({ ...p, sizes: (p.sizes ?? []).map((s, i) => i === index ? { ...s, ...patch } : s) }));
+    setForm(p => {
+      const sizes = (p.sizes ?? []).map((s, i) => (i === index ? { ...s, ...patch } : s));
+      const defIndex = sizes.findIndex(s => s.isDefault);
+      const isDefaultSize = (defIndex === -1 ? 0 : defIndex) === index;
+      return {
+        ...p,
+        sizes,
+        price: isDefaultSize && patch.price !== undefined ? patch.price : p.price,
+      };
+    });
   const makeDefaultSize = (index: number) =>
-    setForm(p => ({ ...p, sizes: (p.sizes ?? []).map((s, i) => ({ ...s, isDefault: i === index })) }));
+    setForm(p => ({
+      ...p,
+      price: (p.sizes ?? [])[index]?.price ?? p.price,
+      sizes: (p.sizes ?? []).map((s, i) => ({ ...s, isDefault: i === index })),
+    }));
 
   const handleExcel = async (file?: File) => {
     if (!file) return;
@@ -417,8 +430,20 @@ export default function ProductsPage() {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-[#8F9186]">السعر (ج.م) *</label>
-              <input type="number" min={0} value={form.price} onChange={e => setForm(p => ({ ...p, price: Number(e.target.value) }))}
+              <input type="number" min={0} value={form.price} onChange={e => {
+                const price = Number(e.target.value);
+                setForm(p => {
+                  const sizes = p.sizes ?? [];
+                  if (!sizes.length) return { ...p, price };
+                  const defIndex = sizes.findIndex(s => s.isDefault);
+                  const target = defIndex === -1 ? 0 : defIndex;
+                  return { ...p, price, sizes: sizes.map((s, i) => (i === target ? { ...s, price } : s)) };
+                });
+              }}
                 className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-4 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+              {(form.sizes ?? []).length > 0 && (
+                <p className="text-[10px] font-medium text-[#9A9C90]">بيتزامن مع سعر الحجم الافتراضي</p>
+              )}
             </div>
           </div>
           <div className="space-y-1.5">

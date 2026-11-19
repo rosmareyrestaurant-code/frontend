@@ -29,27 +29,35 @@ export const productAddonSchema = z.object({
 const baseProductFields = {
   name: z.string().trim().min(2, "اسم المنتج مطلوب"),
   nameEn: z.string().trim().optional(),
-  description: z.string().trim().optional().default(""),
+  description: z.string().trim().optional(),
   descriptionEn: z.string().trim().optional(),
   image: z.string().trim().min(1, "صورة المنتج مطلوبة"),
-  imagePublicId: z.string().trim().optional().default(""),
+  imagePublicId: z.string().trim().optional(),
   category: z.string().trim().min(1, "التصنيف مطلوب"),
   categoryNameAr: z.string().trim().optional(),
   categoryNameEn: z.string().trim().optional(),
-  price: z.number().min(0).default(0),
+  price: z.number().min(0),
   originalPrice: z.number().min(0).optional(),
   sizes: z.array(productSizeSchema).optional(),
   addons: z.array(productAddonSchema).optional(),
   notes: z.string().trim().optional(),
   menuOrder: z.number().int().min(0).optional(),
+  isAvailable: z.boolean(),
+  isVisible: z.boolean(),
+  isFeatured: z.boolean(),
+};
+
+export const createProductSchema = z.object({
+  ...baseProductFields,
+  description: z.string().trim().optional().default(""),
+  imagePublicId: z.string().trim().optional().default(""),
+  price: z.number().min(0).default(0),
   isAvailable: z.boolean().default(true),
   isVisible: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
-};
+});
 
-export const createProductSchema = z.object(baseProductFields);
-
-export const updateProductSchema = createProductSchema.partial();
+export const updateProductSchema = z.object(baseProductFields).partial();
 
 /** استيراد إكسيل: الصورة اختيارية (بتتظبط بعدين من لوحة التحكم) */
 export const importProductSchema = createProductSchema.extend({
@@ -65,57 +73,82 @@ const baseCategoryFields = {
     .trim()
     .min(1)
     .regex(slugRegex, "الـ slug أحرف إنجليزية وأرقام وواصلات فقط"),
-  image: z.string().trim().optional().default(""),
-  imagePublicId: z.string().trim().optional().default(""),
+  image: z.string().trim().optional(),
+  imagePublicId: z.string().trim().optional(),
   description: z.string().trim().optional(),
-  sortOrder: z.number().int().min(0).default(0),
-  isActive: z.boolean().default(true),
+  sortOrder: z.number().int().min(0),
+  isActive: z.boolean(),
 };
 
-export const createCategorySchema = z.object(baseCategoryFields);
-export const updateCategorySchema = createCategorySchema.partial();
+export const createCategorySchema = z.object({
+  ...baseCategoryFields,
+  image: z.string().trim().optional().default(""),
+  imagePublicId: z.string().trim().optional().default(""),
+  sortOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+export const updateCategorySchema = z.object(baseCategoryFields).partial();
 
 /* ─── البنرات ────────────────────────────────────────────────────── */
 const baseBannerFields = {
   title: z.string().trim().min(1, "عنوان البانر مطلوب"),
   description: z.string().trim().optional(),
   image: z.string().trim().min(1, "صورة البانر مطلوبة"),
-  imagePublicId: z.string().trim().optional().default(""),
-  position: z.enum(["hero", "middle", "delivery"]).default("hero"),
+  imagePublicId: z.string().trim().optional(),
+  position: z.enum(["hero", "middle", "delivery"]),
   ctaText: z.string().trim().optional(),
   ctaLink: z.string().trim().optional(),
   startDate: z.string().trim().optional(),
   endDate: z.string().trim().optional(),
-  sortOrder: z.number().int().min(0).default(1),
-  isActive: z.boolean().default(true),
+  sortOrder: z.number().int().min(0),
+  isActive: z.boolean(),
 };
 
-export const createBannerSchema = z.object(baseBannerFields);
-export const updateBannerSchema = createBannerSchema.partial();
+export const createBannerSchema = z.object({
+  ...baseBannerFields,
+  imagePublicId: z.string().trim().optional().default(""),
+  position: z.enum(["hero", "middle", "delivery"]).default("hero"),
+  sortOrder: z.number().int().min(0).default(1),
+  isActive: z.boolean().default(true),
+});
+export const updateBannerSchema = z.object(baseBannerFields).partial();
 
 /* ─── العروض ─────────────────────────────────────────────────────── */
 const baseOfferFields = {
   title: z.string().trim().min(1, "عنوان العرض مطلوب"),
   subtitle: z.string().trim().min(1, "محتويات العرض مطلوبة"),
   image: z.string().trim().min(1, "صورة العرض مطلوبة"),
-  imagePublicId: z.string().trim().optional().default(""),
+  imagePublicId: z.string().trim().optional(),
   price: z.number().min(0, "السعر مطلوب"),
+  originalPrice: z.number().min(0),
+  durationMinutes: z.number().int().min(1),
+  sortOrder: z.number().int().min(0),
+  isActive: z.boolean(),
+};
+
+export const createOfferSchema = z.object({
+  ...baseOfferFields,
+  imagePublicId: z.string().trim().optional().default(""),
   originalPrice: z.number().min(0).default(0),
   durationMinutes: z.number().int().min(1).default(180),
   sortOrder: z.number().int().min(0).default(1),
   isActive: z.boolean().default(true),
-};
-
-export const createOfferSchema = z.object(baseOfferFields);
-export const updateOfferSchema = createOfferSchema.partial();
+});
+export const updateOfferSchema = z.object(baseOfferFields).partial();
 
 /* ─── مناطق التوصيل ──────────────────────────────────────────────── */
-export const deliveryZoneSchema = z.object({
+const baseDeliveryZoneFields = {
   name: z.string().trim().min(1, "اسم المنطقة مطلوب"),
   days: z.array(z.string()).min(1, "اختر يوم توصيل مجاني واحد على الأقل"),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   note: z.string().trim().optional(),
+};
+
+export const deliveryZoneSchema = z.object({
+  ...baseDeliveryZoneFields,
+  isActive: z.boolean().default(true),
 });
+export const updateDeliveryZoneSchema = z.object(baseDeliveryZoneFields).partial();
 
 /* ─── العميل والطلب ──────────────────────────────────────────────── */
 export const customerInfoSchema = z.object({
