@@ -34,7 +34,6 @@ export default function AdminLoginPage() {
 
     setLoading(true);
     try {
-      // نجرب الـ API أولاً (لو فيه باكند موصول)
       const res = await fetch("/api/admin/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -42,16 +41,15 @@ export default function AdminLoginPage() {
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        // مفيش باكند/قاعدة بيانات في العرض التجريبي → وضع تجريبي
-        console.warn("API login unavailable, using demo session:", data?.error?.message);
+        setError(data?.error?.message ?? "تعذر تسجيل الدخول، تأكد من البريد وكلمة المرور");
+        return;
       }
-    } catch {
-      // مفيش اتصال بالسيرفر → وضع تجريبي
-    } finally {
-      // في الحالتين: الجلسة التجريبية تفتح الداش بورد (العرض التجريبي)
       signInAdmin();
-      setLoading(false);
       router.replace("/dashboard");
+    } catch {
+      setError("تعذر الاتصال بالسيرفر، حاول مرة أخرى");
+    } finally {
+      setLoading(false);
     }
   }
 

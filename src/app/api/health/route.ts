@@ -1,17 +1,24 @@
 import { NextRequest } from "next/server";
 import mongoose from "mongoose";
+import { connectToDatabase } from "@/lib/mongodb";
 
 
 export const instant = false;
 export async function GET(_req: NextRequest) {
-  const dbState = mongoose.connection.readyState;
-  // 0=disconnected 1=connected 2=connecting 3=disconnecting
-  const dbStatus = ["disconnected", "connected", "connecting", "disconnecting"][dbState] ?? "unknown";
+  let dbStatus = "disconnected";
+  try {
+    await connectToDatabase();
+    const dbState = mongoose.connection.readyState;
+    // 0=disconnected 1=connected 2=connecting 3=disconnecting
+    dbStatus = ["disconnected", "connected", "connecting", "disconnecting"][dbState] ?? "unknown";
+  } catch {
+    dbStatus = "error";
+  }
 
   return Response.json({
-    success: true,
+    success: dbStatus === "connected",
     data: {
-      status: "ok",
+      status: dbStatus === "connected" ? "ok" : "degraded",
       db: dbStatus,
       env: process.env.NODE_ENV,
     },

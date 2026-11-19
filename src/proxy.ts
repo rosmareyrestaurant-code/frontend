@@ -5,7 +5,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { ADMIN_COOKIE_NAME, DEMO_ADMIN_COOKIE } from "@/lib/constants";
+import { ADMIN_COOKIE_NAME } from "@/lib/constants";
 
 export const config = {
   matcher: ["/dashboard/:path*"],
@@ -13,12 +13,6 @@ export const config = {
 
 export async function proxy(req: NextRequest) {
   const token = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
-  // جلسة تجريبية (مفيش باكند) — نفس فكرة الـ localStorage عند الدخول
-  const demoSession = req.cookies.get(DEMO_ADMIN_COOKIE)?.value === "1";
-
-  if (demoSession) {
-    return NextResponse.next();
-  }
 
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
@@ -26,7 +20,10 @@ export async function proxy(req: NextRequest) {
 
   const secret = process.env.AUTH_SECRET;
   if (!secret) {
-    // بدون AUTH_SECRET في بيئة التطوير — السماح بالمرور
+    // بدون AUTH_SECRET في الإنتاج: امنع الدخول بدل السماح به
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
     return NextResponse.next();
   }
 

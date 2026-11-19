@@ -7,6 +7,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, Grid3x3,
   Megaphone, Flame, Users, Settings, LogOut, X, ExternalLink, MapPin,
 } from "lucide-react";
+import { beginAdminLogout } from "@/hooks/useAdminAuth";
 
 const NAV_ITEMS = [
   { label: "الرئيسية",          href: "/dashboard",            icon: LayoutDashboard },
@@ -33,6 +34,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     try {
       await fetch("/api/admin/auth/logout", { method: "POST" });
     } catch { /* ignore */ }
+    beginAdminLogout();
     router.push("/login");
     router.refresh();
   }
