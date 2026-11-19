@@ -16,7 +16,7 @@ import { AdminOrder, OrderStatus, ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } f
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
 import { MOCK_ORDERS } from "@/data/admin/orders";
 
-const USE_MOCK = true;
+const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
 const ALL_STATUSES: OrderStatus[] = ["pending", "delivered", "cancelled"];
 const PER_PAGE = 6;
@@ -30,9 +30,9 @@ function formatDate(iso: string) {
 
 export default function OrdersPage() {
   const { showToast } = useToast();
-  const [orders, setOrders] = useState<AdminOrder[]>(MOCK_ORDERS.slice(0, PER_PAGE));
-  const [loading, setLoading] = useState(false);
-  const [total, setTotal] = useState(MOCK_ORDERS.length);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);

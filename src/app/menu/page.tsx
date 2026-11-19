@@ -7,30 +7,28 @@ import ProductCard from "@/components/home/ProductCard";
 import type { Product } from "@/types";
 import { normalizeArabic } from "@/lib/arabic";
 
-// ─── Mock Data fallback مؤقت للتصميم ───────────────────────────────
-// TODO: أعِد تعليق هذه الـ import بعد الانتهاء من اختبار التصميم
-import {
-  CHICKEN_PRODUCTS,
-  PIZZA_PRODUCTS,
-  BURGER_PRODUCTS,
-  PASTA_PRODUCTS,
-  DRINK_PRODUCTS,
-} from "@/data/mockData";
-
-const ALL_MOCK_PRODUCTS = [
-  ...PIZZA_PRODUCTS,
-  ...CHICKEN_PRODUCTS,
-  ...BURGER_PRODUCTS,
-  ...PASTA_PRODUCTS,
-  ...DRINK_PRODUCTS,
-];
-// ────────────────────────────────────────────────────────────────────
+// Mock Data معطّلة — الصفحة بتقرأ من الـ API
+// import {
+//   CHICKEN_PRODUCTS,
+//   PIZZA_PRODUCTS,
+//   BURGER_PRODUCTS,
+//   PASTA_PRODUCTS,
+//   DRINK_PRODUCTS,
+// } from "@/data/mockData";
+//
+// const ALL_MOCK_PRODUCTS = [
+//   ...PIZZA_PRODUCTS,
+//   ...CHICKEN_PRODUCTS,
+//   ...BURGER_PRODUCTS,
+//   ...PASTA_PRODUCTS,
+//   ...DRINK_PRODUCTS,
+// ];
 
 const CATEGORY_LABELS: Record<string, string> = {
   pizza: "البيتزا",
-  chicken: "كريب ودجاج",
-  burger: "سندوتشات وبرجر",
-  pasta: "مكرونات",
+  chicken: "كريب",
+  burger: "سندوتشات",
+  pasta: "مكرونة",
   drinks: "مشروبات",
   desserts: "حلويات",
   extras: "إضافات روزماري",
@@ -40,27 +38,25 @@ function MenuContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
 
-  const [allProducts, setAllProducts] = useState<Product[]>(ALL_MOCK_PRODUCTS);
-  const [loading, setLoading] = useState(false); // Mock Data جاهزة — لا loading
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [search, setSearch] = useState(initialQuery);
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
 
   useEffect(() => {
-    fetch("/api/products?limit=100")
+    fetch("/api/products?limit=500")
       .then(r => r.json())
       .then(d => {
-        const products: Product[] = d?.data?.products ?? [];
-        // استخدم API فقط إذا كانت تحتوي منتجات
-        if (d.success && products.length > 0) {
-          setAllProducts(products);
+        if (d.success) {
+          setAllProducts(d.data?.products ?? []);
+        } else {
+          setError(d.error?.message ?? "تعذّر تحميل المنيو");
         }
-        // إذا API فارغ، Mock Data تبقى ظاهرة
       })
-      .catch(() => {
-        // فشل الـ API — Mock Data ظاهرة بالفعل
-      });
+      .catch(() => setError("تعذّر الاتصال بالخادم"))
+      .finally(() => setLoading(false));
   }, []);
 
   const CATEGORY_TABS = useMemo(() => [

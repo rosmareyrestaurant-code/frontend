@@ -5,7 +5,8 @@ import Image from "next/image";
 import { X, Heart, Plus, Minus, ShoppingBag, Check } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { Product, ProductSize } from "@/types";
-import { useCatalogProduct } from "@/hooks/useCatalog";
+// التعديلات بقت جاية من الـ API نفسه
+// import { useCatalogProduct } from "@/hooks/useCatalog";
 import { useStoreToast } from "@/components/common/StoreToast";
 
 interface ProductModalInnerProps {
@@ -14,8 +15,7 @@ interface ProductModalInnerProps {
 }
 
 function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerProps) {
-  // الصورة والأسعار والأحجام المرفوعة من الأدمن (أو المستوردة من الإكسيل)
-  const product = useCatalogProduct(baseProduct);
+  const product = baseProduct;
   const { addToCart, toggleFavorite, isFavorite } = useShop();
   const { showStoreToast } = useStoreToast();
 

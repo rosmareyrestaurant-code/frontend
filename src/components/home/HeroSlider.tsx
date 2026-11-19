@@ -3,22 +3,50 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { HERO_SLIDES } from "@/data/mockData";
+// Mock Data معطّلة — السلايدر بيقرأ البانرات من الـ API
+// import { HERO_SLIDES } from "@/data/mockData";
 import SliderArrow from "@/components/common/SliderArrow";
 
+interface HeroSlide {
+  id: string;
+  title: string;
+  image: string;
+  link: string;
+}
+
 export default function HeroSlider() {
+  const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/banners?position=hero")
+      .then((r) => r.json())
+      .then((d) => {
+        const banners: { id: string; title: string; image: string; ctaLink?: string }[] =
+          d?.data ?? [];
+        setSlides(
+          banners.map((b) => ({
+            id: b.id,
+            title: b.title,
+            image: b.image,
+            link: b.ctaLink || "#pizza",
+          })),
+        );
+        setCurrentSlide(0);
+      })
+      .catch(() => {});
+  }, []);
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1));
-  }, []);
+    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+  }, [slides.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));
-  }, []);
+    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+  }, [slides.length]);
 
   const handleTouchStart = (event: React.TouchEvent) => {
     touchStartX.current = event.touches[0]?.clientX ?? null;
@@ -53,6 +81,8 @@ export default function HeroSlider() {
     return () => clearInterval(interval);
   }, [isPaused, nextSlide]);
 
+  if (slides.length === 0) return null;
+
   return (
     <section
       id="hero"
@@ -68,7 +98,7 @@ export default function HeroSlider() {
         className="relative w-full touch-pan-y overflow-hidden bg-[#F2F2ED]"
         style={{ aspectRatio: "3 / 1" }}
       >
-        {HERO_SLIDES.map((slide, index) => {
+        {slides.map((slide, index) => {
           const isActive = index === currentSlide;
 
           return (
@@ -118,7 +148,7 @@ export default function HeroSlider() {
 
         {/* مؤشرات الشرائح السفلية */}
         <div className="absolute bottom-3 sm:bottom-5 md:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-black/50 px-3.5 py-1.5 backdrop-blur-md border border-white/15">
-          {HERO_SLIDES.map((_, index) => (
+          {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}

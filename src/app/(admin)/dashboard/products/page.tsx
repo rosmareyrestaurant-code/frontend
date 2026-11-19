@@ -20,7 +20,7 @@ import type { AdminProduct, AdminProductSize } from "@/types/admin";
 import { MOCK_ADMIN_CATEGORIES } from "@/data/admin/categories";
 import { MOCK_ADMIN_PRODUCTS } from "@/data/admin/products";
 
-const USE_MOCK = true;
+const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
 const PER_PAGE = 8;
 type ProductForm = Omit<AdminProduct, "id" | "createdAt"> & { imagePublicId?: string };
@@ -37,12 +37,10 @@ const newSize = (): AdminProductSize => ({
 
 export default function ProductsPage() {
   const { showToast } = useToast();
-  const [products, setProducts] = useState<AdminProduct[]>(MOCK_ADMIN_PRODUCTS.slice(0, PER_PAGE));
-  const [categories, setCategories] = useState<{ slug: string; nameAr: string }[]>(
-    MOCK_ADMIN_CATEGORIES.map((c) => ({ slug: c.slug, nameAr: c.nameAr }))
-  );
-  const [total, setTotal] = useState(MOCK_ADMIN_PRODUCTS.length);
-  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [categories, setCategories] = useState<{ slug: string; nameAr: string }[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("all");
   const [availFilter, setAvailFilter] = useState<"all" | "true" | "false">("all");

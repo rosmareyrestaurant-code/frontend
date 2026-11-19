@@ -8,25 +8,23 @@ import PromoBanners from "@/components/home/PromoBanners";
 import ProductSection from "@/components/home/ProductSection";
 import type { Product, Category } from "@/types";
 
-// ─── Mock Data fallback مؤقت للتصميم ───────────────────────────────
-// TODO: أعِد تعليق هذه الـ imports بعد الانتهاء من اختبار التصميم
-import {
-  CATEGORIES as MOCK_CATEGORIES,
-  CHICKEN_PRODUCTS,
-  PIZZA_PRODUCTS,
-  BURGER_PRODUCTS,
-  PASTA_PRODUCTS,
-  DRINK_PRODUCTS,
-} from "@/data/mockData";
-
-const MOCK_BY_CATEGORY: Record<string, Product[]> = {
-  chicken:    CHICKEN_PRODUCTS,
-  pizza:      PIZZA_PRODUCTS,
-  burger:     BURGER_PRODUCTS,
-  pasta:      PASTA_PRODUCTS,
-  drinks:     DRINK_PRODUCTS,
-};
-// ────────────────────────────────────────────────────────────────────
+// Mock Data معطّلة — الصفحة بتقرأ كل حاجة من الـ API
+// import {
+//   CATEGORIES as MOCK_CATEGORIES,
+//   CHICKEN_PRODUCTS,
+//   PIZZA_PRODUCTS,
+//   BURGER_PRODUCTS,
+//   PASTA_PRODUCTS,
+//   DRINK_PRODUCTS,
+// } from "@/data/mockData";
+//
+// const MOCK_BY_CATEGORY: Record<string, Product[]> = {
+//   chicken: CHICKEN_PRODUCTS,
+//   pizza: PIZZA_PRODUCTS,
+//   burger: BURGER_PRODUCTS,
+//   pasta: PASTA_PRODUCTS,
+//   drinks: DRINK_PRODUCTS,
+// };
 
 const SECTION_ORDER = [
   { id: "pizza",      title: "البيتزا",    slug: "pizza"   },
@@ -37,33 +35,25 @@ const SECTION_ORDER = [
 ];
 
 export default function HomePage() {
-  const [byCategory, setByCategory] = useState<Record<string, Product[]>>(MOCK_BY_CATEGORY);
-  const [categories, setCategories] = useState<Category[]>(MOCK_CATEGORIES);
+  const [byCategory, setByCategory] = useState<Record<string, Product[]>>({});
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/products?limit=100").then(r => r.json()),
+      fetch("/api/products?limit=500").then(r => r.json()),
       fetch("/api/categories").then(r => r.json()),
     ]).then(([productsData, categoriesData]) => {
       const products: Product[] = productsData?.data?.products ?? [];
       const cats: Category[] = categoriesData?.data ?? [];
 
-      // استخدم بيانات الـ API فقط إذا كانت غير فارغة
-      if (products.length > 0) {
-        const grouped: Record<string, Product[]> = {};
-        for (const p of products) {
-          if (!grouped[p.category]) grouped[p.category] = [];
-          grouped[p.category].push(p);
-        }
-        setByCategory(grouped);
+      const grouped: Record<string, Product[]> = {};
+      for (const p of products) {
+        if (!grouped[p.category]) grouped[p.category] = [];
+        grouped[p.category].push(p);
       }
-
-      if (cats.length > 0) {
-        setCategories(cats);
-      }
-    }).catch(() => {
-      // فشل الـ API — Mock Data ظاهرة بالفعل
-    });
+      setByCategory(grouped);
+      setCategories(cats);
+    }).catch(() => {});
   }, []);
 
   return (

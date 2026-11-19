@@ -14,7 +14,7 @@ import type { AdminOffer } from "@/types/admin";
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
 import { MOCK_ADMIN_OFFERS } from "@/data/admin/offers";
 
-const USE_MOCK = true;
+const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
 const EMPTY: Omit<AdminOffer, "id"> & { imagePublicId?: string } = {
   title: "", subtitle: "", image: "", imagePublicId: "", price: 0, originalPrice: 0, durationMinutes: 180, sortOrder: 1, isActive: true,
@@ -22,8 +22,8 @@ const EMPTY: Omit<AdminOffer, "id"> & { imagePublicId?: string } = {
 
 export default function OffersAdminPage() {
   const { showToast } = useToast();
-  const [offers, setOffers] = useState<AdminOffer[]>(MOCK_ADMIN_OFFERS);
-  const [loading, setLoading] = useState(false);
+  const [offers, setOffers] = useState<AdminOffer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editOffer, setEditOffer] = useState<AdminOffer | null>(null);
   const [form, setForm] = useState<Omit<AdminOffer, "id"> & { imagePublicId?: string }>(EMPTY);

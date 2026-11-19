@@ -7,16 +7,16 @@ import Logo from "@/components/common/Logo";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, Heart, ShoppingBag, ShoppingCart, Menu, X, Utensils, ChevronLeft, BookImage } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
-import { ALL_PRODUCTS } from "@/data/mockData";
-import { useCatalogProducts } from "@/hooks/useCatalog";
+// Mock Data معطّلة — البحث بيقرأ من الـ API
+// import { ALL_PRODUCTS } from "@/data/mockData";
 import { Product } from "@/types";
 import { normalizeArabic } from "@/lib/arabic";
 
 const CATEGORY_NAMES: Record<string, string> = {
   pizza: "بيتزا",
-  chicken: "كريب ودجاج",
-  burger: "سندوتشات وبرجر",
-  pasta: "مكرونات",
+  chicken: "كريب",
+  burger: "سندوتشات",
+  pasta: "مكرونة",
   drinks: "مشروبات",
 };
 
@@ -31,7 +31,17 @@ export default function Header() {
   const [animatedSearchText, setAnimatedSearchText] = useState("");
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const catalog = useCatalogProducts(ALL_PRODUCTS, true);
+  const [catalog, setCatalog] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch("/api/products?limit=500")
+      .then((r) => r.json())
+      .then((d) => {
+        const products: Product[] = d?.data?.products ?? [];
+        setCatalog(products);
+      })
+      .catch(() => {});
+  }, []);
 
   const navLinks = [
     { label: "الرئيسية", href: "/", active: pathname === "/" },

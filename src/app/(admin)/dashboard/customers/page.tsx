@@ -13,7 +13,7 @@ import type { AdminCustomer, AdminOrder } from "@/types/admin";
 import { MOCK_ADMIN_CUSTOMERS } from "@/data/admin/customers";
 import { MOCK_ORDERS } from "@/data/admin/orders";
 
-const USE_MOCK = true;
+const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
 const PER_PAGE = 10;
 
@@ -23,9 +23,9 @@ function formatDate(iso: string) {
 
 export default function CustomersPage() {
   const { showToast } = useToast();
-  const [customers, setCustomers] = useState<AdminCustomer[]>(MOCK_ADMIN_CUSTOMERS);
-  const [total, setTotal] = useState(MOCK_ADMIN_CUSTOMERS.length);
-  const [loading, setLoading] = useState(false);
+  const [customers, setCustomers] = useState<AdminCustomer[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<AdminCustomer | null>(null);
   const [customerOrders, setCustomerOrders] = useState<AdminOrder[]>([]);

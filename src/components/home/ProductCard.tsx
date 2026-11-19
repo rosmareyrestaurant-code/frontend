@@ -4,7 +4,8 @@ import Image from "next/image";
 import { Heart, ShoppingCart } from "lucide-react";
 import { Product } from "@/types";
 import { useShop } from "@/context/ShopContext";
-import { useCatalogProduct } from "@/hooks/useCatalog";
+// التعديلات بقت جاية من الـ API نفسه
+// import { useCatalogProduct } from "@/hooks/useCatalog";
 import { useStoreToast } from "@/components/common/StoreToast";
 
 interface ProductCardProps {
@@ -12,8 +13,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product: baseProduct }: ProductCardProps) {
-  // الصورة/السعر/الأحجام اللي الأدمن رفعها من ملف أو إكسيل
-  const product = useCatalogProduct(baseProduct);
+  const product = baseProduct;
   const { toggleFavorite, isFavorite, setSelectedProduct } = useShop();
   const { showStoreToast } = useStoreToast();
 
@@ -58,7 +58,8 @@ export default function ProductCard({ product: baseProduct }: ProductCardProps) 
       {/* صورة المنتج — تغطي أعلى الكارت وجوانبه بدون فراغ */}
       <div className="relative aspect-[5/3] w-full overflow-hidden rounded-t-2xl bg-[#f4f1ea]">
         <Image
-          src={product.image} unoptimized={product.image.startsWith("data:")}
+          src={product.image || "/images/logo-rosemary-green.png"}
+          unoptimized={product.image.startsWith("data:") || !product.image}
           alt={product.name}
           fill
           className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"

@@ -9,7 +9,7 @@ import type { StoreSettings } from "@/types/admin";
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
 import { DEFAULT_STORE_SETTINGS } from "@/data/admin/settings";
 
-const USE_MOCK = true;
+const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
 type Tab = "basic" | "hours" | "social" | "general";
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [

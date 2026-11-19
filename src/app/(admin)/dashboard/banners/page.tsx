@@ -14,7 +14,7 @@ import type { AdminBanner, BannerPosition } from "@/types/admin";
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
 import { MOCK_ADMIN_BANNERS } from "@/data/admin/banners";
 
-const USE_MOCK = true;
+const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
 const POSITION_INFO: Record<BannerPosition, { label: string; icon: React.ElementType; color: string; bg: string; border: string; desc: string }> = {
   hero:     { label: "سلايدر الهيرو",          icon: Sliders,    color: "text-amber-400",   bg: "bg-amber-500/10",   border: "border-amber-500/25",  desc: "السلايدر التفاعلي أعلى الموقع" },
@@ -26,8 +26,8 @@ const EMPTY: Omit<AdminBanner, "id"> & { imagePublicId?: string } = { title: "",
 
 export default function BannersPage() {
   const { showToast } = useToast();
-  const [banners, setBanners] = useState<AdminBanner[]>(MOCK_ADMIN_BANNERS);
-  const [loading, setLoading] = useState(false);
+  const [banners, setBanners] = useState<AdminBanner[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"all" | BannerPosition>("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editBanner, setEditBanner] = useState<AdminBanner | null>(null);

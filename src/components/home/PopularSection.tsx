@@ -1,16 +1,24 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Flame } from "lucide-react";
-import { usePopularProducts } from "@/hooks/usePopularProducts";
+import type { Product } from "@/types";
 import SliderArrow from "@/components/common/SliderArrow";
 import ProductScroller from "./ProductScroller";
 import SectionHeading from "./SectionHeading";
 
 export default function PopularSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  // يتحدّث تلقائياً من اختيار الأدمن + المنتجات اللي وصلت 50 طلب في الأسبوع
-  const POPULAR = usePopularProducts();
+  const [POPULAR, setPopular] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch("/api/products?featured=1&limit=20")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.success) setPopular(d.data?.products ?? []);
+      })
+      .catch(() => {});
+  }, []);
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -20,6 +28,8 @@ export default function PopularSection() {
       behavior: "smooth",
     });
   };
+
+  if (POPULAR.length === 0) return null;
 
   return (
     <section className="w-full bg-[#F2F2ED] py-8 border-b border-[#1e1915]">

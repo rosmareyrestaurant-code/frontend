@@ -8,24 +8,22 @@ import ProductCard from "@/components/home/ProductCard";
 import { useShop } from "@/context/ShopContext";
 import type { Product } from "@/types";
 
-// ─── Mock Data fallback مؤقت للتصميم ───────────────────────────────
-// TODO: أعِد تعليق هذه الـ imports بعد الانتهاء من اختبار التصميم
-import { MOCK_ADMIN_OFFERS } from "@/data/admin/offers";
-import { PIZZA_PRODUCTS, CHICKEN_PRODUCTS, BURGER_PRODUCTS, PASTA_PRODUCTS } from "@/data/mockData";
-
-const MOCK_DISCOUNTED = [...PIZZA_PRODUCTS, ...CHICKEN_PRODUCTS, ...BURGER_PRODUCTS, ...PASTA_PRODUCTS]
-  .filter(p => p.originalPrice && p.originalPrice > p.price);
-
-const MOCK_DEALS: Deal[] = MOCK_ADMIN_OFFERS.map(o => ({
-  id: o.id,
-  title: o.title,
-  subtitle: o.subtitle,
-  image: o.image,
-  price: o.price,
-  originalPrice: o.originalPrice,
-  durationMinutes: o.durationMinutes,
-}));
-// ────────────────────────────────────────────────────────────────────
+// Mock Data معطّلة — الصفحة بتقرأ العروض والمنتجات من الـ API
+// import { MOCK_ADMIN_OFFERS } from "@/data/admin/offers";
+// import { PIZZA_PRODUCTS, CHICKEN_PRODUCTS, BURGER_PRODUCTS, PASTA_PRODUCTS } from "@/data/mockData";
+//
+// const MOCK_DISCOUNTED = [...PIZZA_PRODUCTS, ...CHICKEN_PRODUCTS, ...BURGER_PRODUCTS, ...PASTA_PRODUCTS]
+//   .filter(p => p.originalPrice && p.originalPrice > p.price);
+//
+// const MOCK_DEALS: Deal[] = MOCK_ADMIN_OFFERS.map(o => ({
+//   id: o.id,
+//   title: o.title,
+//   subtitle: o.subtitle,
+//   image: o.image,
+//   price: o.price,
+//   originalPrice: o.originalPrice,
+//   durationMinutes: o.durationMinutes,
+// }));
 
 interface Deal {
   id: string;
@@ -145,25 +143,23 @@ function DealBanner({ deal, onOrder }: { deal: Deal; onOrder: () => void }) {
 
 export default function OffersPage() {
   const { setSelectedProduct } = useShop();
-  const [deals, setDeals] = useState<Deal[]>(MOCK_DEALS);
-  const [discountedProducts, setDiscountedProducts] = useState<Product[]>(MOCK_DISCOUNTED);
-  const [loading] = useState(false); // Mock Data جاهزة
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [discountedProducts, setDiscountedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/offers").then(r => r.json()),
-      fetch("/api/products?limit=100").then(r => r.json()),
+      fetch("/api/products?limit=500").then(r => r.json()),
     ]).then(([offersData, productsData]) => {
-      const apiDeals: Deal[] = offersData?.data ?? [];
-      const products: Product[] = productsData?.data?.products ?? [];
-
-      // استخدم API فقط إذا كانت تحتوي بيانات
-      if (apiDeals.length > 0) setDeals(apiDeals);
-      const discounted = products.filter(p => p.originalPrice && p.originalPrice > p.price);
-      if (discounted.length > 0) setDiscountedProducts(discounted);
-    }).catch(() => {
-      // فشل الـ API — Mock Data ظاهرة بالفعل
-    });
+      if (offersData?.success) setDeals(offersData.data ?? []);
+      if (productsData?.success) {
+        const products: Product[] = productsData.data?.products ?? [];
+        setDiscountedProducts(
+          products.filter(p => p.originalPrice && p.originalPrice > p.price),
+        );
+      }
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="min-h-screen bg-[#F2F2ED] flex items-center justify-center"><div className="text-[#ff7a00] animate-pulse">جاري التحميل...</div></div>;

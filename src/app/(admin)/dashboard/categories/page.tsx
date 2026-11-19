@@ -14,7 +14,7 @@ import type { AdminCategory } from "@/types/admin";
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
 import { MOCK_ADMIN_CATEGORIES } from "@/data/admin/categories";
 
-const USE_MOCK = true;
+const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
 const EMPTY: Omit<AdminCategory, "id" | "productCount"> & { imagePublicId?: string } = {
   nameAr: "", nameEn: "", slug: "", image: "", imagePublicId: "", description: "", sortOrder: 99, isActive: true,
@@ -22,8 +22,8 @@ const EMPTY: Omit<AdminCategory, "id" | "productCount"> & { imagePublicId?: stri
 
 export default function CategoriesPage() {
   const { showToast } = useToast();
-  const [categories, setCategories] = useState<AdminCategory[]>(MOCK_ADMIN_CATEGORIES);
-  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editCat, setEditCat] = useState<AdminCategory | null>(null);
   const [form, setForm] = useState<Omit<AdminCategory, "id" | "productCount"> & { imagePublicId?: string }>(EMPTY);

@@ -19,48 +19,23 @@ import { AdminWelcomeHero } from "@/components/admin/dashboard/AdminWelcomeHero"
 import { StatusBadge } from "@/components/admin/shared/StatusBadge";
 import type { DashboardStats, AdminOrder } from "@/types/admin";
 
-// ─── Mock Data fallback مؤقت للتصميم ───────────────────────────────
-// TODO: أعِد تعليق هذه الـ imports بعد الانتهاء من اختبار التصميم
-import { MOCK_ORDERS } from "@/data/admin/orders";
-import { MOCK_ADMIN_PRODUCTS } from "@/data/admin/products";
-import { MOCK_ADMIN_CUSTOMERS } from "@/data/admin/customers";
-import { MOCK_ADMIN_OFFERS } from "@/data/admin/offers";
+// Mock Data معطّلة — الداشبورد بتقرأ الإحصائيات من الـ API
 import { ORDER_STATUSES } from "@/lib/constants";
 
-const MOCK_STATS: DashboardStats = {
-  totalOrders: MOCK_ORDERS.length,
-  newOrders: MOCK_ORDERS.filter((o) => o.status === "pending").length,
-  totalRevenue: MOCK_ORDERS.filter((o) => o.status !== "cancelled").reduce((s, o) => s + o.total, 0),
-  totalProducts: MOCK_ADMIN_PRODUCTS.length,
-  totalCustomers: MOCK_ADMIN_CUSTOMERS.length,
+const EMPTY_STATS: DashboardStats = {
+  totalOrders: 0,
+  newOrders: 0,
+  totalRevenue: 0,
+  totalProducts: 0,
+  totalCustomers: 0,
   ordersByStatus: ORDER_STATUSES.reduce(
-    (acc, s) => ({ ...acc, [s]: MOCK_ORDERS.filter((o) => o.status === s).length }),
+    (acc, s) => ({ ...acc, [s]: 0 }),
     {} as DashboardStats["ordersByStatus"]
   ),
-  recentOrders: MOCK_ORDERS.slice(0, 6),
+  recentOrders: [],
   topProducts: [],
   salesByDay: [],
 };
-
-const ACTIVE_OFFERS = MOCK_ADMIN_OFFERS.filter((o) => o.isActive).length;
-const TOTAL_OFFERS = MOCK_ADMIN_OFFERS.length;
-
-const MOCK_TOP_PRODUCTS = (() => {
-  const counts: Record<string, { name: string; image: string; count: number; revenue: number }> = {};
-  MOCK_ORDERS.filter((o) => o.status !== "cancelled").forEach((order) => {
-    order.items.forEach((item) => {
-      if (!counts[item.productId]) {
-        counts[item.productId] = { name: item.productName, image: item.productImage, count: 0, revenue: 0 };
-      }
-      counts[item.productId].count += item.quantity;
-      counts[item.productId].revenue += item.price * item.quantity;
-    });
-  });
-  return Object.entries(counts)
-    .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, 6)
-    .map(([id, v]) => ({ id, ...v }));
-})();
 
 function formatOrderDate(iso: string) {
   const d = new Date(iso);
@@ -70,7 +45,23 @@ function formatOrderDate(iso: string) {
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>(MOCK_STATS);
+  const [stats, setStats] = useState<DashboardStats>(EMPTY_STATS);
+  const [offersStats, setOffersStats] = useState({ active: 0, total: 0 });
+
+  useEffect(() => {
+    fetch("/api/admin/offers?limit=100")
+      .then((r) => r.json())
+      .then((d) => {
+        const offers: { isActive: boolean }[] = d?.data?.offers ?? [];
+        if (d.success) {
+          setOffersStats({
+            active: offers.filter((o) => o.isActive).length,
+            total: d.data.pagination?.total ?? offers.length,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch("/api/admin/dashboard")
@@ -87,7 +78,7 @@ export default function DashboardPage() {
   const recentOrders: AdminOrder[] = (stats.recentOrders ?? []).slice(0, 5);
   const pendingOrders = stats.ordersByStatus?.pending ?? 0;
 
-  const topProducts = (stats.topProducts?.length ? stats.topProducts : MOCK_TOP_PRODUCTS).slice(0, 6);
+  const topProducts = (stats.topProducts ?? []).slice(0, 6);
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -118,14 +109,14 @@ export default function DashboardPage() {
         />
         <StatCard
           title="العروض النشطة"
-          value={ACTIVE_OFFERS}
+          value={offersStats.active}
           icon={Tag}
           trend={{ value: "+0%", positive: true }}
           spark={[4, 4, 5, 4, 5, 4, 4, 5]}
         />
         <StatCard
           title="إجمالي العروض"
-          value={TOTAL_OFFERS}
+          value={offersStats.total}
           icon={Ticket}
           trend={{ value: "+0%", positive: true }}
           spark={[4, 4, 5, 4, 5, 4, 4, 5]}

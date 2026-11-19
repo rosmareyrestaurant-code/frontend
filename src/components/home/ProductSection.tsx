@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import { Product } from "@/types";
-import { useCatalogProducts } from "@/hooks/useCatalog";
+// تعديلات الأدمن بقت جاية من الـ API نفسه
+// import { useCatalogProducts } from "@/hooks/useCatalog";
 import SliderArrow from "@/components/common/SliderArrow";
 import ProductScroller from "./ProductScroller";
 import SectionHeading from "./SectionHeading";
@@ -19,8 +20,7 @@ export default function ProductSection({
   products,
 }: ProductSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  // منتجات الأدمن المadded/المستوردة من الإكسيل بتظهر هنا في قسمها
-  const allProducts = useCatalogProducts(products);
+  const allProducts = products;
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
