@@ -1,0 +1,175 @@
+"use client";
+
+import { useState, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { Search, SlidersHorizontal } from "lucide-react";
+import ProductScroller from "@/components/home/ProductScroller";
+import { useCatalogProducts } from "@/hooks/useCatalog";
+import {
+  PIZZA_PRODUCTS,
+  CHICKEN_PRODUCTS,
+  BURGER_PRODUCTS,
+  PASTA_PRODUCTS,
+  DRINK_PRODUCTS,
+} from "@/data/mockData";
+import { Product } from "@/types";
+
+const BASE_FOOD: Product[] = [
+  ...PIZZA_PRODUCTS,
+  ...CHICKEN_PRODUCTS,
+  ...BURGER_PRODUCTS,
+  ...PASTA_PRODUCTS,
+  ...DRINK_PRODUCTS,
+];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  pizza: "البيتزا",
+  chicken: "كريب ودجاج",
+  burger: "سندوتشات وبرجر",
+  pasta: "مكرونات",
+  drinks: "مشروبات",
+  desserts: "حلويات",
+  extras: "إضافات روزماري",
+};
+
+function MenuContent() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [search, setSearch] = useState(initialQuery);
+  const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
+
+  // كل منتجات الأدمن (المعرفة من الفورم أو المستوردة من الإكسيل)
+  const ALL_FOOD = useCatalogProducts(BASE_FOOD, true);
+  const CATEGORY_TABS = useMemo(
+    () => [
+      { id: "all", label: "كل الأكلات", count: ALL_FOOD.length },
+      ...Array.from(new Set(ALL_FOOD.map((p) => p.category))).map((id) => ({
+        id,
+        label: CATEGORY_LABELS[id] ?? id,
+        count: ALL_FOOD.filter((p) => p.category === id).length,
+      })),
+    ],
+    [ALL_FOOD],
+  );
+
+  const filteredProducts = useMemo(() => {
+    return ALL_FOOD.filter((item) => {
+      const matchesCategory =
+        selectedCategory === "all" || item.category === selectedCategory;
+      const matchesSearch =
+        search.trim() === "" ||
+        item.name.toLowerCase().includes(search.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(search.toLowerCase()));
+      return matchesCategory && matchesSearch;
+    }).sort((a, b) => {
+      if (sortBy === "price-asc") return a.price - b.price;
+      if (sortBy === "price-desc") return b.price - a.price;
+      return 0;
+    });
+  }, [selectedCategory, search, sortBy, ALL_FOOD]);
+
+  return (
+    <div className="min-h-screen bg-[#0b0a09] py-8 sm:py-12 select-none">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        {/* رأس الصفحة الفخم */}
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-wide">
+            كل الأكلات والوجبات
+          </h1>
+          <p className="text-sm sm:text-base text-[#a89f94] leading-relaxed">
+            استكشف جميع أصنافنا المميزة من البيتزا الإيطالية، الكريب المقرمش، السندوتشات الغنية، المكرونات، والمشروبات المنعشة.
+          </p>
+        </div>
+
+        {/* شريط البحث والفلترة */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-[#14100e] border border-[#26201a] p-4 rounded-2xl shadow-lg">
+          {/* حقل البحث */}
+          <div className="relative w-full md:max-w-md">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ابحث عن وجبة بالاسم أو المكونات..."
+              className="w-full rounded-xl bg-[#1d1714] py-2.5 pl-4 pr-10 text-xs sm:text-sm text-white placeholder-[#786e64] border border-[#2e2620] focus:border-[#ff7a00] focus:outline-none transition-all"
+            />
+            <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8a8076] pointer-events-none" />
+          </div>
+
+          {/* الترتيب حسب السعر */}
+          <div className="flex items-center gap-2.5 w-full md:w-auto justify-end">
+            <span className="text-xs text-[#a89f94] flex items-center gap-1.5 shrink-0">
+              <SlidersHorizontal className="h-3.5 w-3.5 text-[#ff7a00]" />
+              <span>ترتيب حسب:</span>
+            </span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as "default" | "price-asc" | "price-desc")}
+              className="rounded-xl bg-[#1d1714] border border-[#2e2620] text-xs sm:text-sm text-[#d1cbc4] py-2 px-3 focus:border-[#ff7a00] focus:outline-none"
+            >
+              <option value="default">الافتراضي (الأكثر طلباً)</option>
+              <option value="price-asc">السعر: من الأقل للأعلى</option>
+              <option value="price-desc">السعر: من الأعلى للأقل</option>
+            </select>
+          </div>
+        </div>
+
+        {/* أزرار فلاتر التصنيفات */}
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+          {CATEGORY_TABS.map((tab) => {
+            const active = selectedCategory === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedCategory(tab.id)}
+                className={`shrink-0 flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 ${
+                  active
+                    ? "bg-[#ff7a00] text-white scale-105"
+                    : "bg-[#181310] border border-[#29221c] text-[#a89f94] hover:text-white hover:border-[#ff7a00]/40"
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    active ? "bg-black/25 text-white" : "bg-[#251e18] text-[#786e64]"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* صفين من الأكلات تحت بعض في كل تصنيف + سحب أفقي على كل الشاشات */}
+        {filteredProducts.length === 0 ? (
+          <div className="py-20 text-center space-y-3">
+            <div className="h-16 w-16 mx-auto rounded-2xl bg-[#1b1512] border border-[#2a221b] flex items-center justify-center text-[#736a61]">
+              <Search className="h-8 w-8" />
+            </div>
+            <h3 className="text-lg font-bold text-white">لا توجد أكلات مطابقة لبحثك</h3>
+            <p className="text-xs sm:text-sm text-[#8a8076]">
+              جرب البحث بكلمات أخرى أو اختر تصنيفاً آخر من القائمة أعلاه.
+            </p>
+          </div>
+        ) : (
+          <ProductScroller
+            products={filteredProducts}
+            limit={filteredProducts.length}
+            label="كل الأكلات"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function MenuPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0b0a09] py-20 text-center text-white">جاري تحميل المنيو...</div>}>
+      <MenuContent />
+    </Suspense>
+  );
+}

@@ -1,0 +1,86 @@
+import { AdminBanner } from "@/types/admin";
+
+export const MOCK_ADMIN_BANNERS: AdminBanner[] = [
+  // ─── 1. سلايدر الهيرو الرئيسي (أعلى الصفحة) ───
+  {
+    id: "ban-hero-1",
+    title: "برجر روزماري الفاخر",
+    description: "أشهى أنواع البرجر المتبلة بأجود النكهات والصوصات الخاصة",
+    image: "/images/hero/hero-burger.jpg",
+    position: "hero",
+    ctaText: "اطلب الآن",
+    ctaLink: "#burger",
+    sortOrder: 1,
+    isActive: true,
+  },
+  {
+    id: "ban-hero-2",
+    title: "بيتزا إيطالية أصلية",
+    description: "عجينة إيطالية طازجة مع جبنة موتزاريلا غنية وإضافات شهية",
+    image: "/images/hero/hero-pizza.jpg",
+    position: "hero",
+    ctaText: "تصفح البيتزا",
+    ctaLink: "#pizza",
+    sortOrder: 2,
+    isActive: true,
+  },
+  {
+    id: "ban-hero-3",
+    title: "كريب روزماري الحلو والحادق",
+    description: "كريب مقرمش وغني بالحشوات اللذيذة والنوتيلا",
+    image: "/images/hero/hero-crepe.jpg",
+    position: "hero",
+    ctaText: "شاهد المنيو",
+    ctaLink: "#crepe",
+    sortOrder: 3,
+    isActive: true,
+  },
+  {
+    id: "ban-hero-4",
+    title: "باستا غنية بالصوصات الإيطالية",
+    description: "مكرونة بصوص الفريدو والشيدر مع قطع الدجاج المقرمش",
+    image: "/images/hero/hero-pasta.jpg",
+    position: "hero",
+    ctaText: "اطلب الآن",
+    ctaLink: "#pasta",
+    sortOrder: 4,
+    isActive: true,
+  },
+
+  // ─── 2. البانرين في منتصف الصفحة الرئيسية (Promo Banners) ───
+  {
+    id: "ban-promo-1",
+    title: "عرض الساندوتشات والبطاطس والكريب",
+    description: "3 ساندوتشات من اختيارك + باكت بطاطس عائلي + كريب حلو — 199 ج.م",
+    image: "/images/promo/promo-sandwiches-v2.jpg",
+    position: "middle",
+    ctaText: "اطلب العرض",
+    ctaLink: "/offers",
+    sortOrder: 1,
+    isActive: true,
+  },
+  {
+    id: "ban-promo-2",
+    title: "كومبو ميكس روزماري العملاق",
+    description: "بيتزا لارج + قطع دجاج مقرمش + بطاطس + كريب + كانز بيبسي — 249 ج.م",
+    image: "/images/promo/promo-combo-v2.jpg",
+    position: "middle",
+    ctaText: "اطلب الكومبو",
+    ctaLink: "/offers",
+    sortOrder: 2,
+    isActive: true,
+  },
+
+  // ─── 3. بانر أسفل الصفحة (قبل الفوتر) ───
+  {
+    id: "ban-bottom-1",
+    title: "بانر أسفل الصفحة",
+    description: "البانر الإعلاني العريض المعروض أسفل الصفحة الرئيسية قبل الفوتر",
+    image: "/images/promo/delivery-banner.jpg",
+    position: "delivery",
+    ctaText: "تصفح المنيو",
+    ctaLink: "/menu",
+    sortOrder: 1,
+    isActive: true,
+  },
+];
