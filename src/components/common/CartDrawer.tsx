@@ -6,7 +6,7 @@ import {
   X, Plus, Minus, Trash2, ShoppingBag, ArrowLeft, ChevronLeft, CheckCircle2, Truck,
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CustomerInfo } from "@/types";
 import CheckoutForm from "./CheckoutForm";
 import OrderReviewStep from "./OrderReviewStep";
@@ -35,6 +35,25 @@ export default function CartDrawer() {
   const [dir, setDir]             = useState<Dir>("forward");
   const [animKey, setAnimKey]     = useState(0);   // يتغير عند كل انتقال لإعادة الأنيميشن
   const [customer, setCustomer]   = useState<CustomerInfo | null>(null);
+  const [dragY, setDragY]         = useState(0);
+  const touchStartY               = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.matchMedia("(min-width: 640px)").matches) return;
+    touchStartY.current = e.touches[0]?.clientY ?? null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const distance = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
+    if (distance > 0) setDragY(Math.min(distance, 180));
+  };
+
+  const handleTouchEnd = () => {
+    if (dragY > 90) setIsCartOpen(false);
+    setDragY(0);
+    touchStartY.current = null;
+  };
 
   /* ── حالة ظهور/إخفاء الـ Drawer ── */
   const [isVisible, setIsVisible] = useState(isCartOpen);
@@ -84,11 +103,16 @@ export default function CartDrawer() {
 
       {/* لوحة الـ Drawer */}
       <aside className="fixed max-sm:inset-x-0 max-sm:bottom-0 sm:inset-y-0 sm:left-0 z-50 flex pointer-events-none">
-        <div className={`w-full sm:w-[440px] max-w-full bg-[#120f0d] shadow-2xl flex flex-col text-white max-sm:h-[91vh] max-sm:max-h-[94vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[#2b241e] sm:h-full sm:border-r sm:border-[#26201a] overflow-hidden ${
-          isClosing
-            ? "anim-sheet-or-drawer-out pointer-events-none"
-            : "anim-sheet-or-drawer pointer-events-auto"
-        }`}>
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ transform: dragY > 0 ? `translateY(${dragY}px)` : undefined, transition: dragY > 0 ? "none" : undefined }}
+          className={`w-full sm:w-[440px] max-w-full bg-[#120f0d] shadow-2xl flex flex-col text-white max-sm:h-[91vh] max-sm:max-h-[94vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[#2b241e] sm:h-full sm:border-r sm:border-[#26201a] overflow-hidden ${
+            isClosing
+              ? "anim-sheet-or-drawer-out pointer-events-none"
+              : "anim-sheet-or-drawer pointer-events-auto"
+          }`}>
 
           {/* مقبض سحب — موبايل فقط */}
           <div className="w-12 h-1.5 rounded-full bg-[#3a3129] mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />

@@ -39,6 +39,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [animatedSearchText, setAnimatedSearchText] = useState("");
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const catalog = useCatalogProducts(ALL_PRODUCTS, true);
@@ -113,6 +114,48 @@ export default function Header() {
     inputRef.current?.focus();
   };
 
+  useEffect(() => {
+    if (searchQuery) return;
+
+    const dishNames = ["بيتزا", "كريب", "برجر", "مكرونة", "مشروبات"];
+    let dishIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const updatePlaceholder = () => {
+      const dish = dishNames[dishIndex];
+
+      if (!deleting) {
+        charIndex += 1;
+        setAnimatedSearchText(dish.slice(0, charIndex));
+
+        if (charIndex === dish.length) {
+          deleting = true;
+          timeoutId = setTimeout(updatePlaceholder, 1200);
+          return;
+        }
+      } else {
+        charIndex -= 1;
+        setAnimatedSearchText(dish.slice(0, charIndex));
+
+        if (charIndex === 0) {
+          deleting = false;
+          dishIndex = (dishIndex + 1) % dishNames.length;
+        }
+      }
+
+      timeoutId = setTimeout(updatePlaceholder, deleting ? 55 : 110);
+    };
+
+    timeoutId = setTimeout(() => {
+      setAnimatedSearchText("");
+      updatePlaceholder();
+    }, 450);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
   return (
     <header className="sticky top-0 z-40 w-full bg-[#0e0d0c]/90 backdrop-blur-md border-b border-[#25201c] transition-all">
       <div className="mx-auto flex h-16 sm:h-20 max-w-[1400px] items-center justify-between px-3 sm:px-6 lg:px-8 gap-2 sm:gap-4 lg:gap-6">
@@ -167,7 +210,7 @@ export default function Header() {
                   setShowSearchResults(true);
                 }
               }}
-              placeholder="ابحث عن وجبتك المفضلة..."
+              placeholder={searchQuery ? "" : `ابحث عن ${animatedSearchText}`}
               className="w-full rounded-full bg-[#1b1714] py-2 sm:py-2.5 pr-9 pl-8 text-xs sm:text-sm text-white placeholder-[#857b72] border border-[#2d2620] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00] transition-all"
             />
 

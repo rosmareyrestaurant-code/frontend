@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   ArrowRight, User, Phone, MapPin, StickyNote,
   Loader2, LocateFixed, ChevronLeft, CheckCircle2,
@@ -16,10 +16,17 @@ interface CheckoutFormProps {
   initialValues?: CustomerInfo;
 }
 
-type Field = "name" | "phone" | "address" | "notes" | "areaId";
+type Field = "name" | "phone" | "address" | "notes";
 
-/** قيمة اختيار مكان غير مدرج في قائمة التوصيل المجاني */
-const OTHER_AREA = "__other__";
+/** توحيد كتابة النص عشان مقارنة العنوان بأسماء مناطق التوصيل المجاني */
+function normalizeText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[\u064B-\u065F]/g, "")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .trim();
+}
 
 const FIELDS: {
   key: Field;
@@ -37,15 +44,24 @@ const FIELDS: {
 
 export default function CheckoutForm({ onBack, onNext, initialValues }: CheckoutFormProps) {
   const { subtotal, total } = useShop();
-  const { activeZones, selectedAreaId, selectedZone, hasFreeDelivery, selectArea } = useDelivery();
+  const { activeZones, selectArea } = useDelivery();
 
   const [form, setForm] = useState<CustomerInfo>(
     initialValues ?? { name: "", phone: "", address: "", notes: "", lat: undefined, lng: undefined }
   );
-  const [errors, setErrors]       = useState<Partial<Record<Field, string>>>({});
-  const [otherArea, setOtherArea] = useState(
-    selectedAreaId === OTHER_AREA ? (initialValues?.areaName ?? "") : ""
-  );
+  const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
+
+  // المكان مش بيختاره العميل من قائمة — بيستنتج من العنوان اللي كتبه
+  const matchedZone = useMemo(() => {
+    const address = normalizeText(form.address);
+    if (!address) return null;
+    return activeZones.find((zone) => address.includes(normalizeText(zone.name))) ?? null;
+  }, [activeZones, form.address]);
+
+  useEffect(() => {
+    selectArea(matchedZone?.id ?? null);
+  }, [matchedZone, selectArea]);
+
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsSuccess, setGpsSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -81,8 +97,6 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
                                        e.phone   = "رقم غير صحيح — يبدأ بـ 01 ومكوّن من 11 رقم";
     if (!form.address.trim())          e.address = "العنوان مطلوب للتوصيل";
     else if (form.address.trim().length < 8) e.address = "يرجى إدخال عنوان تفصيلي أكثر";
-    if (!selectedAreaId) e.areaId = "اختر مكان التوصيل";
-    else if (selectedAreaId === OTHER_AREA && !otherArea.trim()) e.areaId = "اكتب مكان التوصيل";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -96,8 +110,8 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
     setSubmitting(false);
     onNext({
       ...form,
-      areaId: selectedAreaId === OTHER_AREA ? undefined : (selectedAreaId ?? undefined),
-      areaName: selectedAreaId === OTHER_AREA ? otherArea.trim() : selectedZone?.name,
+      areaId: matchedZone?.id,
+      areaName: matchedZone?.name,
     });
   };
 
@@ -105,11 +119,6 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
   const change = (key: Field, val: string) => {
     setForm((p) => ({ ...p, [key]: val, ...(key === "address" ? { lat: undefined, lng: undefined } : {}) }));
     if (errors[key]) setErrors((p) => ({ ...p, [key]: undefined }));
-  };
-
-  const changeArea = (id: string) => {
-    selectArea(id || null);
-    if (errors.areaId) setErrors((p) => ({ ...p, areaId: undefined }));
   };
 
   /* ── UI ── */
@@ -132,53 +141,14 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
       <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-4">
         {FIELDS.map(({ key, label, placeholder, icon: Icon, type, multiline }) => (
           <div key={key} className="space-y-1.5">
-            {/* مكان التوصيل: تقايير الإدمن + إمكانية كتابة أي مكان تاني */}
-            {key === "notes" && (
-              <div className="space-y-3 rounded-xl border border-[#2a231d] bg-[#15110e] p-3">
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-[#c4b9b0]">
-                    <MapPin className="h-3.5 w-3.5 text-[#ff7a00]" /> مكان التوصيل *
-                  </label>
-                  <select
-                    value={selectedAreaId ?? ""}
-                    onChange={(e) => changeArea(e.target.value)}
-                    className={`w-full rounded-xl border bg-[#1a1512] px-3 py-2.5 text-sm text-white focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 ${errors.areaId ? "border-red-500/70" : "border-[#2d2620]"}`}
-                  >
-                    <option value="">اختر المكان</option>
-                    {activeZones.map((zone) => (
-                      <option key={zone.id} value={zone.id}>
-                        {zone.name} — توصيل مجاني {formatDays(zone.days)}
-                      </option>
-                    ))}
-                    <option value={OTHER_AREA}>مكان تاني (غير مدرج)</option>
-                  </select>
-                  {selectedAreaId === OTHER_AREA && (
-                    <input
-                      type="text"
-                      value={otherArea}
-                      onChange={(e) => {
-                        setOtherArea(e.target.value);
-                        if (errors.areaId) setErrors((p) => ({ ...p, areaId: undefined }));
-                      }}
-                      placeholder="اكتب اسم المنطقة أو المكان"
-                      className={`w-full rounded-xl border bg-[#1a1512] px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 ${errors.areaId ? "border-red-500/70" : "border-[#2d2620]"}`}
-                    />
-                  )}
-                  {errors.areaId && (
-                    <p className="text-[11px] font-medium text-red-400">{errors.areaId}</p>
-                  )}
-                </div>
-
-                {/* توضيح واحد بس لو المكان مجاني — ومفيش أي كلام عن رسوم لو مش مجاني */}
-                {hasFreeDelivery && selectedZone && (
-                  <p className="flex items-start gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2.5 text-[11px] font-bold leading-relaxed text-emerald-400">
-                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span>
-                      مكانك ضمن مناطق التوصيل المجاني{selectedZone.days.length ? ` (${formatDays(selectedZone.days)})` : ""}.
-                    </span>
-                  </p>
-                )}
-              </div>
+            {/* المكان بيستنتج من العنوان: لو طابق منطقة مجانية نظهر التوضيح، غير كده مفيش حاجة */}
+            {key === "notes" && matchedZone && (
+              <p className="flex items-start gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2.5 text-[11px] font-bold leading-relaxed text-emerald-400">
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>
+                  مكانك ضمن مناطق التوصيل المجاني{matchedZone.days.length ? ` (${formatDays(matchedZone.days)})` : ""}.
+                </span>
+              </p>
             )}
 
             <label className="flex items-center gap-1.5 text-xs font-bold text-[#c4b9b0]">

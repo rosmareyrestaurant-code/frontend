@@ -73,7 +73,7 @@ export interface CustomerInfo {
   notes: string;
   lat?: number;
   lng?: number;
-  /** منطقة التوصيل المختارة (من إعدادات الإدمن) */
+  /** منطقة التوصيل المستنتجة من العنوان الذي كتبه العميل (من إعدادات الإدمن) */
   areaId?: string;
   areaName?: string;
 }

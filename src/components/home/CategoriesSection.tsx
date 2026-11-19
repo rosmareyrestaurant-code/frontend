@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { CATEGORIES } from "@/data/mockData";
+import SectionHeading from "./SectionHeading";
 
 export default function CategoriesSection() {
   const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, slug: string) => {
@@ -24,13 +25,8 @@ export default function CategoriesSection() {
   return (
     <section id="categories" className="w-full bg-[#0b0a09] py-8 sm:py-10 select-none scroll-mt-24">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        {/* عنوان القسم */}
-        <div className="flex items-center gap-3 mb-6 sm:mb-8">
-          <span className="h-6 w-1.5 rounded-full bg-[#ff7a00]"></span>
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-wide">
-            التصنيفات
-          </h2>
-        </div>
+        {/* رأس القسم الموحّد */}
+        <SectionHeading title="التصنيفات" />
 
         {/* تصنيفين في كل صف — صف تحت صف على كل المقاسات */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">

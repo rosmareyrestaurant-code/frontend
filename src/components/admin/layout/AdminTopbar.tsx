@@ -7,6 +7,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard":            "الرئيسية",
   "/dashboard/orders":     "إدارة الطلبات",
   "/dashboard/products":   "إدارة المنتجات",
+  "/dashboard/popular":    "الأكثر طلباً",
   "/dashboard/categories": "إدارة التصنيفات",
   "/dashboard/banners":    "إدارة البنرات",
   "/dashboard/offers":     "إدارة العروض الترويجية",

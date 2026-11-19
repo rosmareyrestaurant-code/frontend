@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
@@ -9,6 +9,8 @@ import { HERO_SLIDES } from "@/data/mockData";
 export default function HeroSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1));
@@ -17,6 +19,31 @@ export default function HeroSlider() {
   const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));
   }, []);
+
+  const handleTouchStart = (event: React.TouchEvent) => {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
+    touchStartY.current = event.touches[0]?.clientY ?? null;
+    setIsPaused(true);
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+
+    const deltaX = touch.clientX - touchStartX.current;
+    const deltaY = touch.clientY - touchStartY.current;
+
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+      if (deltaX < 0) nextSlide();
+      else prevSlide();
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+    setIsPaused(false);
+  };
 
   useEffect(() => {
     if (isPaused) return;
@@ -35,7 +62,12 @@ export default function HeroSlider() {
       className="relative w-full overflow-hidden bg-[#0b0a09] select-none"
     >
       {/* حاوية السلايدر بنسبة 3:1 بالضبط مطابقة لأبعاد صور الهيرو (4096×1364) */}
-      <div className="relative w-full overflow-hidden bg-[#0d0c0b]" style={{ aspectRatio: "3 / 1" }}>
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className="relative w-full touch-pan-y overflow-hidden bg-[#0d0c0b]"
+        style={{ aspectRatio: "3 / 1" }}
+      >
         {HERO_SLIDES.map((slide, index) => {
           const isActive = index === currentSlide;
 

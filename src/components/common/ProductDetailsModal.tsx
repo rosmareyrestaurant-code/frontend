@@ -6,7 +6,7 @@ import { X, Heart, Plus, Minus, ShoppingBag, Check } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { Product, ProductSize } from "@/types";
 import { useCatalogProduct } from "@/hooks/useCatalog";
-import { triggerFlyAnimation } from "@/lib/flyAnimation";
+import { useStoreToast } from "@/components/common/StoreToast";
 
 interface ProductModalInnerProps {
   product: Product;
@@ -17,6 +17,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
   // الصورة والأسعار والأحجام المرفوعة من الأدمن (أو المستوردة من الإكسيل)
   const product = useCatalogProduct(baseProduct);
   const { addToCart, toggleFavorite, isFavorite } = useShop();
+  const { showStoreToast } = useStoreToast();
 
   const defaultSize: ProductSize | null =
     product.sizes?.find((s) => s.isDefault) ?? product.sizes?.[0] ?? null;
@@ -90,7 +91,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
 
   const lineTotal = effectivePrice * quantity;
 
-  const handleAddToCart = (e: React.MouseEvent<HTMLElement>) => {
+  const handleAddToCart = () => {
     // لو في حجم محدد، نعمل نسخة من المنتج بالسعر والاسم الصح
     const productToAdd = selectedSize
       ? {
@@ -103,11 +104,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
 
     addToCart(productToAdd, quantity, notes);
     setIsAdded(true);
-    triggerFlyAnimation({
-      imageUrl: product.image,
-      type: "cart",
-      sourceElement: e.currentTarget,
-    });
+    showStoreToast("cart", productToAdd.name);
     setTimeout(() => {
       setIsAdded(false);
       requestClose();
@@ -115,7 +112,28 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
   };
 
   const handleToggleFavorite = () => {
+    if (!isFavorite(product.id)) showStoreToast("favorite", product.name);
     toggleFavorite(product);
+  };
+
+  const [dragY, setDragY] = useState(0);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.matchMedia("(min-width: 640px)").matches) return;
+    touchStartY.current = e.touches[0]?.clientY ?? null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const distance = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
+    if (distance > 0) setDragY(Math.min(distance, 180));
+  };
+
+  const handleTouchEnd = () => {
+    if (dragY > 90) requestClose();
+    setDragY(0);
+    touchStartY.current = null;
   };
 
   return (
@@ -135,6 +153,10 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
           role="dialog"
           aria-modal="true"
           aria-labelledby="product-modal-title"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ transform: dragY > 0 ? `translateY(${dragY}px)` : undefined, transition: dragY > 0 ? "none" : undefined }}
           className={`w-full sm:max-w-lg bg-[#130f0d] border border-[#2b241e] shadow-2xl flex flex-col text-white max-sm:rounded-t-[30px] sm:rounded-3xl max-sm:max-h-[88vh] sm:max-h-[90vh] overflow-hidden ${
             isClosing
               ? "anim-sheet-or-modal-out pointer-events-none"

@@ -42,6 +42,43 @@ button, a {
 
 img { -webkit-user-drag: none; }
 
+/* Sonner — تنبيهات خفيفة تظهر وتنصرف من اليمين */
+.store-sonner-toast {
+  direction: rtl;
+  min-width: 280px;
+  max-width: calc(100vw - 32px);
+  margin-right: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  background: rgba(20,18,16,0.96);
+  color: #fff;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.42);
+  backdrop-filter: blur(14px);
+  animation: sonner-enter-right 320ms cubic-bezier(.16,1,.3,1) both;
+}
+.store-sonner-title { font-size: 12px; font-weight: 800; line-height: 1.5; }
+.store-sonner-description { margin-top: 2px; color: #b9afa4; font-size: 11px; font-weight: 700; }
+.store-sonner-success { border-right: 2px solid #ff7a00; }
+.store-sonner-error { border-right: 2px solid #ef4444; }
+.store-sonner-warning { border-right: 2px solid #f59e0b; }
+[data-sonner-toast][data-removed="true"] { animation: sonner-exit-right 260ms ease-in forwards; }
+[data-sonner-toast] [data-icon] { display: none !important; }
+[data-sonner-toast] [data-close-button] { display: none !important; }
+
+@keyframes sonner-enter-right {
+  from { opacity: 0; transform: translateX(110%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes sonner-exit-right {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(110%); }
+}
+
+@media (max-width: 639px) {
+  .store-sonner-toast { width: 280px; min-width: 280px; margin-left: 8px; margin-right: 8px; }
+}
+
 /* تخصيص شريط التمرير */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #0b0a09; }

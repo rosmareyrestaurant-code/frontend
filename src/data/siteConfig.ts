@@ -5,7 +5,7 @@
 export const SITE_CONTACT = {
   /** عنوان المكان (يُستبدل لاحقاً من الباك اند) */
   address: "ش. مؤسسة الزكاة، القاهرة، مصر",
-  email: "info@rozmary.com",
+  email: "info@rosemary.com",
   phone: "01005526838",
   whatsappNumber: "201005526838",
   whatsappMessage: "أهلاً روزماري! عايز أطلب وجبة",

@@ -3,6 +3,7 @@ import { Cairo } from "next/font/google";
 import "./globals.css";
 import SiteChrome from "@/components/layout/SiteChrome";
 import { DeliveryProvider } from "@/context/DeliveryContext";
+import { Toaster } from "sonner";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -39,6 +40,26 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" className={`${cairo.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans bg-[#0b0a09] text-white antialiased">
         <DeliveryProvider>
+          <Toaster
+            position="top-right"
+            expand={false}
+            richColors={false}
+            closeButton={false}
+            visibleToasts={3}
+            duration={2800}
+            offset={16}
+            toastOptions={{
+              unstyled: true,
+              classNames: {
+                toast: "store-sonner-toast",
+                title: "store-sonner-title",
+                description: "store-sonner-description",
+                success: "store-sonner-success",
+                error: "store-sonner-error",
+                warning: "store-sonner-warning",
+              },
+            }}
+          />
           <SiteChrome>{children}</SiteChrome>
         </DeliveryProvider>
       </body>

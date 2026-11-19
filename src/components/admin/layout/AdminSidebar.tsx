@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Package, Grid3x3,
-  Megaphone, Flame, Users, Settings, LogOut, X, ExternalLink, MapPin,
+  Megaphone, Flame, Users, Settings, LogOut, X, ExternalLink, MapPin, TrendingUp,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: "الرئيسية",          href: "/dashboard",            icon: LayoutDashboard },
   { label: "الطلبات",            href: "/dashboard/orders",     icon: ShoppingBag },
   { label: "المنتجات",           href: "/dashboard/products",   icon: Package },
+  { label: "الأكثر طلباً",       href: "/dashboard/popular",    icon: TrendingUp },
   { label: "التصنيفات",          href: "/dashboard/categories", icon: Grid3x3 },
   { label: "البنرات",            href: "/dashboard/banners",    icon: Megaphone },
   { label: "العروض الترويجية",   href: "/dashboard/offers",     icon: Flame },

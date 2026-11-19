@@ -87,7 +87,7 @@ export function writeCatalog(products: AdminProduct[]) {
   notify();
 }
 
-function useAdminCatalog(): AdminProduct[] {
+export function useAdminCatalog(): AdminProduct[] {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
@@ -110,7 +110,8 @@ function applyOverride(base: Product, admin?: AdminProduct): Product {
     price: defaultSize?.price || admin.price || base.price,
     originalPrice: admin.originalPrice ?? defaultSize?.originalPrice ?? base.originalPrice,
     sizes,
-    isPopular: admin.isFeatured || base.isPopular,
+    // وجود سجل أدمن للمنتج معناه إن اختيار الأدمن هو المسيطر على ظهوره في «الأكثر طلباً»
+    isPopular: admin ? admin.isFeatured : base.isPopular,
   };
 }
 

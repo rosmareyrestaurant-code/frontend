@@ -10,6 +10,7 @@ import CartDrawer from "@/components/common/CartDrawer";
 import FavoritesDrawer from "@/components/common/FavoritesDrawer";
 import ProductDetailsModal from "@/components/common/ProductDetailsModal";
 import MenuImageModalWrapper from "@/components/common/MenuImageModalWrapper";
+import { StoreToastProvider } from "@/components/common/StoreToast";
 
 /**
  * واجهة الموقع (الهيدر / الفوتر / درج السلة ...) للصفحات الخاصة بالعملاء فقط.
@@ -23,15 +24,17 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
 
   return (
     <ShopProvider>
-      <DeliveryTicker />
-      <Header />
-      <div className="flex-1 pb-16 lg:pb-0">{children}</div>
-      <Footer />
-      <MobileBottomNav />
-      <CartDrawer />
-      <FavoritesDrawer />
-      <ProductDetailsModal />
-      <MenuImageModalWrapper />
+      <StoreToastProvider>
+        <DeliveryTicker />
+        <Header />
+        <div className="flex-1 pb-16 lg:pb-0">{children}</div>
+        <Footer />
+        <MobileBottomNav />
+        <CartDrawer />
+        <FavoritesDrawer />
+        <ProductDetailsModal />
+        <MenuImageModalWrapper />
+      </StoreToastProvider>
     </ShopProvider>
   );
 }

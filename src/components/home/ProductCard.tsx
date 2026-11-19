@@ -5,6 +5,7 @@ import { Heart, ShoppingCart } from "lucide-react";
 import { Product } from "@/types";
 import { useShop } from "@/context/ShopContext";
 import { useCatalogProduct } from "@/hooks/useCatalog";
+import { useStoreToast } from "@/components/common/StoreToast";
 
 interface ProductCardProps {
   product: Product;
@@ -14,6 +15,7 @@ export default function ProductCard({ product: baseProduct }: ProductCardProps) 
   // الصورة/السعر/الأحجام اللي الأدمن رفعها من ملف أو إكسيل
   const product = useCatalogProduct(baseProduct);
   const { toggleFavorite, isFavorite, setSelectedProduct } = useShop();
+  const { showStoreToast } = useStoreToast();
 
   const favorited = isFavorite(product.id);
 
@@ -24,6 +26,7 @@ export default function ProductCard({ product: baseProduct }: ProductCardProps) 
 
   const handleToggleFavorite = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
+    if (!favorited) showStoreToast("favorite", product.name);
     toggleFavorite(product);
   };
 

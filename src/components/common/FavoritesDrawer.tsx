@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { X, Heart, ShoppingCart, Trash2, ArrowLeft } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
-import { triggerFlyAnimation } from "@/lib/flyAnimation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useStoreToast } from "@/components/common/StoreToast";
 
 export default function FavoritesDrawer() {
   const {
@@ -17,8 +17,12 @@ export default function FavoritesDrawer() {
     favoritesCount,
   } = useShop();
 
+  const { showStoreToast } = useStoreToast();
+
   const [isVisible, setIsVisible] = useState(isFavoritesOpen);
   const [wasOpen, setWasOpen] = useState(isFavoritesOpen);
+  const [dragY, setDragY] = useState(0);
+  const touchStartY = useRef<number | null>(null);
 
   // نُبقي الدرج محمّلاً أثناء أنيميشن الخروج ثم نلغيه بعد انتهاء الحركة
   if (isFavoritesOpen !== wasOpen) {
@@ -38,6 +42,23 @@ export default function FavoritesDrawer() {
     return () => clearTimeout(timer);
   }, [isClosing]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.matchMedia("(min-width: 640px)").matches) return;
+    touchStartY.current = e.touches[0]?.clientY ?? null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const distance = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
+    if (distance > 0) setDragY(Math.min(distance, 180));
+  };
+
+  const handleTouchEnd = () => {
+    if (dragY > 90) setIsFavoritesOpen(false);
+    setDragY(0);
+    touchStartY.current = null;
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -53,11 +74,16 @@ export default function FavoritesDrawer() {
 
       {/* لوحة المفضلة المنزلقة: على الموبايل من الأسفل كـ Bottom Sheet مع انحناء في الأعلى، وعلى الديسكتوب من الجنب بدون أي فراغ */}
       <aside className="fixed max-sm:inset-x-0 max-sm:bottom-0 sm:inset-y-0 sm:left-0 z-50 flex pointer-events-none">
-        <div className={`w-full sm:w-[420px] max-w-full bg-[#120f0d] shadow-2xl flex flex-col text-white max-sm:h-[88vh] max-sm:max-h-[92vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[#2b241e] sm:h-full sm:border-r sm:border-[#26201a] ${
-          isClosing
-            ? "anim-sheet-or-drawer-out pointer-events-none"
-            : "anim-sheet-or-drawer pointer-events-auto"
-        }`}>
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ transform: dragY > 0 ? `translateY(${dragY}px)` : undefined, transition: dragY > 0 ? "none" : undefined }}
+          className={`w-full sm:w-[420px] max-w-full bg-[#120f0d] shadow-2xl flex flex-col text-white max-sm:h-[88vh] max-sm:max-h-[92vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[#2b241e] sm:h-full sm:border-r sm:border-[#26201a] ${
+            isClosing
+              ? "anim-sheet-or-drawer-out pointer-events-none"
+              : "anim-sheet-or-drawer pointer-events-auto"
+          }`}>
           
           {/* مقبض سحب أنيق للموبايل */}
           <div className="w-12 h-1.5 rounded-full bg-[#3a3129] mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
@@ -141,13 +167,9 @@ export default function FavoritesDrawer() {
                     {/* أزرار الإجراء: إضافة للسلة + حذف */}
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={(e) => {
+                        onClick={() => {
                           addToCart(product);
-                          triggerFlyAnimation({
-                            imageUrl: product.image,
-                            type: "cart",
-                            sourceElement: e.currentTarget,
-                          });
+                          showStoreToast("cart", product.name);
                         }}
                         className="inline-flex items-center gap-1.5 rounded-lg bg-[#ff7a00] hover:bg-[#e66e00] text-white px-3 py-1.5 text-xs font-bold shadow-md transition-all active:scale-95"
                       >
