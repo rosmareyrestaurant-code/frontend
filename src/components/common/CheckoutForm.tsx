@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ArrowRight, User, Phone, MapPin, StickyNote,
-  Loader2, LocateFixed, ChevronLeft, CheckCircle2,
+  Loader2, MapPinned, ChevronLeft, CheckCircle2,
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { useDelivery } from "@/context/DeliveryContext";
-import { useStoreToast } from "@/components/common/StoreToast";
+import MapLocationPicker, { type MapPickedLocation } from "@/components/common/MapLocationPicker";
 import { CustomerInfo } from "@/types";
 import { formatDays } from "@/types/delivery";
 import { normalizeArabic } from "@/lib/arabic";
-import { reverseGeocode } from "@/lib/geocode";
 
 interface CheckoutFormProps {
   onBack: () => void;
@@ -38,7 +37,6 @@ const FIELDS: {
 export default function CheckoutForm({ onBack, onNext, initialValues }: CheckoutFormProps) {
   const { subtotal, total } = useShop();
   const { activeZones, selectArea } = useDelivery();
-  const { showMessage } = useStoreToast();
 
   const [form, setForm] = useState<CustomerInfo>(
     initialValues ?? { name: "", phone: "", address: "", notes: "", lat: undefined, lng: undefined }
@@ -56,36 +54,17 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
     selectArea(matchedZone?.id ?? null);
   }, [matchedZone, selectArea]);
 
-  const [gpsLoading, setGpsLoading] = useState(false);
-  const [gpsSuccess, setGpsSuccess] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [mapFilled, setMapFilled] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  /* ── GPS ── */
-  const handleLocate = useCallback(() => {
-    if (!navigator.geolocation) {
-      showMessage("متصفحك مش بيدعم تحديد الموقع.", "error");
-      return;
-    }
-    setGpsLoading(true); setGpsSuccess(false);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        let address = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-        try {
-          address = await reverseGeocode(lat, lng);
-        } catch {
-          showMessage("تعذّر تحويل الإحداثيات لعنوان — أضف العنوان يدوياً.", "warning");
-        }
-        setForm((p) => ({ ...p, address, lat, lng }));
-        setGpsLoading(false); setGpsSuccess(true);
-      },
-      () => {
-        setGpsLoading(false);
-        showMessage("تعذّر تحديد موقعك. تأكد من منح صلاحية الموقع.", "error");
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  }, [showMessage]);
+  /* ── اختيار المكان من الخريطة ── */
+  const handleMapConfirm = (location: MapPickedLocation) => {
+    setForm((p) => ({ ...p, address: location.address, lat: location.lat, lng: location.lng }));
+    setMapFilled(true);
+    setMapOpen(false);
+    setErrors((p) => ({ ...p, address: undefined }));
+  };
 
   /* ── Validation ── */
   const validate = (): boolean => {
@@ -118,6 +97,7 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
   /* ── Field change helper ── */
   const change = (key: Field, val: string) => {
     setForm((p) => ({ ...p, [key]: val, ...(key === "address" ? { lat: undefined, lng: undefined } : {}) }));
+    if (key === "address" && val !== form.address) setMapFilled(false);
     if (errors[key]) setErrors((p) => ({ ...p, [key]: undefined }));
   };
 
@@ -163,17 +143,15 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
                 placeholder={placeholder}
                 className={`w-full resize-none rounded-xl bg-[#F2F2ED] border ${errors.address ? "border-red-500/70" : "border-[#2d2620]"} px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
               />
-              <button type="button" onClick={handleLocate} disabled={gpsLoading}
-                className={`flex w-full items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-[12px] font-bold transition-all disabled:opacity-60 ${
-                  gpsSuccess
-                    ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-400"
-                    : "border-[#ff7a00]/30 bg-[#ff7a00]/10 text-[#ff7a00] hover:bg-[#ff7a00]/20"
+              <button type="button" onClick={() => setMapOpen(true)}
+                className={`flex w-full items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-[12px] font-bold transition-all ${
+                  mapFilled
+                    ? "border-[#B9C8AE] bg-[#EAF1E4] text-[#3F5A46]"
+                    : "border-[#899B83] bg-[#FFFFFF] text-[#526B58] hover:bg-[#EFF2EA]"
                 }`}>
-                {gpsLoading
-                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> جاري تحديد موقعك...</>
-                  : gpsSuccess
-                    ? <><CheckCircle2 className="h-3.5 w-3.5" /> تم إضافة مكانك بالجي بي اس — اضغط لتحديثه</>
-                    : <><LocateFixed className="h-3.5 w-3.5" /> إضافة مكاني بالجي بي اس</>}
+                {mapFilled
+                  ? <><CheckCircle2 className="h-3.5 w-3.5" /> تم تحديد مكانك من الخريطة — اضغط لتعديله</>
+                  : <><MapPinned className="h-3.5 w-3.5" /> تحديد مكاني من الخريطة</>}
               </button>
               </>
             ) : multiline ? (
@@ -201,10 +179,10 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
           </div>
         ))}
 
-        {gpsSuccess && (
-          <p className="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 flex items-center gap-1.5">
-            <LocateFixed className="h-3.5 w-3.5 shrink-0" />
-            تم تحديد موقعك وملء العنوان تلقائياً — يمكنك تعديله.
+        {mapFilled && (
+          <p className="text-[11px] text-[#3F5A46] bg-[#EAF1E4] border border-[#C9D8BF] rounded-lg px-3 py-2 flex items-center gap-1.5">
+            <MapPinned className="h-3.5 w-3.5 shrink-0" />
+            تم ملء العنوان من مكانك على الخريطة — أكمل تفاصيل المبنى والدور لو محتاج.
           </p>
         )}
       </div>
@@ -235,6 +213,13 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
           }
         </button>
       </div>
+
+      <MapLocationPicker
+        open={mapOpen}
+        initial={{ lat: form.lat, lng: form.lng }}
+        onClose={() => setMapOpen(false)}
+        onConfirm={handleMapConfirm}
+      />
     </form>
   );
 }
