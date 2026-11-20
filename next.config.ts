@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // عزل مخرجات التطوير عن مخرجات البناء: تشغيل next build أثناء next dev
+  // على نفس مجلد .next كان بيسبب full reload كل ثانية وتعارض ملفات.
+  distDir: process.env.NODE_ENV === "development" ? ".next-dev" : ".next",
   serverExternalPackages: ["mongoose", "mongodb", "mongodb-connection-string-url"],
   images: {
     remotePatterns: [
