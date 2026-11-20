@@ -10,8 +10,24 @@ interface AdminWelcomeHeroProps {
   pendingOrders?: number;
 }
 
-export function AdminWelcomeHero({ adminName = "محمد هشام", pendingOrders = 0 }: AdminWelcomeHeroProps) {
+export function AdminWelcomeHero({ adminName, pendingOrders = 0 }: AdminWelcomeHeroProps) {
   const [now, setNow] = useState<Date | null>(null);
+  const [name, setName] = useState<string | null>(adminName ?? null);
+
+  useEffect(() => {
+    if (adminName) return;
+    let cancelled = false;
+    fetch("/api/admin/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data?.success) return;
+        setName(data.data.name ?? "");
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [adminName]);
 
   useEffect(() => {
     const update = () => setNow(new Date());
@@ -66,16 +82,23 @@ export function AdminWelcomeHero({ adminName = "محمد هشام", pendingOrder
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-l from-[#F4EFE7] via-[#F4EFE7]/75 to-transparent"
+          className="absolute inset-0 bg-gradient-to-l from-[#F4EFE7] via-[#F4EFE7]/85 to-transparent"
         />
         <div className="relative z-10 flex min-h-[160px] flex-col justify-between px-5 py-5 sm:min-h-[190px] sm:px-9 sm:py-6">
-          <div>
-            <h1 className="text-[22px] font-black leading-tight text-[#333B2E] sm:text-[32px]">
-              مرحبًا، {adminName}
+          <div className="max-w-[300px] sm:max-w-none">
+            <h1 className="flex flex-wrap items-center gap-2 text-[22px] font-black leading-tight text-[#333B2E] sm:text-[32px]">
+              {name === null ? (
+                <>
+                  <span>أهلًا بيك،</span>
+                  <span className="mt-1 inline-block h-6 w-32 animate-pulse rounded-full bg-[#E3DECF] sm:h-8 sm:w-40" />
+                </>
+              ) : (
+                <span>أهلًا بيك، {name.trim() || "يا فندم"}</span>
+              )}
             </h1>
-            <p className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold text-[#8F9186] sm:text-[14px]">
+            <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] font-semibold text-[#8F9186] sm:text-[14px]">
               <span aria-hidden="true" className="text-[#D9534F]">♥</span>
-              إدارة مطعمك أصبحت أسهل وأسرع مع <span className="font-black text-[#333B2E]">Rozmaly</span>
+              يوم مليان طلبات حلوة يبدأ من هنا مع <span className="font-black text-[#333B2E]">Rozmaly</span>
             </p>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] font-bold text-[#7D8474] sm:text-[12px]">
