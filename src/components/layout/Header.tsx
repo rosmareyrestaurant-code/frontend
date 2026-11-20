@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/components/common/Logo";
@@ -32,15 +32,21 @@ export default function Header() {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [catalog, setCatalog] = useState<Product[]>([]);
+  const catalogRequested = useRef(false);
 
-  useEffect(() => {
+  // كتالوج البحث بيتحمّل أول ما المستخدم يركز على خانة البحث — مش مع فتح كل صفحة
+  const ensureCatalog = useCallback(() => {
+    if (catalogRequested.current) return;
+    catalogRequested.current = true;
     fetch("/api/products?limit=500")
       .then((r) => r.json())
       .then((d) => {
         const products: Product[] = d?.data?.products ?? [];
         setCatalog(products);
       })
-      .catch(() => {});
+      .catch(() => {
+        catalogRequested.current = false;
+      });
   }, []);
 
   const navLinks = [
@@ -201,10 +207,12 @@ export default function Header() {
               type="text"
               value={searchQuery}
               onChange={(e) => {
+                ensureCatalog();
                 setSearchQuery(e.target.value);
                 setShowSearchResults(true);
               }}
               onFocus={() => {
+                ensureCatalog();
                 if (searchQuery.trim().length > 0) {
                   setShowSearchResults(true);
                 }

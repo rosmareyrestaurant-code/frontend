@@ -4,6 +4,7 @@ import { OfferModel } from "@/models/Offer";
 import { success, notFound, badRequest, serverError, AppError } from "@/lib/api-response";
 import { requireAdmin } from "@/lib/auth";
 import { toAdminOffer } from "@/lib/serialize";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 import { updateOfferSchema } from "@/lib/validation";
 import { deleteImage } from "@/lib/cloudinary";
 
@@ -23,6 +24,7 @@ export async function PATCH(
     await connectToDatabase();
     const updated = await OfferModel.findByIdAndUpdate(id, { $set: parsed.data }, { new: true }).lean();
     if (!updated) return notFound("العرض غير موجود");
+    revalidateStorefront();
     return success(toAdminOffer(updated as Parameters<typeof toAdminOffer>[0]), "تم تحديث العرض");
   } catch (e) {
     if (e instanceof AppError)
@@ -43,6 +45,7 @@ export async function DELETE(
     if (!offer) return notFound("العرض غير موجود");
     if ((offer as { imagePublicId?: string }).imagePublicId)
       await deleteImage((offer as { imagePublicId: string }).imagePublicId);
+    revalidateStorefront();
     return success(null, "تم حذف العرض");
   } catch (e) {
     if (e instanceof AppError)

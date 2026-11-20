@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, Grid3x3, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, Grid3x3, GripVertical, Loader2 } from "lucide-react";
 import { ActiveBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
@@ -24,6 +24,8 @@ export default function CategoriesPage() {
   const { showToast } = useToast();
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const loadedOnce = useRef(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editCat, setEditCat] = useState<AdminCategory | null>(null);
   const [form, setForm] = useState<Omit<AdminCategory, "id" | "productCount"> & { imagePublicId?: string }>(EMPTY);
@@ -31,15 +33,16 @@ export default function CategoriesPage() {
   const [saving, setSaving] = useState(false);
 
   const fetchCategories = useCallback(async () => {
-    if (USE_MOCK) { setLoading(false); return; }
-    setLoading(true);
+    if (USE_MOCK) { setLoading(false); loadedOnce.current = true; return; }
+    if (loadedOnce.current) setRefreshing(true);
+    else setLoading(true);
     try {
       const res = await fetch("/api/admin/categories?limit=50");
       const d = await res.json();
       if (d.success) setCategories(d.data);
       else showToast(d.error?.message ?? "فشل التحميل", "error");
     } catch { showToast("خطأ في الاتصال", "error"); }
-    finally { setLoading(false); }
+    finally { loadedOnce.current = true; setLoading(false); setRefreshing(false); }
   }, [showToast]);
 
   useEffect(() => { queueMicrotask(() => { void fetchCategories(); }); }, [fetchCategories]);
@@ -109,7 +112,10 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#9A9C90]">
+          {refreshing && <><Loader2 className="h-3 w-3 animate-spin" /> تحديث</>}
+        </span>
         <button onClick={openAdd} className="flex items-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[13px] font-bold text-[#fff] transition-colors hover:bg-[#435241]">
           <Plus className="h-4 w-4" /> إضافة تصنيف
         </button>

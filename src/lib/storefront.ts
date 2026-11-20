@@ -7,13 +7,15 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { ProductModel } from "@/models/Product";
 import { CategoryModel } from "@/models/Category";
 import { BannerModel } from "@/models/Banner";
-import { toPublicBanner, toPublicCategory, toPublicProduct } from "@/lib/serialize";
+import { OfferModel } from "@/models/Offer";
+import { toPublicBanner, toPublicCategory, toPublicOffer, toPublicProduct } from "@/lib/serialize";
 import { STOREFRONT_TAG } from "@/lib/storefront-tags";
 import type { Category, Product } from "@/types";
 
 type ProductLean = Parameters<typeof toPublicProduct>[0];
 type CategoryLean = Parameters<typeof toPublicCategory>[0];
 type BannerLean = Parameters<typeof toPublicBanner>[0];
+type OfferLean = Parameters<typeof toPublicOffer>[0];
 
 const PUBLIC_PRODUCT_FILTER = { isAvailable: true, isVisible: true };
 
@@ -72,5 +74,26 @@ export async function getHomeData() {
     products: productDocs.map((p) => toPublicProduct(p as unknown as ProductLean)),
     categories: categoryDocs.map((c) => toPublicCategory(c as unknown as CategoryLean)),
     heroBanners,
+  };
+}
+
+export async function getOffersPageData() {
+  "use cache";
+  cacheLife("storefront");
+  cacheTag(STOREFRONT_TAG);
+
+  await connectToDatabase();
+  const [offerDocs, productDocs] = await Promise.all([
+    OfferModel.find({ isActive: true }).sort({ sortOrder: 1 }).lean(),
+    ProductModel.find(PUBLIC_PRODUCT_FILTER).sort({ menuOrder: 1, createdAt: -1 }).limit(500).lean(),
+  ]);
+
+  const discounted = productDocs
+    .map((p) => toPublicProduct(p as unknown as ProductLean))
+    .filter((p) => p.originalPrice && p.originalPrice > p.price);
+
+  return {
+    offers: offerDocs.map((o) => toPublicOffer(o as unknown as OfferLean)),
+    discounted,
   };
 }

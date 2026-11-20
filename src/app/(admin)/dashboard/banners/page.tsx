@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, Megaphone, Eye, EyeOff, Layers, Sparkles, PanelBottom, Sliders, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, Megaphone, Eye, EyeOff, Layers, Sparkles, PanelBottom, Sliders, ExternalLink, Loader2 } from "lucide-react";
 import { ActiveBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
@@ -28,6 +28,8 @@ export default function BannersPage() {
   const { showToast } = useToast();
   const [banners, setBanners] = useState<AdminBanner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const loadedOnce = useRef(false);
   const [activeTab, setActiveTab] = useState<"all" | BannerPosition>("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editBanner, setEditBanner] = useState<AdminBanner | null>(null);
@@ -36,15 +38,16 @@ export default function BannersPage() {
   const [saving, setSaving] = useState(false);
 
   const fetchBanners = useCallback(async () => {
-    if (USE_MOCK) { setLoading(false); return; }
-    setLoading(true);
+    if (USE_MOCK) { setLoading(false); loadedOnce.current = true; return; }
+    if (loadedOnce.current) setRefreshing(true);
+    else setLoading(true);
     try {
       const res = await fetch("/api/admin/banners?limit=50");
       const d = await res.json();
       if (d.success) setBanners(d.data.banners);
       else showToast(d.error?.message ?? "فشل", "error");
     } catch { showToast("خطأ", "error"); }
-    finally { setLoading(false); }
+    finally { loadedOnce.current = true; setLoading(false); setRefreshing(false); }
   }, [showToast]);
 
   useEffect(() => { queueMicrotask(() => { void fetchBanners(); }); }, [fetchBanners]);
@@ -109,7 +112,10 @@ export default function BannersPage() {
     <div className="space-y-6 select-none">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white">إدارة بانرات الموقع</h1>
+          <h1 className="flex items-center gap-2 text-xl sm:text-2xl font-black text-white">
+            إدارة بانرات الموقع
+            {refreshing && <Loader2 className="h-4 w-4 animate-spin text-[#8a8076]" />}
+          </h1>
           <p className="text-xs sm:text-sm text-[#8a8076] mt-1">تحكم في بنرات الصفحة الرئيسية</p>
         </div>
         <button onClick={openAdd} className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#ff7a00]/20">

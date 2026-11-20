@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { StoreSettingsModel } from "@/models/StoreSettings";
-import { success, serverError } from "@/lib/api-response";
+import { success, serverError, withPublicCache } from "@/lib/api-response";
 import { toPublicSettings } from "@/lib/serialize";
 
 
@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest) {
     const settings = await StoreSettingsModel.findOne().lean();
     if (!settings) {
       // إعدادات افتراضية لو ما اتعملش seed بعد
-      return success({
+      return withPublicCache(success({
         storeName: "Rosemary",
         storeDescription: "",
         phone: "",
@@ -33,9 +33,9 @@ export async function GET(_req: NextRequest) {
         workingHours: [],
         socialLinks: { facebook: "", instagram: "", tiktok: "", whatsapp: "" },
         galleryImages: [],
-      });
+      }));
     }
-    return success(toPublicSettings(settings as Parameters<typeof toPublicSettings>[0]));
+    return withPublicCache(success(toPublicSettings(settings as Parameters<typeof toPublicSettings>[0])));
   } catch (e) {
     console.error("[GET /api/settings/public]", e);
     return serverError();

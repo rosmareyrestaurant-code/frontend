@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Plus, Pencil, Trash2, MapPin, CalendarDays, Power, PowerOff, Info } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Plus, Pencil, Trash2, MapPin, CalendarDays, Power, PowerOff, Info, Loader2 } from "lucide-react";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
@@ -19,6 +19,8 @@ export default function DeliveryZonesPage() {
   const { showToast } = useToast();
   const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const loadedOnce = useRef(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<DeliveryZone | null>(null);
   const [form, setForm] = useState<ZoneForm>(EMPTY_FORM);
@@ -26,14 +28,15 @@ export default function DeliveryZonesPage() {
   const [saving, setSaving] = useState(false);
 
   const fetchZones = useCallback(async () => {
-    setLoading(true);
+    if (loadedOnce.current) setRefreshing(true);
+    else setLoading(true);
     try {
       const res = await fetch("/api/admin/delivery-zones");
       const d = await res.json();
       if (d.success) setZones(d.data);
       else showToast(d.error?.message ?? "فشل", "error");
     } catch { showToast("خطأ", "error"); }
-    finally { setLoading(false); }
+    finally { loadedOnce.current = true; setLoading(false); setRefreshing(false); }
   }, [showToast]);
 
   useEffect(() => { queueMicrotask(() => { void fetchZones(); }); }, [fetchZones]);
@@ -78,7 +81,10 @@ export default function DeliveryZonesPage() {
     <div className="space-y-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-black text-white">مناطق التوصيل</h1>
+          <h1 className="flex items-center gap-2 text-lg font-black text-white">
+            مناطق التوصيل
+            {refreshing && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#8a8076]" />}
+          </h1>
           <p className="mt-1 text-xs text-[#8a8076]">أضف الأماكن التي لها توصيل مجاني — ستظهر في شريط التنبيهات أعلى الموقع</p>
         </div>
         <button onClick={openAdd} className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#ff7a00] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#e66e00] transition-colors">

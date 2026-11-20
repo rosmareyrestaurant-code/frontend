@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
-  Search, Phone, MapPin, Copy, ChevronDown, ShoppingBag, X,
+  Search, Phone, MapPin, Copy, ChevronDown, ShoppingBag, X, Loader2,
 } from "lucide-react";
 import { StatusBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
 import { useToast } from "@/components/admin/shared/Toast";
 import { PaymentMethodIcon } from "@/components/common/PaymentBrandIcons";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { AdminOrder, OrderStatus, ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/types/admin";
 
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
@@ -32,28 +33,33 @@ export default function OrdersPage() {
   const { showToast } = useToast();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [page, setPage] = useState(1);
+  const loadedOnce = useRef(false);
 
   const fetchOrders = useCallback(async () => {
     if (USE_MOCK) {
-      const q = search.trim().toLowerCase();
+      const q = debouncedSearch.trim().toLowerCase();
       const filtered = MOCK_ORDERS.filter((o) =>
         (statusFilter === "all" || o.status === statusFilter) &&
-        (!q || o.orderNumber?.toLowerCase().includes(q) || o.customerName.includes(search.trim()) || o.customerPhone.includes(q))
+        (!q || o.orderNumber?.toLowerCase().includes(q) || o.customerName.includes(debouncedSearch.trim()) || o.customerPhone.includes(q))
       );
       setOrders(filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE));
       setTotal(filtered.length);
       setLoading(false);
+      loadedOnce.current = true;
       return;
     }
-    setLoading(true);
+    if (loadedOnce.current) setRefreshing(true);
+    else setLoading(true);
     try {
       const sp = new URLSearchParams({ page: String(page), limit: String(PER_PAGE) });
-      if (search) sp.set("q", search);
+      if (debouncedSearch) sp.set("q", debouncedSearch);
       if (statusFilter !== "all") sp.set("status", statusFilter);
       const res = await fetch(`/api/admin/orders?${sp}`);
       const d = await res.json();
@@ -66,9 +72,11 @@ export default function OrdersPage() {
     } catch {
       showToast("تعذّر الاتصال بالخادم", "error");
     } finally {
+      loadedOnce.current = true;
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [page, search, statusFilter, showToast]);
+  }, [page, debouncedSearch, statusFilter, showToast]);
 
   useEffect(() => { queueMicrotask(() => { void fetchOrders(); }); }, [fetchOrders]);
 
@@ -129,8 +137,13 @@ export default function OrdersPage() {
       {/* جدول الطلبات */}
       <div className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
         <div className="px-5 pb-3 pt-4">
-          <h2 className="text-[15px] font-black text-[#333B2E]">
+          <h2 className="flex items-center gap-2 text-[15px] font-black text-[#333B2E]">
             الطلبات <span className="text-[12px] font-bold text-[#9A9C90]">({total})</span>
+            {refreshing && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#9A9C90]">
+                <Loader2 className="h-3 w-3 animate-spin" /> تحديث
+              </span>
+            )}
           </h2>
         </div>
         {loading ? (

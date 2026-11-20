@@ -4,6 +4,7 @@ import { OfferModel } from "@/models/Offer";
 import { success, badRequest, serverError, AppError, getPaginationParams } from "@/lib/api-response";
 import { requireAdmin } from "@/lib/auth";
 import { toAdminOffer } from "@/lib/serialize";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 import { createOfferSchema } from "@/lib/validation";
 
 
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
     const offer = await OfferModel.create(parsed.data);
+    revalidateStorefront();
     return success(toAdminOffer(offer.toObject() as Parameters<typeof toAdminOffer>[0]), "تم إضافة العرض", 201);
   } catch (e) {
     if (e instanceof AppError)

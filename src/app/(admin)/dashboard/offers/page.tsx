@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, Flame, Clock, Eye, EyeOff, Percent } from "lucide-react";
+import { Plus, Pencil, Trash2, Flame, Clock, Eye, EyeOff, Percent, Loader2 } from "lucide-react";
 import { ActiveBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
@@ -24,6 +24,8 @@ export default function OffersAdminPage() {
   const { showToast } = useToast();
   const [offers, setOffers] = useState<AdminOffer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const loadedOnce = useRef(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editOffer, setEditOffer] = useState<AdminOffer | null>(null);
   const [form, setForm] = useState<Omit<AdminOffer, "id"> & { imagePublicId?: string }>(EMPTY);
@@ -31,15 +33,16 @@ export default function OffersAdminPage() {
   const [saving, setSaving] = useState(false);
 
   const fetchOffers = useCallback(async () => {
-    if (USE_MOCK) { setLoading(false); return; }
-    setLoading(true);
+    if (USE_MOCK) { setLoading(false); loadedOnce.current = true; return; }
+    if (loadedOnce.current) setRefreshing(true);
+    else setLoading(true);
     try {
       const res = await fetch("/api/admin/offers?limit=50");
       const d = await res.json();
       if (d.success) setOffers(d.data.offers);
       else showToast(d.error?.message ?? "فشل", "error");
     } catch { showToast("خطأ", "error"); }
-    finally { setLoading(false); }
+    finally { loadedOnce.current = true; setLoading(false); setRefreshing(false); }
   }, [showToast]);
 
   useEffect(() => { queueMicrotask(() => { void fetchOffers(); }); }, [fetchOffers]);
@@ -105,7 +108,10 @@ export default function OffersAdminPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-[18px] font-black text-[#333B2E] sm:text-[20px]">إدارة عروض التوفير والكومبو</h1>
+            <h1 className="flex items-center gap-2 text-[18px] font-black text-[#333B2E] sm:text-[20px]">
+              إدارة عروض التوفير والكومبو
+              {refreshing && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#9A9C90]" />}
+            </h1>
             <span className="inline-flex items-center gap-1 rounded-full bg-[#DEE3D5] px-2.5 py-0.5 text-[11px] font-bold text-[#50604D]">
               <Flame className="h-3 w-3" strokeWidth={2} /> صفحة العروض
             </span>
