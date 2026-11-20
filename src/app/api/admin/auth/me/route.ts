@@ -29,6 +29,7 @@ export async function GET(_req: NextRequest) {
       adminId: String(admin._id),
       name: (admin as { name: string }).name,
       email: (admin as { email: string }).email,
+      avatar: (admin as { avatar?: string }).avatar ?? "",
       role: (admin as { role: string }).role ?? "admin",
     });
   } catch (e) {

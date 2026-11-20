@@ -15,6 +15,7 @@ interface ImageUploadProps {
   hint?: string;
   previewClassName?: string;
   folder?: CloudinaryFolder;
+  shape?: "rect" | "circle";
 }
 
 /**
@@ -27,6 +28,7 @@ export default function ImageUpload({
   hint = "اختار ملف صورة (JPG / PNG / WebP — أقل من 8 ميجا)",
   previewClassName = "aspect-[4/3]",
   folder = "rozmaly/products",
+  shape = "rect",
 }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
@@ -93,13 +95,18 @@ export default function ImageUpload({
   return (
     <div className="space-y-2">
       <label className="block text-xs font-bold text-[#8F9186]">{label}</label>
-      <div className={`relative w-full overflow-hidden rounded-[14px] border border-[#E9E5DA] bg-[#F1EEE7] ${previewClassName}`}>
+      <div className={`relative overflow-hidden border border-[#E9E5DA] bg-[#F1EEE7] ${
+        shape === "circle" ? "mx-auto h-24 w-24 rounded-full" : `w-full rounded-[14px] ${previewClassName}`
+      }`}>
         {value ? (
           <>
-            <Image src={value} alt="معاينة" fill unoptimized={value.startsWith("data:")} className="object-contain p-2" sizes="400px" />
+            <Image src={value} alt="معاينة" fill unoptimized={value.startsWith("data:")}
+              className={shape === "circle" ? "object-cover" : "object-contain p-2"} sizes="400px" />
             <button type="button" onClick={() => { onChange(""); if (inputRef.current) inputRef.current.value = ""; }}
               aria-label="إزالة الصورة"
-              className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#C25B4F]/90 text-[#fff] transition-colors hover:bg-[#B0503F]">
+              className={`absolute flex items-center justify-center rounded-full bg-[#C25B4F]/95 text-[#fff] ring-2 ring-[#F1EEE7] transition-colors hover:bg-[#B0503F] ${
+                shape === "circle" ? "bottom-0 left-0 h-7 w-7" : "left-2 top-2 h-8 w-8"
+              }`}>
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </>

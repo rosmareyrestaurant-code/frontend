@@ -22,6 +22,7 @@ const bodySchema = z.object({
     "rozmaly/branding",
     "rozmaly/about",
     "rozmaly/payments",
+    "rozmaly/admins",
   ]),
 });
 

@@ -212,9 +212,34 @@ export const changePasswordSchema = z
     path: ["newPassword"],
   });
 
+export const recoverPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل")
+      .max(72, "كلمة المرور طويلة جدًا"),
+    confirmPassword: z.string().min(1, "أكّد كلمة المرور الجديدة"),
+    pin: z
+      .string()
+      .trim()
+      .regex(/^\d{4}$/, "رمز الاستعادة لازم يكون 4 أرقام"),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: "تأكيد كلمة المرور غير مطابق",
+    path: ["confirmPassword"],
+  });
+
 export const changeEmailSchema = z.object({
   currentPassword: z.string().min(1, "كلمة المرور الحالية مطلوبة"),
   newEmail: z.string().trim().toLowerCase().email("بريد إلكتروني غير صحيح").max(254),
+});
+
+export const updateAdminProfileSchema = z.object({
+  name: z.string().trim().min(2, "الاسم قصير جدًا").max(60, "الاسم طويل جدًا"),
+  avatar: z
+    .union([z.literal(""), z.string().trim().url("رابط الصورة غير صحيح").max(500)])
+    .optional()
+    .default(""),
 });
 
 /* ─── إعدادات المتجر ─────────────────────────────────────────────── */

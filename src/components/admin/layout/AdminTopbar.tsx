@@ -4,8 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, Menu, ReceiptText, Volume2, VolumeX } from "lucide-react";
+import { Bell, ChevronDown, Menu, ReceiptText, Volume2, VolumeX } from "lucide-react";
 import { useNewOrders } from "@/hooks/useNewOrders";
+import AdminProfileModal, { type AdminProfileData } from "./AdminProfileModal";
+
+const DEFAULT_AVATAR = "/images/admin/admin-avatar.png";
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard":            "الرئيسية",
@@ -37,6 +40,28 @@ export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
     useNewOrders();
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
+
+  const [profile, setProfile] = useState<AdminProfileData | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data?.success) return;
+        setProfile({
+          name: data.data.name ?? "",
+          avatar: data.data.avatar ?? "",
+          email: data.data.email ?? "",
+          role: data.data.role ?? "admin",
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!bellOpen) return;
@@ -162,22 +187,50 @@ export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-2.5 rounded-full border border-[#ECE7DC] bg-[#FBF9F6] py-1 pe-1 ps-2.5">
-          <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-[#D6DCCF]">
-            <Image
-              src="/images/admin/admin-avatar.png"
-              alt="صورة المدير"
-              fill
-              sizes="32px"
-              className="object-cover"
-            />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-[12px] font-black leading-none text-[#333B2E]">محمد هشام</p>
-            <p className="mt-1 text-[10px] font-semibold leading-none text-[#8F9186]">مدير النظام</p>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => setProfileOpen(true)}
+          aria-haspopup="dialog"
+          aria-label="حساب المدير — تعديل الاسم والصورة"
+          title="تعديل الاسم والصورة"
+          className="admin-profile-badge group flex items-center gap-2.5 rounded-full border border-[#ECE7DC] bg-[#FBF9F6] py-1 pe-1.5 ps-3 text-right transition-all hover:border-[#CFD8C6] hover:bg-white hover:shadow-[0_8px_20px_-10px_rgba(38,53,43,0.35)]"
+        >
+          <span className="hidden min-w-0 sm:block">
+            <span className="block max-w-[140px] truncate text-[12px] font-black leading-none text-[#333B2E]">
+              {profile ? (
+                profile.name
+              ) : (
+                <span className="inline-block h-3 w-16 animate-pulse rounded-full bg-[#E7E3D8]" />
+              )}
+            </span>
+            <span className="mt-1 block text-[9.5px] font-semibold leading-none text-[#8F9186]">
+              {profile?.role === "admin" || !profile ? "مدير النظام" : profile.role}
+            </span>
+          </span>
+          <span className="relative h-9 w-9 shrink-0 rounded-full bg-white p-[2px] ring-1 ring-[#D6DCCF] transition group-hover:ring-[#A9BB9C]">
+            <span className="relative block h-full w-full overflow-hidden rounded-full bg-[#F1EEE7]">
+              <Image
+                src={profile?.avatar || DEFAULT_AVATAR}
+                alt="صورة المدير"
+                fill
+                sizes="36px"
+                className="object-cover"
+              />
+            </span>
+            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#FBF9F6] bg-[#7FA47A]" />
+          </span>
+          <ChevronDown className="hidden h-3.5 w-3.5 shrink-0 text-[#9A9C90] transition-transform group-hover:translate-y-0.5 sm:block" />
+        </button>
       </div>
+
+      <AdminProfileModal
+        open={profileOpen && profile !== null}
+        initial={profile ?? { name: "", avatar: "" }}
+        onClose={() => setProfileOpen(false)}
+        onSaved={({ name, avatar }) =>
+          setProfile((prev) => (prev ? { ...prev, name, avatar } : { name, avatar }))
+        }
+      />
     </header>
   );
 }

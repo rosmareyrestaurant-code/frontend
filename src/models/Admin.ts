@@ -12,6 +12,7 @@ const adminSchema = new Schema(
       index: true,
     },
     passwordHash: { type: String, required: true },
+    avatar: { type: String, default: "", trim: true },
     role: { type: String, default: "admin" },
     isActive: { type: Boolean, default: true },
   },

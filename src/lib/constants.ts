@@ -42,6 +42,7 @@ export const IMAGE_UPLOAD = {
     branding: "rozmaly/branding",
     about: "rozmaly/about",
     payments: "rozmaly/payments",
+    admins: "rozmaly/admins",
   },
 } as const;
 
