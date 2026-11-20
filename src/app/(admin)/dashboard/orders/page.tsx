@@ -12,6 +12,7 @@ import { Pagination } from "@/components/admin/shared/Pagination";
 import { useToast } from "@/components/admin/shared/Toast";
 import { PaymentMethodIcon } from "@/components/common/PaymentBrandIcons";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { NEW_ORDERS_EVENT } from "@/hooks/useNewOrders";
 import { AdminOrder, OrderStatus, ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/types/admin";
 
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
@@ -79,6 +80,13 @@ export default function OrdersPage() {
   }, [page, debouncedSearch, statusFilter, showToast]);
 
   useEffect(() => { queueMicrotask(() => { void fetchOrders(); }); }, [fetchOrders]);
+
+  // طلب جديد وصل من جرس الإشعارات — نحدّث الجدول بهدوء
+  useEffect(() => {
+    const onNewOrders = () => { void fetchOrders(); };
+    window.addEventListener(NEW_ORDERS_EVENT, onNewOrders);
+    return () => window.removeEventListener(NEW_ORDERS_EVENT, onNewOrders);
+  }, [fetchOrders]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { NEW_ORDERS_EVENT } from "@/hooks/useNewOrders";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -63,7 +64,7 @@ export default function DashboardPage() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
+  const loadStats = useCallback(() => {
     fetch("/api/admin/dashboard")
       .then((r) => r.json())
       .then((d) => {
@@ -74,6 +75,15 @@ export default function DashboardPage() {
         // API غير متاح — Mock Data ظاهرة
       });
   }, []);
+
+  useEffect(() => { loadStats(); }, [loadStats]);
+
+  // طلب جديد وصل — نحدّث الإحصائيات بهدوء
+  useEffect(() => {
+    const onNewOrders = () => loadStats();
+    window.addEventListener(NEW_ORDERS_EVENT, onNewOrders);
+    return () => window.removeEventListener(NEW_ORDERS_EVENT, onNewOrders);
+  }, [loadStats]);
 
   const recentOrders: AdminOrder[] = (stats.recentOrders ?? []).slice(0, 5);
   const pendingOrders = stats.ordersByStatus?.pending ?? 0;
