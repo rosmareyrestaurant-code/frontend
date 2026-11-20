@@ -7,6 +7,7 @@ import {
 import { requireAdmin } from "@/lib/auth";
 import { toAdminBanner } from "@/lib/serialize";
 import { createBannerSchema } from "@/lib/validation";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 
 
 export const instant = false;
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
     const banner = await BannerModel.create(parsed.data);
+    revalidateStorefront();
     return success(toAdminBanner(banner.toObject() as Parameters<typeof toAdminBanner>[0]), "تم إضافة البانر", 201);
   } catch (e) {
     if (e instanceof AppError)

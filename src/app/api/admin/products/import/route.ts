@@ -9,6 +9,7 @@ import { ProductModel } from "@/models/Product";
 import { success, badRequest, serverError, AppError } from "@/lib/api-response";
 import { requireAdmin } from "@/lib/auth";
 import { importProductSchema } from "@/lib/validation";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 
 
 export const instant = false;
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    revalidateStorefront();
     return success({ added, updated }, `تم إضافة ${added} وتحديث ${updated} منتج`);
   } catch (e) {
     if (e instanceof AppError)

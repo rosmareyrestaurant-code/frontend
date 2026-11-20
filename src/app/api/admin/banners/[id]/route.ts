@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { toAdminBanner } from "@/lib/serialize";
 import { updateBannerSchema } from "@/lib/validation";
 import { deleteImage } from "@/lib/cloudinary";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 
 
 export const instant = false;
@@ -23,6 +24,7 @@ export async function PATCH(
     await connectToDatabase();
     const updated = await BannerModel.findByIdAndUpdate(id, { $set: parsed.data }, { new: true }).lean();
     if (!updated) return notFound("البانر غير موجود");
+    revalidateStorefront();
     return success(toAdminBanner(updated as Parameters<typeof toAdminBanner>[0]), "تم تحديث البانر");
   } catch (e) {
     if (e instanceof AppError)
@@ -43,6 +45,7 @@ export async function DELETE(
     if (!banner) return notFound("البانر غير موجود");
     if ((banner as { imagePublicId?: string }).imagePublicId)
       await deleteImage((banner as { imagePublicId: string }).imagePublicId);
+    revalidateStorefront();
     return success(null, "تم حذف البانر");
   } catch (e) {
     if (e instanceof AppError)

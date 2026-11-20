@@ -12,6 +12,7 @@ import { requireAdmin } from "@/lib/auth";
 import { toAdminProduct } from "@/lib/serialize";
 import { updateProductSchema } from "@/lib/validation";
 import { deleteImage } from "@/lib/cloudinary";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 
 
 export const instant = false;
@@ -55,6 +56,7 @@ export async function PATCH(
       { new: true },
     ).lean();
     if (!updated) return notFound("المنتج غير موجود");
+    revalidateStorefront();
     return success(
       toAdminProduct(updated as Parameters<typeof toAdminProduct>[0]),
       "تم تحديث المنتج",
@@ -81,6 +83,7 @@ export async function DELETE(
     if (!product) return notFound("المنتج غير موجود");
     // حذف الصورة من Cloudinary (best-effort)
     if (product.imagePublicId) await deleteImage(product.imagePublicId);
+    revalidateStorefront();
     return success(null, "تم حذف المنتج");
   } catch (e) {
     if (e instanceof AppError)

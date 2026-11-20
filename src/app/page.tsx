@@ -1,30 +1,11 @@
-"use client";
-
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 import HeroSlider from "@/components/home/HeroSlider";
 import PopularSection from "@/components/home/PopularSection";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import PromoBanners from "@/components/home/PromoBanners";
 import ProductSection from "@/components/home/ProductSection";
-import type { Product, Category } from "@/types";
-
-// Mock Data معطّلة — الصفحة بتقرأ كل حاجة من الـ API
-// import {
-//   CATEGORIES as MOCK_CATEGORIES,
-//   CHICKEN_PRODUCTS,
-//   PIZZA_PRODUCTS,
-//   BURGER_PRODUCTS,
-//   PASTA_PRODUCTS,
-//   DRINK_PRODUCTS,
-// } from "@/data/mockData";
-//
-// const MOCK_BY_CATEGORY: Record<string, Product[]> = {
-//   chicken: CHICKEN_PRODUCTS,
-//   pizza: PIZZA_PRODUCTS,
-//   burger: BURGER_PRODUCTS,
-//   pasta: PASTA_PRODUCTS,
-//   drinks: DRINK_PRODUCTS,
-// };
+import { getHomeData } from "@/lib/storefront";
+import type { Product } from "@/types";
 
 const SECTION_ORDER = [
   { id: "pizza",      title: "البيتزا",    slug: "pizza"   },
@@ -34,33 +15,29 @@ const SECTION_ORDER = [
   { id: "drinks",     title: "المشروبات",  slug: "drinks"  },
 ];
 
-export default function HomePage() {
-  const [byCategory, setByCategory] = useState<Record<string, Product[]>>({});
-  const [categories, setCategories] = useState<Category[]>([]);
+export default async function HomePage() {
+  const { products, categories, heroBanners } = await getHomeData();
 
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/products?limit=500").then(r => r.json()),
-      fetch("/api/categories").then(r => r.json()),
-    ]).then(([productsData, categoriesData]) => {
-      const products: Product[] = productsData?.data?.products ?? [];
-      const cats: Category[] = categoriesData?.data ?? [];
+  const byCategory: Record<string, Product[]> = {};
+  for (const p of products) {
+    if (!byCategory[p.category]) byCategory[p.category] = [];
+    byCategory[p.category].push(p);
+  }
 
-      const grouped: Record<string, Product[]> = {};
-      for (const p of products) {
-        if (!grouped[p.category]) grouped[p.category] = [];
-        grouped[p.category].push(p);
-      }
-      setByCategory(grouped);
-      setCategories(cats);
-    }).catch(() => {});
-  }, []);
+  const slides = heroBanners.map((b) => ({
+    id: b.id,
+    title: b.title,
+    image: b.image,
+    link: b.ctaLink || "#pizza",
+  }));
+
+  const popular = products.filter((p) => p.isPopular).slice(0, 20);
 
   return (
     <main className="flex w-full flex-col pb-4 sm:pb-8">
-      <HeroSlider />
+      <HeroSlider slides={slides} />
       <CategoriesSection categories={categories} />
-      <PopularSection />
+      <PopularSection products={popular} />
       {SECTION_ORDER.map(({ id, title, slug }, index) => (
         <Fragment key={id}>
           {index === SECTION_ORDER.length - 1 && <PromoBanners />}

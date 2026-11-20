@@ -1,24 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { Flame } from "lucide-react";
 import type { Product } from "@/types";
 import SliderArrow from "@/components/common/SliderArrow";
 import ProductScroller from "./ProductScroller";
 import SectionHeading from "./SectionHeading";
 
-export default function PopularSection() {
+/** المنتجات المميزة جاية من السيرفر (كاش) — مفيش fetch هنا */
+export default function PopularSection({ products }: { products: Product[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [POPULAR, setPopular] = useState<Product[]>([]);
-
-  useEffect(() => {
-    fetch("/api/products?featured=1&limit=20")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.success) setPopular(d.data?.products ?? []);
-      })
-      .catch(() => {});
-  }, []);
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -29,7 +20,7 @@ export default function PopularSection() {
     });
   };
 
-  if (POPULAR.length === 0) return null;
+  if (products.length === 0) return null;
 
   return (
     <section className="w-full bg-[#F2F2ED] py-8 border-b border-[#1e1915]">
@@ -61,8 +52,8 @@ export default function PopularSection() {
         {/* الموبايل: صفين منتجات تحت بعض في كل سحبة */}
         <ProductScroller
           ref={scrollRef}
-          products={POPULAR}
-          limit={POPULAR.length}
+          products={products}
+          limit={products.length}
           label="الأكثر طلباً"
         />
       </div>

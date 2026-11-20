@@ -40,6 +40,18 @@ export const tooMany = (message = "طلبات كثيرة جداً، حاول ل�
 export const serverError = (message = "خطأ في الخادم") =>
   error("SERVER_ERROR", message, 500);
 
+/**
+ * يخلي استجابة GET العامة تتخزن على الـ CDN (Vercel) —
+ * كل الزوار بياخدوا نفس النسخة في أقل من ثانية بدل ما كل واحد يضرب الداتابيز.
+ */
+export const withPublicCache = (res: Response, seconds = 60) => {
+  res.headers.set(
+    "Cache-Control",
+    `public, s-maxage=${seconds}, stale-while-revalidate=300`,
+  );
+  return res;
+};
+
 /** يحوّل خطأ Zod إلى رسالة عربية مقروءة */
 export function zodErrorToMessage(err: ZodError): string {
   const first = err.issues[0];

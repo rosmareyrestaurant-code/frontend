@@ -11,6 +11,7 @@ import {
 import { requireAdmin } from "@/lib/auth";
 import { toAdminProduct } from "@/lib/serialize";
 import { createProductSchema } from "@/lib/validation";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 
 
 export const instant = false;
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
     const product = await ProductModel.create(parsed.data);
+    revalidateStorefront();
     return success(
       toAdminProduct(product.toObject() as Parameters<typeof toAdminProduct>[0]),
       "تم إضافة المنتج",

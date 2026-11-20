@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { OfferModel } from "@/models/Offer";
-import { success, serverError } from "@/lib/api-response";
+import { success, serverError, withPublicCache } from "@/lib/api-response";
 import { toPublicOffer } from "@/lib/serialize";
 
 
@@ -12,8 +12,10 @@ export async function GET(_req: NextRequest) {
     const offers = await OfferModel.find({ isActive: true })
       .sort({ sortOrder: 1 })
       .lean();
-    return success(
-      offers.map((o) => toPublicOffer(o as Parameters<typeof toPublicOffer>[0])),
+    return withPublicCache(
+      success(
+        offers.map((o) => toPublicOffer(o as Parameters<typeof toPublicOffer>[0])),
+      ),
     );
   } catch (e) {
     console.error("[GET /api/offers]", e);

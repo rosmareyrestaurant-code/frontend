@@ -12,6 +12,7 @@ import {
 import { requireAdmin } from "@/lib/auth";
 import { toAdminCategory } from "@/lib/serialize";
 import { createCategorySchema } from "@/lib/validation";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 
 
 export const instant = false;
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
     if (exists) return conflict("هذا الـ slug مستخدم بالفعل");
 
     const cat = await CategoryModel.create(parsed.data);
+    revalidateStorefront();
     return success(
       toAdminCategory(cat.toObject() as Parameters<typeof toAdminCategory>[0]),
       "تم إضافة التصنيف",

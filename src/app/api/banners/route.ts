@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { BannerModel } from "@/models/Banner";
-import { success, serverError } from "@/lib/api-response";
+import { success, serverError, withPublicCache } from "@/lib/api-response";
 import { toPublicBanner } from "@/lib/serialize";
 
 
@@ -27,9 +27,11 @@ export async function GET(req: NextRequest) {
       return true;
     });
 
-    return success(
-      active.map((b) =>
-        toPublicBanner(b as Parameters<typeof toPublicBanner>[0]),
+    return withPublicCache(
+      success(
+        active.map((b) =>
+          toPublicBanner(b as Parameters<typeof toPublicBanner>[0]),
+        ),
       ),
     );
   } catch (e) {

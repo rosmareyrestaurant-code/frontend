@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Search, Users, Phone, X, ChevronLeft } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Search, Users, Phone, X, ChevronLeft, Loader2 } from "lucide-react";
 import { Modal } from "@/components/admin/shared/Modal";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
 import { useToast } from "@/components/admin/shared/Toast";
 import { StatusBadge } from "@/components/admin/shared/StatusBadge";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { AdminCustomer, AdminOrder } from "@/types/admin";
 
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
@@ -26,31 +27,38 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<AdminCustomer[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const [selected, setSelected] = useState<AdminCustomer | null>(null);
   const [customerOrders, setCustomerOrders] = useState<AdminOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const loadedOnce = useRef(false);
 
   const fetchCustomers = useCallback(async () => {
     if (USE_MOCK) {
-      const q = search.trim();
+      const q = debouncedSearch.trim();
       const filtered = MOCK_ADMIN_CUSTOMERS.filter((c) => !q || c.name.includes(q) || c.phone.includes(q));
       setCustomers(filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE));
       setTotal(filtered.length);
       setLoading(false);
+      loadedOnce.current = true;
       return;
     }
-    setLoading(true);
+    // أول تحميل بس هو اللي بيظهر فيه لودينج — البحث بعد كده بحدّث بهدوء
+    if (loadedOnce.current) setRefreshing(true);
+    else setLoading(true);
     try {
       const sp = new URLSearchParams({ page: String(page), limit: String(PER_PAGE) });
-      if (search) sp.set("q", search);
+      if (debouncedSearch) sp.set("q", debouncedSearch);
       const res = await fetch(`/api/admin/customers?${sp}`);
       const d = await res.json();
       if (d.success) { setCustomers(d.data.customers); setTotal(d.data.pagination.total); }
       else showToast(d.error?.message ?? "فشل", "error");
     } catch { showToast("خطأ", "error"); }
-    finally { setLoading(false); }
-  }, [page, search, showToast]);
+    finally { loadedOnce.current = true; setLoading(false); setRefreshing(false); }
+  }, [page, debouncedSearch, showToast]);
 
   useEffect(() => { queueMicrotask(() => { void fetchCustomers(); }); }, [fetchCustomers]);
 
@@ -58,15 +66,18 @@ export default function CustomersPage() {
 
   const openCustomer = async (c: AdminCustomer) => {
     setSelected(c);
+    setCustomerOrders([]);
     if (USE_MOCK) {
       setCustomerOrders(MOCK_ORDERS.filter((o) => o.customerPhone === c.phone));
       return;
     }
+    setOrdersLoading(true);
     try {
       const res = await fetch(`/api/admin/customers/${encodeURIComponent(c.phone)}`);
       const d = await res.json();
       if (d.success) setCustomerOrders(d.data.orders ?? []);
     } catch { setCustomerOrders([]); }
+    finally { setOrdersLoading(false); }
   };
 
   const copyPhone = (phone: string) => {
@@ -85,8 +96,13 @@ export default function CustomersPage() {
 
       <div className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
         <div className="px-5 pb-3 pt-4">
-          <h2 className="text-[15px] font-black text-[#333B2E]">
+          <h2 className="flex items-center gap-2 text-[15px] font-black text-[#333B2E]">
             العملاء <span className="text-[12px] font-bold text-[#9A9C90]">({total})</span>
+            {refreshing && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#9A9C90]">
+                <Loader2 className="h-3 w-3 animate-spin" /> تحديث
+              </span>
+            )}
           </h2>
         </div>
         {loading ? (
@@ -149,7 +165,7 @@ export default function CustomersPage() {
         )}
       </div>
 
-      <Modal isOpen={!!selected} onClose={() => { setSelected(null); setCustomerOrders([]); }}
+      <Modal isOpen={!!selected} onClose={() => { setSelected(null); setCustomerOrders([]); setOrdersLoading(false); }}
         title={selected ? `تفاصيل العميل — ${selected.name}` : ""} size="lg">
         {selected && (
           <div className="space-y-5">
@@ -170,7 +186,11 @@ export default function CustomersPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-[11px] font-black tracking-wide text-[#50604D]">سجل الطلبات ({customerOrders.length})</h3>
-              {customerOrders.length === 0 ? (
+              {ordersLoading ? (
+                <p className="flex items-center justify-center gap-2 py-4 text-center text-[13px] text-[#9A9C90]">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> جاري تحميل الطلبات...
+                </p>
+              ) : customerOrders.length === 0 ? (
                 <p className="py-4 text-center text-[13px] text-[#9A9C90]">لا توجد طلبات</p>
               ) : (
                 <div className="max-h-64 space-y-2 overflow-y-auto">

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ProductModel } from "@/models/Product";
-import { success, serverError, getPaginationParams } from "@/lib/api-response";
+import { success, serverError, getPaginationParams, withPublicCache } from "@/lib/api-response";
 import { toPublicProduct } from "@/lib/serialize";
 
 
@@ -54,12 +54,15 @@ export async function GET(req: NextRequest) {
       ProductModel.countDocuments(filter),
     ]);
 
-    return success({
-      products: products.map((p) =>
-        toPublicProduct(p as Parameters<typeof toPublicProduct>[0]),
-      ),
-      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
-    });
+    return withPublicCache(
+      success({
+        products: products.map((p) =>
+          toPublicProduct(p as Parameters<typeof toPublicProduct>[0]),
+        ),
+        pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+      }),
+      q ? 15 : 60,
+    );
   } catch (e) {
     console.error("[GET /api/products]", e);
     return serverError();

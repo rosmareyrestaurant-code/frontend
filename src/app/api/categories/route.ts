@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { CategoryModel } from "@/models/Category";
-import { success, serverError } from "@/lib/api-response";
+import { success, serverError, withPublicCache } from "@/lib/api-response";
 import { toPublicCategory } from "@/lib/serialize";
 import { ProductModel } from "@/models/Product";
 
@@ -28,7 +28,7 @@ export async function GET(_req: NextRequest) {
       toPublicCategory(c as Parameters<typeof toPublicCategory>[0], countMap.get(c.slug) ?? 0),
     );
 
-    return success(data);
+    return withPublicCache(success(data));
   } catch (e) {
     console.error("[GET /api/categories]", e);
     return serverError();

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import {
   Search, Plus, Pencil, Trash2, Package, ChevronDown, X, Star,
-  Upload, Download, Layers,
+  Upload, Download, Layers, Loader2,
 } from "lucide-react";
 import { AvailabilityBadge, VisibilityBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
 import ImageUpload from "@/components/admin/shared/ImageUpload";
 import { useToast } from "@/components/admin/shared/Toast";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { exportMenuToExcel, parseMenuWorkbook } from "@/lib/productExcel";
 import type { AdminProduct, AdminProductSize } from "@/types/admin";
 
@@ -41,7 +42,10 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<{ slug: string; nameAr: string }[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const [catFilter, setCatFilter] = useState("all");
   const [availFilter, setAvailFilter] = useState<"all" | "true" | "false">("all");
   const [page, setPage] = useState(1);
@@ -52,10 +56,11 @@ export default function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [pendingImport, setPendingImport] = useState<AdminProduct[] | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const loadedOnce = useRef(false);
 
   const fetchProducts = useCallback(async () => {
     if (USE_MOCK) {
-      const q = search.trim();
+      const q = debouncedSearch.trim();
       const filtered = MOCK_ADMIN_PRODUCTS.filter((p) =>
         (catFilter === "all" || p.category === catFilter) &&
         (availFilter === "all" || String(p.isAvailable) === availFilter) &&
@@ -64,12 +69,15 @@ export default function ProductsPage() {
       setProducts(filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE));
       setTotal(filtered.length);
       setLoading(false);
+      loadedOnce.current = true;
       return;
     }
-    setLoading(true);
+    // التحميل الكامل يظهر أول مرة بس — بعد كده بنحدّث بهدوء من غير ما الجدول يختفي
+    if (loadedOnce.current) setRefreshing(true);
+    else setLoading(true);
     try {
       const sp = new URLSearchParams({ page: String(page), limit: String(PER_PAGE) });
-      if (search) sp.set("q", search);
+      if (debouncedSearch) sp.set("q", debouncedSearch);
       if (catFilter !== "all") sp.set("category", catFilter);
       if (availFilter !== "all") sp.set("isAvailable", availFilter);
       const res = await fetch(`/api/admin/products?${sp}`);
@@ -77,8 +85,8 @@ export default function ProductsPage() {
       if (d.success) { setProducts(d.data.products); setTotal(d.data.pagination.total); }
       else showToast(d.error?.message ?? "فشل التحميل", "error");
     } catch { showToast("خطأ في الاتصال", "error"); }
-    finally { setLoading(false); }
-  }, [page, search, catFilter, availFilter, showToast]);
+    finally { loadedOnce.current = true; setLoading(false); setRefreshing(false); }
+  }, [page, debouncedSearch, catFilter, availFilter, showToast]);
 
   useEffect(() => { queueMicrotask(() => { void fetchProducts(); }); }, [fetchProducts]);
 
@@ -132,9 +140,16 @@ export default function ProductsPage() {
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const d = await res.json();
       if (d.success) {
+        const saved = d.data as AdminProduct;
         showToast(editProduct ? "تم تحديث المنتج" : "تمت إضافة المنتج", "success");
         setModalOpen(false);
-        fetchProducts();
+        // بنحدّث الصف في مكانه بدل ما نعيد تحميل الجدول كله
+        if (editProduct) {
+          setProducts((prev) => prev.map((p) => (p.id === saved.id ? saved : p)));
+        } else {
+          setProducts((prev) => [saved, ...prev].slice(0, PER_PAGE));
+          setTotal((t) => t + 1);
+        }
       } else { showToast(d.error?.message ?? "فشل الحفظ", "error"); }
     } catch { showToast("خطأ في الاتصال", "error"); }
     finally { setSaving(false); }
@@ -147,12 +162,20 @@ export default function ProductsPage() {
       showToast("تم حذف المنتج", "warning");
       return;
     }
+    setDeletingId(id);
     try {
       const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
       const d = await res.json();
-      if (d.success) { showToast("تم حذف المنتج", "warning"); fetchProducts(); }
-      else showToast(d.error?.message ?? "فشل الحذف", "error");
+      if (d.success) {
+        const wasLastOnPage = products.length === 1 && page > 1;
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+        setTotal((t) => Math.max(0, t - 1));
+        showToast("تم حذف المنتج", "warning");
+        if (wasLastOnPage) setPage((p) => p - 1);
+        else if (page === 1) void fetchProducts();
+      } else showToast(d.error?.message ?? "فشل الحذف", "error");
     } catch { showToast("خطأ في الاتصال", "error"); }
+    finally { setDeletingId(null); }
   };
 
   const toggleAvail = async (id: string, current: boolean) => {
@@ -161,12 +184,21 @@ export default function ProductsPage() {
       showToast("تم تحديث التوفر", "success");
       return;
     }
+    // تحديث فوري في الواجهة، ولو الطلب فشل نرجّع الحالة زي ما كانت
+    setProducts((prev) => prev.map((p) => p.id === id ? { ...p, isAvailable: !current } : p));
     try {
       const res = await fetch(`/api/admin/products/${id}`, { method: "PATCH",
         headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isAvailable: !current }) });
       const d = await res.json();
-      if (d.success) { fetchProducts(); showToast("تم تحديث التوفر", "success"); }
-    } catch { showToast("خطأ", "error"); }
+      if (d.success) showToast("تم تحديث التوفر", "success");
+      else {
+        setProducts((prev) => prev.map((p) => p.id === id ? { ...p, isAvailable: current } : p));
+        showToast(d.error?.message ?? "فشل تحديث التوفر", "error");
+      }
+    } catch {
+      setProducts((prev) => prev.map((p) => p.id === id ? { ...p, isAvailable: current } : p));
+      showToast("خطأ", "error");
+    }
   };
 
   const updateSize = (index: number, patch: Partial<AdminProductSize>) =>
@@ -320,8 +352,13 @@ export default function ProductsPage() {
 
       <div className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
         <div className="px-5 pb-3 pt-4">
-          <h2 className="text-[15px] font-black text-[#333B2E]">
+          <h2 className="flex items-center gap-2 text-[15px] font-black text-[#333B2E]">
             المنتجات <span className="text-[12px] font-bold text-[#9A9C90]">({total})</span>
+            {refreshing && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#9A9C90]">
+                <Loader2 className="h-3 w-3 animate-spin" /> تحديث
+              </span>
+            )}
           </h2>
         </div>
         {loading ? (
@@ -377,9 +414,9 @@ export default function ProductsPage() {
                             className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F2EE] text-[#6B7264] transition-colors hover:bg-[#EDEAE1] hover:text-[#50604D]">
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => setDeleteId(p.id)}
-                            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F2EE] text-[#6B7264] transition-colors hover:bg-[#FBE4E0] hover:text-[#C25B4F]">
-                            <Trash2 className="h-3.5 w-3.5" />
+                          <button onClick={() => setDeleteId(p.id)} disabled={deletingId === p.id}
+                            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F2EE] text-[#6B7264] transition-colors hover:bg-[#FBE4E0] hover:text-[#C25B4F] disabled:opacity-60">
+                            {deletingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                           </button>
                         </div>
                       </td>

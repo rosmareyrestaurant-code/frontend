@@ -3,39 +3,18 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-// Mock Data معطّلة — السلايدر بيقرأ البانرات من الـ API
-// import { HERO_SLIDES } from "@/data/mockData";
 import SliderArrow from "@/components/common/SliderArrow";
 
-interface HeroSlide {
+export interface HeroSlide {
   id: string;
   title: string;
   image: string;
   link: string;
 }
 
-export default function HeroSlider() {
-  const [slides, setSlides] = useState<HeroSlide[]>([]);
+/** الشرائح جاية من السيرفر (كاش) — مش بنعمل fetch هنا */
+export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  useEffect(() => {
-    fetch("/api/banners?position=hero")
-      .then((r) => r.json())
-      .then((d) => {
-        const banners: { id: string; title: string; image: string; ctaLink?: string }[] =
-          d?.data ?? [];
-        setSlides(
-          banners.map((b) => ({
-            id: b.id,
-            title: b.title,
-            image: b.image,
-            link: b.ctaLink || "#pizza",
-          })),
-        );
-        setCurrentSlide(0);
-      })
-      .catch(() => {});
-  }, []);
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);

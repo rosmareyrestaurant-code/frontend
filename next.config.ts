@@ -20,6 +20,15 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  cacheLife: {
+    // بيانات المنيو/البانرات: تتحدّث فوراً من الداشبورد عبر revalidateTag،
+    // والكاش الزمني ده مجرد شبكة أمان لو حصل تعديل مباشر في الداتابيز.
+    storefront: {
+      stale: 300,
+      revalidate: 300,
+      expire: 3600,
+    },
+  },
   turbopack: {
     rules: {
       "*.css": {

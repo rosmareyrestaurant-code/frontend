@@ -12,6 +12,7 @@ import { requireAdmin } from "@/lib/auth";
 import { toAdminCategory } from "@/lib/serialize";
 import { updateCategorySchema } from "@/lib/validation";
 import { deleteImage } from "@/lib/cloudinary";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 
 
 export const instant = false;
@@ -34,6 +35,7 @@ export async function PATCH(
       { new: true },
     ).lean();
     if (!updated) return notFound("التصنيف غير موجود");
+    revalidateStorefront();
     return success(
       toAdminCategory(updated as Parameters<typeof toAdminCategory>[0]),
       "تم تحديث التصنيف",
@@ -60,6 +62,7 @@ export async function DELETE(
     if (!cat) return notFound("التصنيف غير موجود");
     if ((cat as { imagePublicId?: string }).imagePublicId)
       await deleteImage((cat as { imagePublicId: string }).imagePublicId);
+    revalidateStorefront();
     return success(null, "تم حذف التصنيف");
   } catch (e) {
     if (e instanceof AppError)
