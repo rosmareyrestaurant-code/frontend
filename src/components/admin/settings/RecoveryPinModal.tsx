@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { KeyRound, Loader2, ShieldCheck, X } from "lucide-react";
+import { Loader2, ShieldCheck, X } from "lucide-react";
 
 interface RecoveryPinModalProps {
   open: boolean;
@@ -99,14 +99,6 @@ export default function RecoveryPinModal({
         </div>
 
         <div className="space-y-4 px-5 py-5">
-          <div className="flex items-start gap-2.5 rounded-[12px] border border-[#E9E5DA] bg-[#FBF9F6] px-3.5 py-3">
-            <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-[#50604D]" />
-            <p className="text-[11px] font-semibold leading-relaxed text-[#6B7264]">
-              اكتب الرمز المكوّن من 4 أرقام اللي تعرفه انت بس.
-              الرمز مش بيتبعت على الميل — ومحاولاتك محدودة.
-            </p>
-          </div>
-
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-[#8F9186]" htmlFor="recovery-pin">
               رمز الاستعادة
