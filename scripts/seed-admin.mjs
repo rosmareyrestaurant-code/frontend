@@ -71,6 +71,15 @@ try {
     await existing.save();
     console.log("✅ تم تحديث حساب الأدمن:", email);
   } else {
+    // حماية: لو في أدمن موجود ببريد مختلف، ما ننشئش حساب تاني بالبريد القديم
+    const otherAdmin = await Admin.findOne({ role: "admin" });
+    if (otherAdmin) {
+      console.error("⚠️ يوجد حساب أدمن بالفعل ببريد مختلف:", otherAdmin.email);
+      console.error("   غيّر البيانات من الداشبورد (الإعدادات ← حساب الأدمن)،");
+      console.error("   أو حدّث ADMIN_EMAIL و ADMIN_PASSWORD في .env.local ليطابقوا البريد الحالي ثم شغّل السكربت تاني.");
+      await mongoose.disconnect();
+      process.exit(1);
+    }
     await Admin.create({ name, email: email.toLowerCase(), passwordHash: hash });
     console.log("✅ تم إنشاء حساب الأدمن:", email);
   }

@@ -212,6 +212,11 @@ export const changePasswordSchema = z
     path: ["newPassword"],
   });
 
+export const changeEmailSchema = z.object({
+  currentPassword: z.string().min(1, "كلمة المرور الحالية مطلوبة"),
+  newEmail: z.string().trim().toLowerCase().email("بريد إلكتروني غير صحيح").max(254),
+});
+
 /* ─── إعدادات المتجر ─────────────────────────────────────────────── */
 const workingHourSchema = z.object({
   day: z.string(),

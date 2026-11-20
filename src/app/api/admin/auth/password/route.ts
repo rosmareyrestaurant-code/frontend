@@ -4,11 +4,14 @@ import { AdminModel } from "@/models/Admin";
 import { success, badRequest, serverError, AppError } from "@/lib/api-response";
 import { requireAdmin, verifyPassword, hashPassword } from "@/lib/auth";
 import { changePasswordSchema } from "@/lib/validation";
+import { rateLimitOrThrow, clientIp } from "@/lib/rate-limit";
 
 
 export const instant = false;
 export async function PATCH(req: NextRequest) {
   try {
+    rateLimitOrThrow(`account:password:${clientIp(req)}`, 5, 60_000);
+
     const session = await requireAdmin();
 
     const body = await req.json();

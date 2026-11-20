@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Store, Clock, Share2, Settings, Save } from "lucide-react";
+import { Store, Clock, Share2, Settings, Save, ShieldCheck, KeyRound } from "lucide-react";
 import ImageUpload from "@/components/admin/shared/ImageUpload";
 import { useToast } from "@/components/admin/shared/Toast";
 import type { StoreSettings } from "@/types/admin";
@@ -11,12 +11,13 @@ import { DEFAULT_STORE_SETTINGS } from "@/data/admin/settings";
 
 const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
-type Tab = "basic" | "hours" | "social" | "general";
+type Tab = "basic" | "hours" | "social" | "general" | "account";
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "basic",   label: "المعلومات الأساسية", icon: Store    },
   { id: "hours",   label: "أوقات العمل",        icon: Clock    },
   { id: "social",  label: "روابط التواصل",      icon: Share2   },
   { id: "general", label: "إعدادات عامة",       icon: Settings },
+  { id: "account", label: "حساب الأدمن",        icon: ShieldCheck },
 ];
 
 const DEFAULTS: StoreSettings = {
@@ -47,6 +48,58 @@ export default function SettingsPage() {
   const [savedSettings, setSavedSettings] = useState<StoreSettings>(USE_MOCK ? DEFAULT_STORE_SETTINGS : DEFAULTS);
   const [loading, setLoading] = useState(!USE_MOCK);
   const [saving, setSaving] = useState(false);
+
+  const [adminEmail, setAdminEmail] = useState("");
+  const [emailForm, setEmailForm] = useState({ newEmail: "", currentPassword: "" });
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [passForm, setPassForm] = useState({ currentPassword: "", newPassword: "", confirm: "" });
+  const [savingPass, setSavingPass] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/auth/me").then(r => r.json()).then(d => {
+      if (d.success) setAdminEmail(d.data.email);
+    }).catch(() => {});
+  }, []);
+
+  const changeEmail = async () => {
+    if (!emailForm.newEmail.trim() || !emailForm.currentPassword) {
+      showToast("اكتب البريد الجديد وكلمة المرور الحالية", "error");
+      return;
+    }
+    setSavingEmail(true);
+    try {
+      const res = await fetch("/api/admin/auth/email", { method: "PATCH",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(emailForm) });
+      const d = await res.json();
+      if (d.success) {
+        setAdminEmail(d.data.email);
+        setEmailForm({ newEmail: "", currentPassword: "" });
+        showToast("تم تحديث البريد الإلكتروني — استخدمه في تسجيل الدخول القادم", "success");
+      } else showToast(d.error?.message ?? "فشل تحديث البريد", "error");
+    } catch { showToast("خطأ في الاتصال", "error"); }
+    finally { setSavingEmail(false); }
+  };
+
+  const changePassword = async () => {
+    if (!passForm.currentPassword || !passForm.newPassword) {
+      showToast("اكتب كلمة المرور الحالية والجديدة", "error");
+      return;
+    }
+    if (passForm.newPassword.length < 8) { showToast("كلمة المرور الجديدة 8 أحرف على الأقل", "error"); return; }
+    if (passForm.newPassword !== passForm.confirm) { showToast("تأكيد كلمة المرور غير مطابق", "error"); return; }
+    setSavingPass(true);
+    try {
+      const res = await fetch("/api/admin/auth/password", { method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: passForm.currentPassword, newPassword: passForm.newPassword }) });
+      const d = await res.json();
+      if (d.success) {
+        setPassForm({ currentPassword: "", newPassword: "", confirm: "" });
+        showToast("تم تغيير كلمة المرور بنجاح", "success");
+      } else showToast(d.error?.message ?? "فشل تغيير كلمة المرور", "error");
+    } catch { showToast("خطأ في الاتصال", "error"); }
+    finally { setSavingPass(false); }
+  };
 
   useEffect(() => {
     if (USE_MOCK) return;
@@ -190,6 +243,40 @@ export default function SettingsPage() {
                 <input type="checkbox" checked={settings.isStoreOpen} onChange={e => update("isStoreOpen", e.target.checked)} className="h-4 w-4 rounded accent-[#50604D]" />
                 <span className="text-[12.5px] font-bold text-[#333B2E]">{settings.isStoreOpen ? "مفتوح" : "مغلق"}</span>
               </label>
+            </div>
+          </div>
+        )}
+        {activeTab === "account" && (
+          <div className="max-w-xl space-y-5">
+            <div>
+              <h2 className="text-[14px] font-black text-[#333B2E]">حساب الأدمن</h2>
+              <p className="mt-1 text-[11.5px] font-medium text-[#9A9C90]">
+                بيانات تسجيل الدخول محفوظة في قاعدة البيانات وليست في ملف الإعدادات — أي تغيير هنا يسري فوراً على الدخول القادم.
+              </p>
+            </div>
+
+            <div className="rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-4 space-y-3">
+              <p className="text-[12.5px] font-black text-[#333B2E]">البريد الإلكتروني الحالي</p>
+              <p className="rounded-[10px] border border-[#E9E5DA] bg-[#FBF9F6] px-3 py-2 text-[12.5px] font-semibold text-[#50604D]" dir="ltr">
+                {adminEmail || "..."}
+              </p>
+              <InputField label="البريد الإلكتروني الجديد" value={emailForm.newEmail} onChange={v => setEmailForm(p => ({ ...p, newEmail: v }))} type="email" placeholder="new-admin@example.com" />
+              <InputField label="كلمة المرور الحالية (للتأكيد)" value={emailForm.currentPassword} onChange={v => setEmailForm(p => ({ ...p, currentPassword: v }))} type="password" />
+              <button onClick={changeEmail} disabled={savingEmail}
+                className="flex items-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12px] font-bold text-[#fff] transition-colors hover:bg-[#435241] disabled:opacity-50 active:scale-[0.98]">
+                <ShieldCheck className="h-3.5 w-3.5" />{savingEmail ? "جاري التحديث..." : "تحديث البريد الإلكتروني"}
+              </button>
+            </div>
+
+            <div className="rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-4 space-y-3">
+              <p className="text-[12.5px] font-black text-[#333B2E]">تغيير كلمة المرور</p>
+              <InputField label="كلمة المرور الحالية" value={passForm.currentPassword} onChange={v => setPassForm(p => ({ ...p, currentPassword: v }))} type="password" />
+              <InputField label="كلمة المرور الجديدة (8 أحرف على الأقل)" value={passForm.newPassword} onChange={v => setPassForm(p => ({ ...p, newPassword: v }))} type="password" />
+              <InputField label="تأكيد كلمة المرور الجديدة" value={passForm.confirm} onChange={v => setPassForm(p => ({ ...p, confirm: v }))} type="password" />
+              <button onClick={changePassword} disabled={savingPass}
+                className="flex items-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12px] font-bold text-[#fff] transition-colors hover:bg-[#435241] disabled:opacity-50 active:scale-[0.98]">
+                <KeyRound className="h-3.5 w-3.5" />{savingPass ? "جاري الحفظ..." : "تغيير كلمة المرور"}
+              </button>
             </div>
           </div>
         )}
