@@ -36,6 +36,8 @@ const orderSchema = new Schema(
     },
     paymentProofUrl: { type: String, default: "" },
     paymentProofPublicId: { type: String, default: "" },
+    // معرّف يولّده المتصفح لكل محاولة طلب — يمنع تكرار الطلب لو اتعاد إرساله
+    clientOrderId: { type: String },
     paymentStatus: {
       type: String,
       enum: ["pending", "paid"],
@@ -53,5 +55,9 @@ const orderSchema = new Schema(
 );
 
 orderSchema.index({ createdAt: -1 });
+orderSchema.index(
+  { clientOrderId: 1 },
+  { unique: true, partialFilterExpression: { clientOrderId: { $exists: true } } },
+);
 
 export const OrderModel = mongoose.models.Order || model("Order", orderSchema);

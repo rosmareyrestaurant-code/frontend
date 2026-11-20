@@ -111,6 +111,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   }, []);
   /* guard: نمنع كتابة sessionStorage قبل اكتمال القراءة الأولى */
   const writeGuard = useRef(false);
+  /* معرّف ثابت لمحاولة الطلب — يمنع تكرار الطلب لو اتعاد إرساله بعد خطأ */
+  const clientOrderIdRef = useRef<string | null>(null);
 
   /* ── Hydration: قراءة sessionStorage ثم جلب بيانات المنتجات من الـ API ── */
   useEffect(() => {
@@ -289,6 +291,13 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       let serverDeliveryFee = deliveryFee;
       let serverSubtotal = subtotal;
 
+      if (!clientOrderIdRef.current) {
+        clientOrderIdRef.current =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `rz-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      }
+
       try {
         const res = await fetch("/api/orders", {
           method: "POST",
@@ -299,6 +308,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
             paymentMethod: payment?.method ?? "cash",
             paymentProofUrl: payment?.proofUrl,
             paymentProofPublicId: payment?.proofPublicId,
+            clientOrderId: clientOrderIdRef.current,
           }),
         });
         const data = await res.json();
@@ -314,6 +324,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         serverDeliveryFee = data.data.deliveryFee ?? 0;
         serverSubtotal = data.data.subtotal ?? serverSubtotal;
         setDeliveryFee(serverDeliveryFee);
+        // الطلب اتسجل — محاولة جديدة بعد كده تبقى بمعرّف جديد
+        clientOrderIdRef.current = null;
       } catch (e) {
         /* إذا السيرفر غير متاح، نستمر بقيم محلية */
         if (process.env.NODE_ENV !== "development") throw e;

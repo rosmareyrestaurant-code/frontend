@@ -32,10 +32,23 @@ declare global {
 const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
 if (!global.mongooseCache) global.mongooseCache = cached;
 
+/**
+ * سيرفرلس: كل نسخة دالة تعيش فترة وبتفتح اتصالاتها. الافتراضي في mongoose
+ * (100 اتصال للنسخة) بيخلّي 5 نسخ بس تقفل حد Atlas المشترك (500 اتصال)،
+ * فأي دفعة زوار بتوقع الاتصال. سقف 5 اتصالات للنسخة بيمنع الازدحام ده.
+ */
 const CONNECT_OPTIONS = {
   bufferCommands: false,
   family: 4 as const,
-  serverSelectionTimeoutMS: 10_000,
+  maxPoolSize: 5,
+  maxConnecting: 2,
+  maxIdleTimeMS: 60_000,
+  connectTimeoutMS: 8_000,
+  socketTimeoutMS: 45_000,
+  // 8 ثواني لكل محاولة × 3 محاولات على مستوى الطلب (في orders API) تفضل
+  // داخل حد 30 ثانية، فطلب فاشل بيرجع رسالة واضحة بدل ما يتقطع بـ timeout.
+  serverSelectionTimeoutMS: 8_000,
+  waitQueueTimeoutMS: 8_000,
 };
 
 /**
@@ -147,6 +160,7 @@ async function connectMongo(): Promise<typeof mongoose> {
   }
 }
 
+
 export async function connectToDatabase(): Promise<typeof mongoose> {
   if (!MONGODB_URI) {
     throw new Error("MONGODB_URI غير مضبوط — أضفه في .env.local");
@@ -154,8 +168,22 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 
   ensureDnsForDev();
 
-  if (cached.conn) return cached.conn;
+  // الاتصال المحفوظ قد يكون اتقطع (serverless بيجمّد الدالة) — لازم نتأكد إنه فعلاً متصل
+  const state = mongoose.connection.readyState;
+  if (state === 1 && cached.conn) return cached.conn;
+  if (state === 2) {
+    // فيه محاولة اتصال جارية بالفعل — نستناها بدل ما نفتح واحدة جديدة
+    await mongoose.connection.asPromise();
+    cached.conn = mongoose;
+    return cached.conn;
+  }
+  if (state !== 1) {
+    cached.conn = null;
+    cached.promise = null;
+  }
 
+  // محاولة واحدة هنا — إعادة المحاولة بتكون على مستوى الطلب (orders API)
+  // عشان ما يحصلش تداخل يضاعف وقت الانتظار.
   if (!cached.promise) {
     cached.promise = connectMongo();
   }

@@ -180,6 +180,7 @@ export const createOrderSchema = z.object({
   paymentMethod: z.enum(["cash", "vodafone_cash", "instapay"]).optional().default("cash"),
   paymentProofUrl: z.string().trim().url().optional(),
   paymentProofPublicId: z.string().trim().optional(),
+  clientOrderId: z.string().trim().min(8, "معرّف الطلب غير صالح").max(80, "معرّف الطلب غير صالح").optional(),
 });
 
 /* ─── إدارة الطلبات ──────────────────────────────────────────────── */
