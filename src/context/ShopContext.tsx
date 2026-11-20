@@ -48,7 +48,7 @@ interface ShopContextType {
   setIsFavoritesOpen: (open: boolean) => void;
   setIsMenuImageOpen: (open: boolean) => void;
   setCurrentOrder: (order: Order | null) => void;
-  addToCart: (product: Product, quantity?: number, notes?: string) => void;
+  addToCart: (product: Product, quantity?: number, notes?: string, sizeId?: string) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, delta: number) => void;
   clearCart: () => void;
@@ -126,14 +126,20 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
             .map((ref) => {
               const product = productsMap.get(ref.productId);
               if (!product) return undefined;
-              const size = product.sizes?.find((s) => s.id === ref.sizeId);
+              // سلة محفوظة من قبل الإصلاح ممكن تكون بدون sizeId — نستخدم الحجم الافتراضي
+              const sizes = product.sizes ?? [];
+              const size = sizes.length
+                ? sizes.find((s) => s.id === ref.sizeId) ??
+                  sizes.find((s) => s.isDefault) ??
+                  sizes[0]
+                : undefined;
               const effectiveProduct: Product = size
                 ? { ...product, price: size.price, name: `${product.name} (${size.name})` }
                 : product;
               const item: CartItem = {
                 product: effectiveProduct,
                 quantity: ref.quantity,
-                sizeId: ref.sizeId,
+                sizeId: size?.id,
                 addonIds: ref.addonIds,
                 notes: ref.notes,
               };
@@ -186,18 +192,32 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   /* ─── Cart ops ───────────────────────────────────────────────────── */
   const addToCart = useCallback(
-    (product: Product, quantity: number = 1, notes?: string) => {
+    (product: Product, quantity: number = 1, notes?: string, sizeId?: string) => {
       const cleanNotes = notes?.trim() || undefined;
+      // المنتجات اللي لها أحجام لازم يكون معاها حجم صحيح — وإلا السيرفر بيرفض الطلب.
+      // لو مفيش حجم متبعت (زي الإضافة من المفضلة) بنستخدم الحجم الافتراضي.
+      const sizes = product.sizes ?? [];
+      const size = sizes.length
+        ? sizes.find((s) => s.id === sizeId) ?? sizes.find((s) => s.isDefault) ?? sizes[0]
+        : undefined;
+      const pricedProduct =
+        size && size.price !== product.price
+          ? { ...product, price: size.price, originalPrice: size.originalPrice }
+          : product;
+
       setCart((prev) => {
         const idx = prev.findIndex(
-          (item) => item.product.id === product.id && item.notes === cleanNotes,
+          (item) =>
+            item.product.id === product.id &&
+            item.sizeId === size?.id &&
+            item.notes === cleanNotes,
         );
         if (idx > -1) {
           return prev.map((item, i) =>
             i === idx ? { ...item, quantity: item.quantity + quantity } : item,
           );
         }
-        return [...prev, { product, quantity, notes: cleanNotes }];
+        return [...prev, { product: pricedProduct, quantity, notes: cleanNotes, sizeId: size?.id }];
       });
     },
     [],

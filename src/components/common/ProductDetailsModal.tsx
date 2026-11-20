@@ -95,7 +95,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
         }
       : product;
 
-    addToCart(productToAdd, quantity, notes);
+    addToCart(productToAdd, quantity, notes, selectedSize?.id);
     setIsAdded(true);
     showStoreToast("cart", productToAdd.name);
     setTimeout(() => {
