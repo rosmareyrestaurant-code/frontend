@@ -51,7 +51,7 @@ function fromLocalOrder(order: Order): PublicOrder {
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#ff7a00]/10 border border-[#ff7a00]/20 text-[#ff7a00]">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#ff7a00]/10 border border-[#ff7a00]/20 text-[#FFFFFF]">
         <Icon className="h-4 w-4" />
       </div>
       <div className="flex-1 min-w-0">
@@ -162,31 +162,29 @@ function OrderConfirmationInner() {
     <div className="min-h-screen bg-[#F2F2ED] py-8 sm:py-12" dir="rtl">
       <div className="mx-auto max-w-2xl px-4 sm:px-6 space-y-5">
 
-        {/* شريط الحالة */}
-        <div className={`flex items-start gap-3 rounded-2xl border p-4 ${
-          isDelivered ? "border-emerald-500/30 bg-emerald-500/8" :
-          isCancelled ? "border-red-500/30 bg-red-500/8" :
-          "border-[#ff7a00]/30 bg-[#ff7a00]/8"
+        {/* شريط الحالة — خلفية خضراء ثابتة ونصوص بيضاء في كل الحالات */}
+        <div className={`flex items-start gap-3 rounded-2xl border p-4 bg-[#526B58] ${
+          isCancelled ? "border-[#7B4C48]" : "border-[#899B83]"
         }`}>
-          {isDelivered ? <CheckCircle2 className="h-7 w-7 text-emerald-400 shrink-0" /> :
-           isCancelled ? <Clock className="h-7 w-7 text-red-400 shrink-0" /> :
-           <Clock className="h-7 w-7 text-[#ff7a00] shrink-0" />}
+          {isDelivered
+            ? <CheckCircle2 className="h-7 w-7 text-[#FFFFFF] shrink-0" />
+            : <Clock className="h-7 w-7 text-[#FFFFFF] shrink-0" />}
           <div className="min-w-0 flex-1">
-            <h1 className="text-base sm:text-lg font-black text-white">
+            <h1 className="text-base sm:text-lg font-black text-[#FFFFFF]">
               {isDelivered ? "تم تسليم طلبك!" :
                isCancelled ? "تم إلغاء الطلب" :
                "طلبك في الطريق إليك"}
             </h1>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#a89f94] mt-1">
-              <span>رقم الطلب:</span>
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/20 px-2 py-0.5">
-                <span className="font-mono font-bold text-white tracking-wider select-all">#{order.orderNumber}</span>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#FFFFFF]/85 mt-1">
+              <span className="text-[#FFFFFF]/85">رقم الطلب:</span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#FFFFFF]/15 px-2 py-0.5">
+                <span className="font-mono font-bold text-[#FFFFFF] tracking-wider select-all">#{order.orderNumber}</span>
                 <button type="button" onClick={handleCopy} aria-label="نسخ رقم الطلب"
-                  className="text-[#a89f94] hover:text-[#ff7a00] transition-colors">
-                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                  className="text-[#FFFFFF]/80 hover:text-[#FFFFFF] transition-colors">
+                  {copied ? <Check className="h-3.5 w-3.5 text-[#FFFFFF]" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
               </span>
-              <span>{formatDate(order.createdAt)}</span>
+              <span className="text-[#FFFFFF]/85">{formatDate(order.createdAt)}</span>
             </div>
           </div>
         </div>
