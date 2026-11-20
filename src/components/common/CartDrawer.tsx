@@ -7,6 +7,7 @@ import {
   X, Plus, Minus, Trash2, ShoppingBag, ArrowLeft, ChevronLeft, Check, CheckCircle2, Truck, Banknote,
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
+import { useDeliveryQuote } from "@/hooks/useDeliveryQuote";
 import { useEffect, useRef, useState } from "react";
 import { CustomerInfo } from "@/types";
 import CheckoutForm from "./CheckoutForm";
@@ -29,8 +30,9 @@ export default function CartDrawer() {
   const {
     cart, isCartOpen, setIsCartOpen,
     updateQuantity, removeFromCart, clearCart,
-    subtotal, total,
+    subtotal,
   } = useShop();
+  const { isFree: isFreeDelivery, amount: deliveryAmount, label: deliveryLabel } = useDeliveryQuote();
 
   /* ── حالة الخطوة والأنيميشن ── */
   const [step, setStep]           = useState<Step>("cart");
@@ -294,11 +296,11 @@ export default function CartDrawer() {
                         </div>
                         <div className="flex justify-between text-[#a89f94]">
                           <span>التوصيل</span>
-                          <span className="font-bold text-white">يحدد لاحقاً</span>
+                          <span className={`font-bold ${isFreeDelivery ? "text-[#4F8A57]" : "text-white"}`}>{deliveryLabel}</span>
                         </div>
                         <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[#26201a]">
                           <span>الإجمالي النهائي</span>
-                          <span className="text-[#ff7a00] text-lg">{total} ج.م</span>
+                          <span className="text-[#ff7a00] text-lg">{subtotal + deliveryAmount} ج.م</span>
                         </div>
                       </div>
 

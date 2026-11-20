@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   Store, Clock, Share2, Settings, Save, ShieldCheck, KeyRound, Mail,
-  Eye, EyeOff, HelpCircle, AlertCircle, Truck, CreditCard, Power,
+  Eye, EyeOff, HelpCircle, AlertCircle, Truck, CreditCard, Power, ChevronDown,
 } from "lucide-react";
 import ImageUpload from "@/components/admin/shared/ImageUpload";
 import { useToast } from "@/components/admin/shared/Toast";
@@ -58,7 +58,7 @@ function PasswordField({ label, value, onChange, placeholder = "•••••�
       <div className="relative">
         <input id={id} type={show ? "text" : "password"} value={value} onChange={e => onChange(e.target.value)}
           placeholder={placeholder} dir="ltr" autoComplete={autoComplete}
-          className={`${fieldClass} pe-11 text-left`} />
+          className={`${fieldClass} ps-11 pe-11 text-left`} />
         <button type="button" onClick={() => setShow(s => !s)}
           aria-label={show ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
           className="absolute inset-y-0 end-2 my-auto flex h-7 w-7 items-center justify-center rounded-full text-[#8F9186] transition-colors hover:bg-[#EFECE3]">
@@ -109,6 +109,7 @@ export default function SettingsPage() {
   const [savingPass, setSavingPass] = useState(false);
   const [recForm, setRecForm] = useState({ newPassword: "", confirm: "" });
   const [pinOpen, setPinOpen] = useState(false);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/auth/me").then(r => r.json()).then(d => {
@@ -253,14 +254,6 @@ export default function SettingsPage() {
                 </button>
               );
             })}
-          </div>
-          <div className="mt-3 hidden rounded-[14px] border border-[#E9E5DA] bg-[#F4F2EE] p-3.5 lg:block">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold text-[#50604D]">
-              <Save className="h-3.5 w-3.5" />قبل ما تسيب الصفحة
-            </p>
-            <p className="mt-1 text-[10.5px] font-medium leading-relaxed text-[#9A9C90]">
-              زرار الحفظ بيتفعّل أول ما تعمل أي تعديل على بيانات المتجر.
-            </p>
           </div>
         </nav>
 
@@ -407,25 +400,30 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-3 rounded-[16px] border border-[#EBD9A9] bg-[#FBF4E3] p-4 xl:col-span-2">
-                  <p className="flex items-center gap-2 text-[12.5px] font-black text-[#6E5716]">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F3E5BE] text-[#8A6D1F]">
-                      <HelpCircle className="h-3.5 w-3.5" />
+                  <button type="button" onClick={() => setRecoveryOpen(o => !o)} aria-expanded={recoveryOpen}
+                    className="flex w-full items-center justify-between gap-2 text-right">
+                    <span className="flex items-center gap-2 text-[12.5px] font-black text-[#6E5716]">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F3E5BE] text-[#8A6D1F]">
+                        <HelpCircle className="h-3.5 w-3.5" />
+                      </span>
+                      نسيت كلمة المرور الحالية؟
                     </span>
-                    نسيت كلمة المرور الحالية؟
-                  </p>
-                  <p className="text-[11px] font-medium leading-relaxed text-[#8A6D1F]">
-                    اكتب كلمة مرور جديدة وأكّدها، وبعدها هيطلب منك رمز الاستعادة (4 أرقام) اللي تعرفه انت بس — من غير أي كود على الميل.
-                  </p>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <PasswordField id="admin-recover-new" label="كلمة المرور الجديدة" value={recForm.newPassword}
-                      onChange={v => setRecForm(p => ({ ...p, newPassword: v }))} />
-                    <PasswordField id="admin-recover-confirm" label="تأكيد كلمة المرور الجديدة" value={recForm.confirm}
-                      onChange={v => setRecForm(p => ({ ...p, confirm: v }))} />
-                  </div>
-                  <button onClick={openRecovery}
-                    className="flex items-center gap-2 rounded-full border border-[#D9C58C] bg-[#FFFDF6] px-5 py-2.5 text-[12px] font-bold text-[#6E5716] transition-colors hover:bg-[#FBF3DF] active:scale-[0.98]">
-                    <KeyRound className="h-3.5 w-3.5" />متابعة — كتابة رمز الاستعادة
+                    <ChevronDown className={`h-4 w-4 shrink-0 text-[#8A6D1F] transition-transform ${recoveryOpen ? "rotate-180" : ""}`} />
                   </button>
+                  {recoveryOpen && (
+                    <div className="space-y-3 pt-1">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <PasswordField id="admin-recover-new" label="كلمة المرور الجديدة" value={recForm.newPassword}
+                          onChange={v => setRecForm(p => ({ ...p, newPassword: v }))} />
+                        <PasswordField id="admin-recover-confirm" label="تأكيد كلمة المرور الجديدة" value={recForm.confirm}
+                          onChange={v => setRecForm(p => ({ ...p, confirm: v }))} />
+                      </div>
+                      <button onClick={openRecovery}
+                        className="flex items-center gap-2 rounded-full border border-[#D9C58C] bg-[#FFFDF6] px-5 py-2.5 text-[12px] font-bold text-[#6E5716] transition-colors hover:bg-[#FBF3DF] active:scale-[0.98]">
+                        <KeyRound className="h-3.5 w-3.5" />متابعة — كتابة رمز الاستعادة
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

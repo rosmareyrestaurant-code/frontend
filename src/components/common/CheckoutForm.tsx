@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { useDelivery } from "@/context/DeliveryContext";
+import { useDeliveryQuote } from "@/hooks/useDeliveryQuote";
 import MapLocationPicker, { type MapPickedLocation } from "@/components/common/MapLocationPicker";
 import { CustomerInfo } from "@/types";
 import { formatDays } from "@/types/delivery";
@@ -35,7 +36,8 @@ const FIELDS: {
 ];
 
 export default function CheckoutForm({ onBack, onNext, initialValues }: CheckoutFormProps) {
-  const { subtotal, total } = useShop();
+  const { subtotal } = useShop();
+  const { isFree: isFreeDelivery, amount: deliveryAmount, label: deliveryLabel } = useDeliveryQuote();
   const { activeZones, selectArea } = useDelivery();
 
   const [form, setForm] = useState<CustomerInfo>(
@@ -197,11 +199,11 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
           </div>
           <div className="flex items-center justify-between text-[#a89f94]">
             <span>التوصيل</span>
-            <span className="font-bold text-white">يحدد لاحقاً</span>
+            <span className={`font-bold ${isFreeDelivery ? "text-[#4F8A57]" : "text-white"}`}>{deliveryLabel}</span>
           </div>
           <div className="flex items-center justify-between pt-2 border-t border-[#26201a]">
             <span className="text-[#a89f94]">الإجمالي النهائي</span>
-            <span className="text-base font-black text-[#ff7a00]">{total} ج.م</span>
+            <span className="text-base font-black text-[#ff7a00]">{subtotal + deliveryAmount} ج.م</span>
           </div>
         </div>
 

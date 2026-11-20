@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, ChevronDown, Menu, ReceiptText, Volume2, VolumeX } from "lucide-react";
+import { Bell, Menu, ReceiptText, Volume2, VolumeX } from "lucide-react";
 import { useNewOrders } from "@/hooks/useNewOrders";
 import AdminProfileModal, { type AdminProfileData } from "./AdminProfileModal";
 
@@ -219,7 +219,6 @@ export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
             </span>
             <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#FBF9F6] bg-[#7FA47A]" />
           </span>
-          <ChevronDown className="hidden h-3.5 w-3.5 shrink-0 text-[#9A9C90] transition-transform group-hover:translate-y-0.5 sm:block" />
         </button>
       </div>
 

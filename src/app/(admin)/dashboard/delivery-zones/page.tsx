@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Pencil, Trash2, MapPin, CalendarDays, Power, PowerOff, Info, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, MapPin, CalendarDays, Power, PowerOff, Loader2 } from "lucide-react";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
@@ -90,11 +90,6 @@ export default function DeliveryZonesPage() {
         <button onClick={openAdd} className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#ff7a00] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#e66e00] transition-colors">
           <Plus className="h-4 w-4" /> إضافة منطقة
         </button>
-      </div>
-
-      <div className="flex items-start gap-2 rounded-xl border border-[#ff7a00]/20 bg-[#ff7a00]/8 px-4 py-3 text-[11px] text-[#ffb066]">
-        <Info className="mt-0.5 h-4 w-4 shrink-0" />
-        <span>المناطق المضافة تظهر في الموقع وتستخدم لحساب التوصيل المجاني عند الطلب.</span>
       </div>
 
       {zones.length === 0 ? (

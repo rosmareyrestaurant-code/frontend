@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { useDelivery } from "@/context/DeliveryContext";
+import { useDeliveryQuote } from "@/hooks/useDeliveryQuote";
 import { useStoreToast } from "@/components/common/StoreToast";
 import { CustomerInfo, Order, PaymentMethod } from "@/types";
 import { SITE_CONTACT } from "@/data/siteConfig";
@@ -29,14 +30,19 @@ interface OrderReviewStepProps {
 export default function OrderReviewStep({
   customer, onEditInfo, onConfirmed, onCancelAll,
 }: OrderReviewStepProps) {
-  const { cart, subtotal, total, placeOrderAsync } = useShop();
+  const { cart, subtotal, placeOrderAsync } = useShop();
   const { activeZones } = useDelivery();
+  const { fee: storeDeliveryFee } = useDeliveryQuote();
   const { showMessage } = useStoreToast();
 
   // التوضيح بيتبني على المكان اللي العميل أدخله نفسه، مش على الاختيار الحالي في السياق.
   const isFreeArea = customer.areaId
     ? activeZones.some((z) => z.id === customer.areaId)
     : !!customer.areaName && activeZones.some((z) => z.name === customer.areaName);
+  const deliveryAmount = isFreeArea ? 0 : storeDeliveryFee;
+  const deliveryLabel = isFreeArea
+    ? "توصيل مجاني"
+    : storeDeliveryFee > 0 ? `${storeDeliveryFee} ج.م` : "يحدد لاحقاً";
 
   const [confirming, setConfirming]           = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -148,11 +154,11 @@ export default function OrderReviewStep({
           </div>
           <div className="flex justify-between text-xs text-[#a89f94]">
             <span>التوصيل</span>
-            <span className="font-bold text-white">يحدد لاحقاً</span>
+            <span className={`font-bold ${isFreeArea ? "text-[#4F8A57]" : "text-white"}`}>{deliveryLabel}</span>
           </div>
           <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[#26201a]">
             <span>الإجمالي النهائي</span>
-            <span className="text-[#ff7a00] text-base">{total} ج.م</span>
+            <span className="text-[#ff7a00] text-base">{subtotal + deliveryAmount} ج.م</span>
           </div>
         </div>
 

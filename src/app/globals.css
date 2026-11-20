@@ -260,6 +260,16 @@ button[class*="bg-gradient"]:hover, a[class*="bg-gradient"]:hover {
 header [class*="text-[#526B58]"] { color: #526B58 !important; }
 header [class*="group-hover:text-white"] { color: #FFFFFF !important; }
 
+/* أي نص أو أيقونة جوه خلفية روزماري غامقة يبقى أبيض عشان يبان */
+:is(
+  [class~="bg-[#50604D]"], [class~="bg-[#526B58]"], [class~="bg-[#56624A]"],
+  [class~="bg-[#435241]"], [class~="bg-[#3E5B45]"], [class~="bg-[#3F5A46]"],
+  [class~="bg-[#465D4C]"], [class~="bg-[#4A5540]"], [class~="bg-[#5E7054]"],
+  [class~="bg-[#788B73]"]
+) {
+  color: #FFFFFF !important;
+}
+
 /* ============================================================
    5. تنبيهات المتجر (Sonner) — كارت أبيض + شريط لون على اليمين
    ============================================================ */

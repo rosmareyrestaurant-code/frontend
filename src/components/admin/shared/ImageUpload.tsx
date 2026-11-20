@@ -95,26 +95,30 @@ export default function ImageUpload({
   return (
     <div className="space-y-2">
       <label className="block text-xs font-bold text-[#8F9186]">{label}</label>
-      <div className={`relative overflow-hidden border border-[#E9E5DA] bg-[#F1EEE7] ${
-        shape === "circle" ? "mx-auto h-24 w-24 rounded-full" : `w-full rounded-[14px] ${previewClassName}`
-      }`}>
-        {value ? (
-          <>
+      <div className={shape === "circle" ? "relative mx-auto w-24" : "relative w-full"}>
+        <div className={`relative overflow-hidden border border-[#E9E5DA] bg-[#F1EEE7] ${
+          shape === "circle" ? "h-24 w-24 rounded-full" : `w-full rounded-[14px] ${previewClassName}`
+        }`}>
+          {value ? (
             <Image src={value} alt="معاينة" fill unoptimized={value.startsWith("data:")}
               className={shape === "circle" ? "object-cover" : "object-contain p-2"} sizes="400px" />
-            <button type="button" onClick={() => { onChange(""); if (inputRef.current) inputRef.current.value = ""; }}
-              aria-label="إزالة الصورة"
-              className={`absolute flex items-center justify-center rounded-full bg-[#C25B4F]/95 text-[#fff] ring-2 ring-[#F1EEE7] transition-colors hover:bg-[#B0503F] ${
-                shape === "circle" ? "bottom-0 left-0 h-7 w-7" : "left-2 top-2 h-8 w-8"
-              }`}>
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </>
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-[#9A9C90]">
-            {uploading ? <Loader2 className="h-7 w-7 animate-spin text-[#50604D]" /> : <ImagePlus className="h-8 w-8" strokeWidth={1.7} />}
-            <span className="text-[11px] font-semibold">{uploading ? "جاري الرفع..." : "لم يتم اختيار صورة"}</span>
-          </div>
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-[#9A9C90]">
+              {uploading ? <Loader2 className="h-7 w-7 animate-spin text-[#50604D]" /> : <ImagePlus className="h-8 w-8" strokeWidth={1.7} />}
+              <span className="text-[11px] font-semibold">{uploading ? "جاري الرفع..." : "لم يتم اختيار صورة"}</span>
+            </div>
+          )}
+        </div>
+        {value && (
+          <button type="button" onClick={() => { onChange(""); if (inputRef.current) inputRef.current.value = ""; }}
+            aria-label="إزالة الصورة"
+            className={`absolute z-10 flex items-center justify-center rounded-full bg-[#C25B4F]/95 text-[#fff] transition-colors hover:bg-[#B0503F] ${
+              shape === "circle"
+                ? "-top-2 -left-2 h-7 w-7 ring-2 ring-[#F8F6F1]"
+                : "left-2 top-2 h-8 w-8 ring-2 ring-[#F1EEE7]"
+            }`}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
         )}
       </div>
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files?.[0])} />

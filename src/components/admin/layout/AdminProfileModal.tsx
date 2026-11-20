@@ -160,7 +160,7 @@ export default function AdminProfileModal({ open, initial, onClose, onSaved }: A
             type="button"
             onClick={save}
             disabled={saving}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12.5px] font-bold text-white transition-colors hover:bg-[#435241] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12.5px] font-bold text-[#FFFFFF] transition-colors hover:bg-[#435241] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري الحفظ...</> : "حفظ التعديلات"}
           </button>
