@@ -220,7 +220,11 @@ export default function SettingsPage() {
       const res = await fetch("/api/admin/settings", { method: "PATCH",
         headers: { "Content-Type": "application/json" }, body: JSON.stringify(settings) });
       const d = await res.json();
-      if (d.success) { setSavedSettings(settings); showToast("تم حفظ الإعدادات بنجاح", "success"); }
+      if (d.success) {
+        setSavedSettings(settings);
+        try { localStorage.setItem("rozmaly:settings-saved", String(Date.now())); } catch {}
+        showToast("تم حفظ الإعدادات بنجاح", "success");
+      }
       else showToast(d.error?.message ?? "فشل الحفظ", "error");
     } catch { showToast("خطأ في الاتصال", "error"); }
     finally { setSaving(false); }

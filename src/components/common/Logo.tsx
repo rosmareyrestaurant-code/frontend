@@ -4,24 +4,21 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const DEFAULT_LOGO = "/images/logo-rosemary-green.png";
+const SETTINGS_SAVED_KEY = "rozmaly:settings-saved";
 
-let inflight: Promise<string> | null = null;
+/** آخر شعار اتجاب بنجاح — بيظهر فوراً في أي شعار جديد على نفس الصفحة */
+let cachedLogo: string | null = null;
 
-/** بيجيب الشعار المحفوظ في الإعدادات — الطلبات المتزامنة بتتشارك نفس الـ fetch */
-function fetchLogoUrl(): Promise<string> {
-  if (!inflight) {
-    inflight = fetch("/api/settings/public", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((d) => {
-        const url = d?.success && typeof d.data?.logoUrl === "string" ? d.data.logoUrl.trim() : "";
-        return url || DEFAULT_LOGO;
-      })
-      .catch(() => DEFAULT_LOGO)
-      .finally(() => {
-        inflight = null;
-      });
+/** بيرجّع null لو الطلب فشل (مش بنثبّت الشعار القديم كأنه النتيجة) */
+async function fetchLogoUrl(): Promise<string | null> {
+  try {
+    const res = await fetch("/api/settings/public", { cache: "no-store" });
+    const d = await res.json();
+    const url = d?.success && typeof d.data?.logoUrl === "string" ? d.data.logoUrl.trim() : "";
+    return url || DEFAULT_LOGO;
+  } catch {
+    return null;
   }
-  return inflight;
 }
 
 interface LogoProps {
@@ -29,15 +26,41 @@ interface LogoProps {
 }
 
 export default function Logo({ className = "" }: LogoProps) {
-  const [src, setSrc] = useState(DEFAULT_LOGO);
+  const [src, setSrc] = useState(cachedLogo ?? DEFAULT_LOGO);
 
   useEffect(() => {
     let cancelled = false;
-    void fetchLogoUrl().then((url) => {
-      if (!cancelled) setSrc(url);
-    });
+    let retryTimer: number | undefined;
+
+    const load = async (attempt = 0) => {
+      const url = await fetchLogoUrl();
+      if (cancelled) return;
+      if (url) {
+        cachedLogo = url;
+        setSrc(url);
+      } else if (attempt < 2) {
+        retryTimer = window.setTimeout(() => void load(attempt + 1), 3000);
+      }
+    };
+
+    void load();
+
+    // لو الأدمن حفظ الإعدادات في تاب تاني، الشعار بيتحدّث فوراً من غير Refresh
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === SETTINGS_SAVED_KEY) void load();
+    };
+    // رجوع الزائر للتاب بيجيب أحدث شعار
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      if (retryTimer) window.clearTimeout(retryTimer);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 

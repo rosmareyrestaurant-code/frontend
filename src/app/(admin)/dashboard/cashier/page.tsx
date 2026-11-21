@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  UserCog, UserRound, ShieldCheck, Save, Loader2, LogIn, Copy, KeyRound, Pencil, Trash2,
+  UserCog, UserRound, ShieldCheck, Save, Loader2, LogIn, Copy, Eye, EyeOff, Pencil, Trash2,
 } from "lucide-react";
 import { useToast } from "@/components/admin/shared/Toast";
 
@@ -26,6 +26,7 @@ export default function CashierAccountPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [showPass, setShowPass] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/cashier")
@@ -205,10 +206,14 @@ export default function CashierAccountPage() {
                     {account ? "كلمة مرور جديدة (اتركها فاضية لو مش عايز تغيّرها)" : "كلمة المرور"}
                   </label>
                   <div className="relative">
-                    <input id="cashier-password" type="password" dir="ltr" autoComplete="new-password"
+                    <input id="cashier-password" type={showPass ? "text" : "password"} dir="ltr" autoComplete="new-password"
                       value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                      placeholder="8 أحرف على الأقل" className={`${fieldClass} ps-10 text-left`} />
-                    <KeyRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9A9C90]" />
+                      placeholder="8 أحرف على الأقل" className={`${fieldClass} ps-11 text-left`} />
+                    <button type="button" onClick={() => setShowPass((v) => !v)}
+                      aria-label={showPass ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                      className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[#8F9186] transition-colors hover:bg-[#EFECE3]">
+                      {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
