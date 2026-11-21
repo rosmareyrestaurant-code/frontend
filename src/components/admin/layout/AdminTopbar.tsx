@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, Menu, ReceiptText, Volume2, VolumeX } from "lucide-react";
+import { Bell, Menu, ReceiptText, UserRound, Volume2, VolumeX } from "lucide-react";
 import { useNewOrders } from "@/hooks/useNewOrders";
 import AdminProfileModal, { type AdminProfileData } from "./AdminProfileModal";
 
@@ -192,8 +192,8 @@ export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
           type="button"
           onClick={() => setProfileOpen(true)}
           aria-haspopup="dialog"
-          aria-label="حساب المدير — تعديل الاسم والصورة"
-          title="تعديل الاسم والصورة"
+          aria-label={profile?.role === "cashier" ? "بيانات حساب الكاشير" : "حساب المدير — تعديل الاسم والصورة"}
+          title={profile?.role === "cashier" ? "بيانات حساب الكاشير" : "تعديل الاسم والصورة"}
           className="admin-profile-badge group flex items-center gap-2.5 rounded-full border border-[#ECE7DC] bg-[#FBF9F6] py-1 pe-1.5 ps-3 text-right transition-all hover:border-[#CFD8C6] hover:bg-white hover:shadow-[0_8px_20px_-10px_rgba(38,53,43,0.35)]"
         >
           <span className="hidden min-w-0 sm:block">
@@ -205,18 +205,24 @@ export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
               )}
             </span>
             <span className="mt-1 block text-[9.5px] font-semibold leading-none text-[#8F9186]">
-              {profile?.role === "admin" || !profile ? "مدير النظام" : profile.role}
+              {profile?.role === "admin" || !profile ? "مدير النظام" : "كاشير"}
             </span>
           </span>
           <span className="relative h-9 w-9 shrink-0 rounded-full bg-white p-[2px] ring-1 ring-[#D6DCCF] transition group-hover:ring-[#A9BB9C]">
-            <span className="relative block h-full w-full overflow-hidden rounded-full bg-[#F1EEE7]">
-              <Image
-                src={profile?.avatar || DEFAULT_AVATAR}
-                alt="صورة المدير"
-                fill
-                sizes="36px"
-                className="object-cover"
-              />
+            <span className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#F1EEE7]">
+              {profile?.role === "cashier" ? (
+                <span className="flex h-full w-full items-center justify-center bg-[#EDF1E8] text-[#50604D]">
+                  <UserRound className="h-5 w-5" />
+                </span>
+              ) : (
+                <Image
+                  src={profile?.avatar || DEFAULT_AVATAR}
+                  alt="صورة المدير"
+                  fill
+                  sizes="36px"
+                  className="object-cover"
+                />
+              )}
             </span>
             <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#FBF9F6] bg-[#7FA47A]" />
           </span>

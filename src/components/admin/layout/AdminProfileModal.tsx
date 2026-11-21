@@ -26,14 +26,17 @@ export default function AdminProfileModal({ open, initial, onClose, onSaved }: A
   const [avatar, setAvatar] = useState(initial.avatar);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [wasOpen, setWasOpen] = useState(open);
 
-  useEffect(() => {
-    if (!open) return;
-    setName(initial.name);
-    setAvatar(initial.avatar);
-    setError("");
-    setSaving(false);
-  }, [open, initial.name, initial.avatar]);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setName(initial.name);
+      setAvatar(initial.avatar);
+      setError("");
+      setSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -76,6 +79,8 @@ export default function AdminProfileModal({ open, initial, onClose, onSaved }: A
 
   if (!open) return null;
 
+  const isCashier = initial.role === "cashier";
+
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" dir="rtl">
       <div
@@ -87,18 +92,20 @@ export default function AdminProfileModal({ open, initial, onClose, onSaved }: A
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="بيانات حساب المدير"
+        aria-label={isCashier ? "بيانات حساب الكاشير" : "بيانات حساب المدير"}
         className="relative w-full max-w-[420px] overflow-hidden rounded-[22px] border border-[#E6E1D5] bg-[#F8F6F1] shadow-[0_24px_60px_-20px_rgba(38,53,43,0.45)]"
       >
         <div className="flex items-center justify-between gap-3 border-b border-[#ECE7DC] px-5 py-4">
           <div>
             <h2 className="flex items-center gap-2 text-[14px] font-black text-[#333B2E]">
               <UserRound className="h-4 w-4 text-[#50604D]" />
-              بيانات حساب المدير
+              {isCashier ? "بيانات حساب الكاشير" : "بيانات حساب المدير"}
             </h2>
-            <p className="mt-1 text-[10.5px] font-semibold text-[#9A9C90]">
-              الاسم والصورة بيظهروا في هيدر لوحة التحكم
-            </p>
+            {!isCashier && (
+              <p className="mt-1 text-[10.5px] font-semibold text-[#9A9C90]">
+                الاسم والصورة بيظهروا في هيدر لوحة التحكم
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -125,28 +132,42 @@ export default function AdminProfileModal({ open, initial, onClose, onSaved }: A
             </div>
           )}
 
-          <ImageUpload
-            value={avatar}
-            onChange={setAvatar}
-            shape="circle"
-            folder="rozmaly/admins"
-            label="الصورة الشخصية"
-            hint="صورة مربعة أو دائرية، أقل من 8 ميجا"
-          />
+          {isCashier ? (
+            <div className="flex items-center gap-3 rounded-[12px] border border-[#E9E5DA] bg-[#FBF9F6] px-3.5 py-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EDF1E8] text-[#50604D]">
+                <UserRound className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-[13px] font-black text-[#333B2E]">{initial.name}</p>
+                <p className="mt-0.5 text-[10.5px] font-semibold text-[#9A9C90]">صورة افتراضية ثابتة</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <ImageUpload
+                value={avatar}
+                onChange={setAvatar}
+                shape="circle"
+                folder="rozmaly/admins"
+                label="الصورة الشخصية"
+                hint="صورة مربعة أو دائرية، أقل من 8 ميجا"
+              />
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#8F9186]" htmlFor="admin-profile-name">
-              الاسم المعروض
-            </label>
-            <input
-              id="admin-profile-name"
-              value={name}
-              onChange={(e) => { setName(e.target.value); if (error) setError(""); }}
-              maxLength={60}
-              placeholder="مثال: محمد هشام"
-              className="w-full rounded-[12px] border border-[#E3DED1] bg-white px-3.5 py-2.5 text-[13px] font-bold text-[#333B2E] placeholder:text-[#B4B6AB] focus:border-[#8FA184] focus:outline-none focus:ring-2 focus:ring-[#50604D]/15"
-            />
-          </div>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-[#8F9186]" htmlFor="admin-profile-name">
+                  الاسم المعروض
+                </label>
+                <input
+                  id="admin-profile-name"
+                  value={name}
+                  onChange={(e) => { setName(e.target.value); if (error) setError(""); }}
+                  maxLength={60}
+                  placeholder="مثال: محمد هشام"
+                  className="w-full rounded-[12px] border border-[#E3DED1] bg-white px-3.5 py-2.5 text-[13px] font-bold text-[#333B2E] placeholder:text-[#B4B6AB] focus:border-[#8FA184] focus:outline-none focus:ring-2 focus:ring-[#50604D]/15"
+                />
+              </div>
+            </>
+          )}
 
           {error && (
             <p className="rounded-[10px] border border-[#F3D9D9] bg-[#FDF1F1] px-3 py-2 text-[11.5px] font-bold text-[#B0503F]">
@@ -156,22 +177,34 @@ export default function AdminProfileModal({ open, initial, onClose, onSaved }: A
         </div>
 
         <div className="flex items-center gap-2.5 border-t border-[#ECE7DC] bg-[#FBF9F6] px-5 py-4">
-          <button
-            type="button"
-            onClick={save}
-            disabled={saving}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12.5px] font-bold text-[#FFFFFF] transition-colors hover:bg-[#435241] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري الحفظ...</> : "حفظ التعديلات"}
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={saving}
-            className="rounded-full border border-[#DDD8CA] bg-white px-5 py-2.5 text-[12.5px] font-bold text-[#6B7264] transition-colors hover:bg-[#F1EEE7] disabled:opacity-50"
-          >
-            إلغاء
-          </button>
+          {isCashier ? (
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex flex-1 items-center justify-center rounded-full bg-[#50604D] px-5 py-2.5 text-[12.5px] font-bold text-[#FFFFFF] transition-colors hover:bg-[#435241]"
+            >
+              إغلاق
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={save}
+                disabled={saving}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12.5px] font-bold text-[#FFFFFF] transition-colors hover:bg-[#435241] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري الحفظ...</> : "حفظ التعديلات"}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="rounded-full border border-[#DDD8CA] bg-white px-5 py-2.5 text-[12.5px] font-bold text-[#6B7264] transition-colors hover:bg-[#F1EEE7] disabled:opacity-50"
+              >
+                إلغاء
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>,

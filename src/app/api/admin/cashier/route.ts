@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { AdminModel } from "@/models/Admin";
-import { success, badRequest, serverError, AppError } from "@/lib/api-response";
+import { success, badRequest, notFound, serverError, AppError } from "@/lib/api-response";
 import { requireAdmin, hashPassword } from "@/lib/auth";
 import { cashierAccountSchema } from "@/lib/validation";
 
@@ -97,6 +97,24 @@ export async function POST(req: NextRequest) {
         { status: e.status },
       );
     console.error("[POST /api/admin/cashier]", e);
+    return serverError();
+  }
+}
+
+export async function DELETE() {
+  try {
+    await requireAdmin();
+    await connectToDatabase();
+    const deleted = await AdminModel.findOneAndDelete({ role: "cashier" });
+    if (!deleted) return notFound("لا يوجد حساب كاشير");
+    return success(null, "تم حذف حساب الكاشير");
+  } catch (e) {
+    if (e instanceof AppError)
+      return Response.json(
+        { success: false, error: { code: e.code, message: e.message } },
+        { status: e.status },
+      );
+    console.error("[DELETE /api/admin/cashier]", e);
     return serverError();
   }
 }
