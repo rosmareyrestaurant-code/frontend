@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserCog, ShieldCheck, Save, Loader2, Info, LogIn, Copy, KeyRound } from "lucide-react";
+import { UserCog, ShieldCheck, Save, Loader2, LogIn, Copy, KeyRound } from "lucide-react";
 import { useToast } from "@/components/admin/shared/Toast";
 
 interface CashierAccount {
@@ -75,20 +75,7 @@ export default function CashierAccountPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-[16px] font-black text-[#333B2E]">حساب الكاشير</h2>
-        <p className="mt-1 text-[11px] font-medium text-[#9A9C90]">
-          حساب واحد للكاشير بيدخل منه على صفحة الطلبات فقط — ويقدر يتصفح الموقع العادي براحته.
-        </p>
-      </div>
-
-      <div className="flex items-start gap-3 rounded-[16px] border border-[#DCE3D6] bg-[#F1F5EC] px-4 py-3.5">
-        <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#50604D]" />
-        <p className="text-[11.5px] leading-relaxed text-[#5E6A58]">
-          الكاشير مش هيشوف غير «الطلبات»: يقدر يفتح تفاصيل الطلب ويغيّر حالته ويطبع الإيصال.
-          صفحات المنتجات والإعدادات والإحصائيات مقفولة عليه، لكن الموقع نفسه متاح له عادي.
-        </p>
-      </div>
+      <h2 className="text-[16px] font-black text-[#333B2E]">حساب الكاشير</h2>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <section className="rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] p-5 sm:p-6">
