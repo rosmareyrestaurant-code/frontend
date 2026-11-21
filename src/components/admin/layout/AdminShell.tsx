@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminTopbar } from "./AdminTopbar";
+import { useAutoPrintOrders } from "@/hooks/useAutoPrintOrders";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  useAutoPrintOrders();
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F4EF]">

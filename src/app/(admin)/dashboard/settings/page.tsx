@@ -4,10 +4,12 @@ import { useState, useEffect, useMemo } from "react";
 import {
   Store, Clock, Share2, Settings, Save, ShieldCheck, KeyRound, Mail,
   Eye, EyeOff, HelpCircle, AlertCircle, Truck, CreditCard, Power, ChevronDown,
+  Megaphone,
 } from "lucide-react";
 import ImageUpload from "@/components/admin/shared/ImageUpload";
 import { useToast } from "@/components/admin/shared/Toast";
 import RecoveryPinModal from "@/components/admin/settings/RecoveryPinModal";
+import { TICKER_ICON_OPTIONS, findTickerIcon, resolveTickerIcon } from "@/lib/ticker";
 import type { StoreSettings } from "@/types/admin";
 
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
@@ -15,9 +17,10 @@ import { DEFAULT_STORE_SETTINGS } from "@/data/admin/settings";
 
 const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
-type Tab = "basic" | "hours" | "social" | "general" | "account";
+type Tab = "basic" | "ticker" | "hours" | "social" | "general" | "account";
 const TABS: { id: Tab; label: string; desc: string; icon: React.ElementType }[] = [
   { id: "basic",   label: "المعلومات الأساسية", desc: "الاسم والتواصل والشعار", icon: Store    },
+  { id: "ticker",  label: "الشريط العلوي",      desc: "الجملة والأيقونة",        icon: Megaphone },
   { id: "hours",   label: "أوقات العمل",        desc: "أيام وساعات الفتح",       icon: Clock    },
   { id: "social",  label: "روابط التواصل",      desc: "صفحاتك على السوشيال",     icon: Share2   },
   { id: "general", label: "إعدادات عامة",       desc: "التوصيل والدفع والحالة",  icon: Settings },
@@ -26,7 +29,8 @@ const TABS: { id: Tab; label: string; desc: string; icon: React.ElementType }[] 
 
 const DEFAULTS: StoreSettings = {
   storeName: "Rosemary", storeDescription: "", phone: "", email: "", address: "",
-  logoUrl: "/images/logo-rosemary-green.png", currency: "EGP", deliveryFee: 0, minimumOrder: 0,
+  logoUrl: "/images/logo-rosemary-green.png", tickerMessage: "", tickerIcon: "truck",
+  currency: "EGP", deliveryFee: 0, minimumOrder: 0,
   estimatedDeliveryTime: "30-45", isStoreOpen: true, closedMessage: "",
   vodafoneCashNumber: "", instapayAccount: "",
   latitude: 0, longitude: 0, googleMapsUrl: "",
@@ -78,6 +82,25 @@ function SectionHeader({ icon: Icon, title, description }: { icon: React.Element
       <div className="min-w-0">
         <h3 className="text-[14px] font-black text-[#333B2E]">{title}</h3>
         {description && <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-[#9A9C90]">{description}</p>}
+      </div>
+    </div>
+  );
+}
+
+function TickerPreview({ message, icon }: { message: string; icon: string }) {
+  const { Icon, text } = resolveTickerIcon(icon);
+  const shown = message.trim();
+  return (
+    <div dir="ltr" className="relative overflow-hidden rounded-[12px] border border-[#697F6B] bg-[#526B58] shadow-[0_8px_20px_-14px_rgba(82,107,88,0.9)]">
+      <div dir="rtl" className="flex items-center gap-3 px-4 py-2.5">
+        {Icon ? (
+          <Icon className="h-4 w-4 shrink-0 text-[#fff]" />
+        ) : text ? (
+          <span className="shrink-0 text-sm leading-none" aria-hidden="true">{text}</span>
+        ) : null}
+        <span className={`truncate text-[11px] font-bold sm:text-xs ${shown ? "text-[#fff]" : "text-[#DDE7D7]/75"}`}>
+          {shown || "اكتب الجملة فوق وهتظهر هنا زي ما هي على الموقع"}
+        </span>
       </div>
     </div>
   );
@@ -205,6 +228,9 @@ export default function SettingsPage() {
 
   if (loading) return <div className="animate-pulse py-12 text-center text-[13px] font-semibold text-[#9A9C90]">جاري التحميل...</div>;
 
+  const tickerIcon = settings.tickerIcon ?? "truck";
+  const customTickerIcon = !findTickerIcon(tickerIcon);
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -280,6 +306,66 @@ export default function SettingsPage() {
                     onChange={url => update("logoUrl", url)}
                     onPublicIdChange={pid => setSettings(prev => ({ ...prev, logoPublicId: pid } as typeof prev))}
                     label="شعار المتجر" hint="JPG / PNG / WebP — أقل من 8 ميجا" folder="rozmaly/branding" previewClassName="aspect-square" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "ticker" && (
+            <div>
+              <SectionHeader icon={Megaphone} title="الشريط العلوي" description="الجملة اللي بتتحرك أعلى الموقع، واختار الأيقونة اللي تظهر جنبها — أو اكتب إيموجي من الكيبورد." />
+              <div className="max-w-2xl space-y-5">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="ticker-message" className="text-xs font-bold text-[#8F9186]">جملة الشريط</label>
+                    <span className="text-[10px] font-bold text-[#B0B1A6]">{(settings.tickerMessage ?? "").length}/160</span>
+                  </div>
+                  <input id="ticker-message" type="text" maxLength={160} value={settings.tickerMessage ?? ""}
+                    onChange={e => update("tickerMessage", e.target.value)}
+                    placeholder="مثال: خصم 20% على كل العروض النهاردة 🎉"
+                    className={fieldClass} />
+                  <p className="text-[10.5px] font-medium leading-relaxed text-[#9A9C90]">
+                    لو سبتها فاضية، الشريط هيعرض جملة مناطق التوصيل المجاني تلقائياً.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-[#8F9186]">الأيقونة</p>
+                  <div className="flex flex-wrap gap-2">
+                    {TICKER_ICON_OPTIONS.map(({ key, label, Icon }) => {
+                      const active = !customTickerIcon && tickerIcon === key;
+                      return (
+                        <button key={key} type="button" title={label} aria-pressed={active}
+                          onClick={() => update("tickerIcon", key)}
+                          className={`flex h-10 w-10 items-center justify-center rounded-[12px] border transition-all ${
+                            active
+                              ? "border-[#50604D] bg-[#50604D] text-[#fff] shadow-[0_6px_14px_-8px_rgba(80,96,77,0.9)]"
+                              : "border-[#E7E3D8] bg-[#F7F4EE] text-[#6B7264] hover:border-[#C9D3C3] hover:text-[#333B2E]"
+                          }`}>
+                          <Icon className="h-4 w-4" />
+                          <span className="sr-only">{label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <label htmlFor="ticker-icon-custom" className="text-[11px] font-bold text-[#8F9186]">أو اكتب إيموجي / حرف:</label>
+                    <input id="ticker-icon-custom" type="text" maxLength={12} dir="ltr" value={customTickerIcon ? tickerIcon : ""}
+                      onChange={e => update("tickerIcon", e.target.value.trim() ? e.target.value : "truck")}
+                      placeholder="🚚"
+                      className="w-24 rounded-[10px] border border-[#E9E5DA] bg-[#F7F4EE] px-3 py-2 text-center text-base text-[#333B2E] placeholder-[#B0B1A6] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+                    {customTickerIcon && (
+                      <span className="rounded-full bg-[#EDF1E8] px-2.5 py-1 text-[10.5px] font-bold text-[#50604D]">
+                        أيقونة مخصصة
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2 border-t border-[#F0EDE5] pt-4">
+                  <p className="text-[11.5px] font-black text-[#6B7264]">معاينة حية للشريط</p>
+                  <TickerPreview message={settings.tickerMessage ?? ""} icon={tickerIcon} />
+                  <p className="text-[10px] font-medium text-[#9A9C90]">كده الشريط هيظهر أعلى الموقع بالظبط — التغيير بيتطبق بعد الحفظ.</p>
                 </div>
               </div>
             </div>

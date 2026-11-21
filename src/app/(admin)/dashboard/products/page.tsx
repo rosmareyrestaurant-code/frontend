@@ -115,6 +115,21 @@ export default function ProductsPage() {
     setModalOpen(true);
   };
 
+  // فتح منتج مباشرةً من أي جدول تاني عبر /dashboard/products?edit=<id>
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("edit");
+    if (!id) return;
+    window.history.replaceState(null, "", "/dashboard/products");
+    fetch(`/api/admin/products/${id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.data) openEdit(d.data as AdminProduct);
+        else showToast(d.error?.message ?? "مش قادر أفتح المنتج", "error");
+      })
+      .catch(() => showToast("خطأ في الاتصال", "error"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const saveProduct = async () => {
     if (!form.name.trim()) { showToast("اسم المنتج مطلوب", "error"); return; }
     const sizes = (form.sizes ?? []).filter(s => s.name.trim() && s.price > 0);
@@ -381,7 +396,10 @@ export default function ProductsPage() {
                 </thead>
                 <tbody className="divide-y divide-[#F0EDE5]">
                   {products.map(p => (
-                    <tr key={p.id} className="text-[12px] transition-colors hover:bg-[#F8F6F1]">
+                    <tr key={p.id} onClick={() => openEdit(p)}
+                      tabIndex={0} role="button" aria-label={`تعديل ${p.name}`}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEdit(p); } }}
+                      className="cursor-pointer text-[12px] transition-colors hover:bg-[#F8F6F1] focus-visible:bg-[#F8F6F1] focus-visible:outline-none">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[10px] border border-[#EDE9E0] bg-[#F1EEE7]">
@@ -405,16 +423,16 @@ export default function ProductsPage() {
                         {p.originalPrice && <p className="text-[11px] text-[#9A9C90] line-through">{p.originalPrice} ج.م</p>}
                       </td>
                       <td className="px-5 py-3">
-                        <button onClick={() => toggleAvail(p.id, p.isAvailable)}><AvailabilityBadge available={p.isAvailable} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); toggleAvail(p.id, p.isAvailable); }}><AvailabilityBadge available={p.isAvailable} /></button>
                       </td>
                       <td className="px-5 py-3"><VisibilityBadge visible={p.isVisible} /></td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-1.5">
-                          <button onClick={() => openEdit(p)}
+                          <button onClick={(e) => { e.stopPropagation(); openEdit(p); }}
                             className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F2EE] text-[#6B7264] transition-colors hover:bg-[#EDEAE1] hover:text-[#50604D]">
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => setDeleteId(p.id)} disabled={deletingId === p.id}
+                          <button onClick={(e) => { e.stopPropagation(); setDeleteId(p.id); }} disabled={deletingId === p.id}
                             className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F2EE] text-[#6B7264] transition-colors hover:bg-[#FBE4E0] hover:text-[#C25B4F] disabled:opacity-60">
                             {deletingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                           </button>

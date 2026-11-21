@@ -29,6 +29,8 @@ const storeSettingsSchema = new Schema(
     address: { type: String, default: "" },
     logoUrl: { type: String, default: "/images/logo-rosemary-green.png" },
     logoPublicId: { type: String, default: "" },
+    tickerMessage: { type: String, default: "" },
+    tickerIcon: { type: String, default: "truck" },
     currency: { type: String, default: "EGP" },
     deliveryFee: { type: Number, default: 0, min: 0 },
     minimumOrder: { type: Number, default: 0, min: 0 },

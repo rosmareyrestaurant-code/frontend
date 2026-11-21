@@ -122,6 +122,45 @@ export function buildReceiptHtml(order: AdminOrder): string {
 </html>`;
 }
 
+/**
+ * طباعة من غير نافذة منبثقة: بيكتب الإيصال في iframe مخفي ويطبع منه.
+ * مع تشغيل Chrome بميزة kiosk printing بتطلع الطباعة على الطابعة الافتراضية
+ * مباشرة من غير أي نافذة أو تأكيد.
+ */
+export function printReceiptInFrame(order: AdminOrder): boolean {
+  if (typeof document === "undefined") return false;
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.cssText =
+    "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
+  document.body.appendChild(iframe);
+
+  const win = iframe.contentWindow;
+  const doc = win?.document;
+  if (!win || !doc) {
+    iframe.remove();
+    return false;
+  }
+
+  doc.open();
+  doc.write(buildReceiptHtml(order));
+  doc.close();
+
+  const cleanup = () => iframe.remove();
+  const trigger = () => {
+    try {
+      win.focus();
+      win.print();
+    } catch {
+      /* المتصفح رفض الطباعة — نقدر نطبع يدوي من صفحة الطلبات */
+    }
+  };
+  win.addEventListener("afterprint", cleanup, { once: true });
+  window.setTimeout(trigger, 400);
+  window.setTimeout(cleanup, 5 * 60 * 1000);
+  return true;
+}
+
 /** يفتح نافذة طباعة بمقاس رول 80mm — بيرجع false لو المتصفح منع النافذة */
 export function printOrderReceipt(order: AdminOrder): boolean {
   const win = window.open("", "_blank", "width=420,height=640");

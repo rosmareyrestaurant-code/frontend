@@ -127,6 +127,8 @@ interface SettingsLean {
   email: string;
   address: string;
   logoUrl: string;
+  tickerMessage?: string;
+  tickerIcon?: string;
   currency: string;
   deliveryFee: number;
   minimumOrder: number;
@@ -392,6 +394,8 @@ export function toStoreSettings(doc: SettingsLean): StoreSettings {
     email: doc.email,
     address: doc.address,
     logoUrl: doc.logoUrl,
+    tickerMessage: doc.tickerMessage ?? "",
+    tickerIcon: doc.tickerIcon || "truck",
     currency: doc.currency,
     deliveryFee: doc.deliveryFee,
     minimumOrder: doc.minimumOrder,

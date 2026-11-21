@@ -190,6 +190,10 @@ export interface StoreSettings {
   email: string;
   address: string;
   logoUrl: string;
+  /** جملة الشريط العلوي — لو فاضية يظهر نص مناطق التوصيل الافتراضي */
+  tickerMessage?: string;
+  /** أيقونة الشريط: مفتاح جاهز (truck…) أو إيموجي/حرف */
+  tickerIcon?: string;
   currency: string;
   deliveryFee?: number;
   minimumOrder?: number;
@@ -220,6 +224,22 @@ export interface StoreSettings {
 }
 
 // ─── إحصائيات الداشبورد ────────────────────────────────────────────
+export interface TopProductStat {
+  id: string;
+  name: string;
+  image: string;
+  count: number;
+  revenue: number;
+}
+
+export interface MonthlySalesPoint {
+  /** بصيغة YYYY-MM */
+  month: string;
+  label: string;
+  orders: number;
+  revenue: number;
+}
+
 export interface DashboardStats {
   totalOrders: number;
   newOrders: number;
@@ -228,8 +248,10 @@ export interface DashboardStats {
   totalCustomers: number;
   ordersByStatus: Record<OrderStatus, number>;
   recentOrders: AdminOrder[];
-  topProducts: { id: string; name: string; image: string; count: number }[];
+  topProducts: TopProductStat[];
   salesByDay: { date: string; total: number }[];
+  monthlySales: MonthlySalesPoint[];
+  thisMonth: { orders: number; revenue: number; avgOrderValue: number };
 }
 
 // ─── نوع فلتر الطلبات ──────────────────────────────────────────────

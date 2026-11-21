@@ -5,7 +5,7 @@ import Image from "next/image";
 import {
   Search, Phone, MapPin, Copy, ChevronDown, ShoppingBag, X, Loader2, Download, Printer,
 } from "lucide-react";
-import { printOrderReceipt } from "@/lib/receipt";
+import { printReceiptInFrame } from "@/lib/receipt";
 import { StatusBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
@@ -14,6 +14,7 @@ import { useToast } from "@/components/admin/shared/Toast";
 import { PaymentMethodIcon } from "@/components/common/PaymentBrandIcons";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { NEW_ORDERS_EVENT } from "@/hooks/useNewOrders";
+import { useAutoPrintSetting } from "@/hooks/useAutoPrintOrders";
 import { AdminOrder, OrderStatus, ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/types/admin";
 
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
@@ -43,6 +44,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [page, setPage] = useState(1);
   const loadedOnce = useRef(false);
+  const autoPrint = useAutoPrintSetting();
 
   const fetchOrders = useCallback(async () => {
     if (USE_MOCK) {
@@ -159,13 +161,34 @@ export default function OrdersPage() {
               </span>
             )}
           </h2>
-          <a
-            href={exportHref}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#DCE3D6] bg-[#EEF3EA] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#E4ECDF]"
-          >
-            <Download className="h-3.5 w-3.5" /> تصدير CSV
-          </a>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={autoPrint.toggle}
+              aria-pressed={autoPrint.enabled}
+              title="لما يتفعّل، كل طلب جديد يوصّل هيتطبع تلقائياً على الطابعة الافتراضية للجهاز ده"
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                autoPrint.enabled
+                  ? "border-[#50604D] bg-[#50604D] text-[#fff] hover:bg-[#435241]"
+                  : "border-[#E7E3D8] bg-[#F4F2EE] text-[#6B7264] hover:bg-[#EDEAE1]"
+              }`}
+            >
+              <Printer className="h-3.5 w-3.5" />
+              طباعة تلقائية {autoPrint.enabled ? "مفعّلة" : "موقوفة"}
+            </button>
+            <a
+              href={exportHref}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#DCE3D6] bg-[#EEF3EA] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#E4ECDF]"
+            >
+              <Download className="h-3.5 w-3.5" /> تصدير CSV
+            </a>
+          </div>
         </div>
+        {autoPrint.enabled && (
+          <p className="px-5 pb-3 text-[10.5px] font-medium leading-relaxed text-[#9A9C90]">
+            الطباعة التلقائية شغالة على الجهاز ده — كل طلب جديد هيطلع على الطابعة الافتراضية (لو المتصفح سأل، اختار الطباعة مرة واحدة).
+          </p>
+        )}
         {loading ? (
           <div className="py-12 text-center text-[13px] text-[#9A9C90] animate-pulse">جاري التحميل...</div>
         ) : orders.length === 0 ? (
@@ -198,10 +221,25 @@ export default function OrdersPage() {
                       <td className="px-5 py-3.5"><StatusBadge status={order.status} /></td>
                       <td className="px-5 py-3.5 text-[11px] font-medium text-[#9A9C90]">{formatDate(order.createdAt)}</td>
                       <td className="px-5 py-3.5">
-                        <button onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
-                          className="rounded-full border border-[#E7E3D8] bg-[#F4F2EE] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#EDEAE1]">
-                          تفاصيل
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
+                            className="rounded-full border border-[#E7E3D8] bg-[#F4F2EE] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#EDEAE1]">
+                            تفاصيل
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!printReceiptInFrame(order)) {
+                                showToast("تعذّرت الطباعة — افتح تفاصيل الطلب واطبع من هناك", "error");
+                              }
+                            }}
+                            aria-label={`طباعة إيصال الطلب #${order.orderNumber}`}
+                            title="طباعة الإيصال"
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-[#E7E3D8] bg-[#F4F2EE] text-[#50604D] transition-colors hover:bg-[#EDEAE1]"
+                          >
+                            <Printer className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -309,8 +347,8 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={() => {
-                if (!printOrderReceipt(selectedOrder)) {
-                  showToast("المتصفح منع نافذة الطباعة — اسمح بالنوافذ المنبثقة", "error");
+                if (!printReceiptInFrame(selectedOrder)) {
+                  showToast("تعذّرت الطباعة — جرّب متصفح تاني أو تأكد إن الطابعة متوصّلة", "error");
                 }
               }}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-[#50604D] px-4 py-2.5 text-[12px] font-bold text-[#fff] transition-colors hover:bg-[#435241]"

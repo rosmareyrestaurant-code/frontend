@@ -111,11 +111,10 @@ export interface AdminLean {
 }
 
 /**
- * يتأكد من وجود جلسة أدمن صالحة وفعّالة، ويرجع بيانات الأدمن.
+ * يتأكد من وجود جلسة موظف صالحة وفعّالة (مدير أو كاشير).
  * يُرمى AppError(401) لو لا توجد جلسة أو الحساب غير فعّال.
- * يُستدعى في بداية كل Route Handler محمي.
  */
-export async function requireAdmin(): Promise<AdminSession> {
+export async function requireStaff(): Promise<AdminSession> {
   const session = await getSession();
   if (!session) {
     throw new AppError("UNAUTHORIZED", "يجب تسجيل الدخول للوصول", 401);
@@ -127,6 +126,23 @@ export async function requireAdmin(): Promise<AdminSession> {
   if (!admin || !admin.isActive) {
     await clearSessionCookie();
     throw new AppError("UNAUTHORIZED", "الجلسة غير صالحة، سجّل الدخول مجدداً", 401);
+  }
+  const { email, role } = admin as unknown as { email: string; role?: string };
+  return {
+    adminId: session.adminId,
+    email,
+    role: role || "admin",
+  };
+}
+
+/**
+ * نفس التحقق لكن للمدير فقط — بيانات إدارة المتجر مش متاحة لحساب الكاشير.
+ * يُستدعى في بداية Route Handler محمي.
+ */
+export async function requireAdmin(): Promise<AdminSession> {
+  const session = await requireStaff();
+  if (session.role !== "admin") {
+    throw new AppError("FORBIDDEN", "هذه الصفحة متاحة للمدير فقط", 403);
   }
   return session;
 }

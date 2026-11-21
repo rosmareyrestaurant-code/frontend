@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { OrderModel } from "@/models/Order";
-import { requireAdmin } from "@/lib/auth";
+import { requireStaff } from "@/lib/auth";
 import { ORDER_STATUSES } from "@/lib/constants";
 import { toAdminOrder } from "@/lib/serialize";
 import { buildCsv, cairoTimestamp, csvResponse } from "@/lib/csv";
@@ -14,7 +14,7 @@ const EXPORT_LIMIT = 5000;
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdmin();
+    await requireStaff();
     await connectToDatabase();
 
     const sp = req.nextUrl.searchParams;

@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
         return;
       }
       signInAdmin();
-      router.replace("/dashboard");
+      router.replace(data.data?.role === "cashier" ? "/dashboard/orders" : "/dashboard");
     } catch {
       setError("تعذر الاتصال بالسيرفر، حاول مرة أخرى");
     } finally {

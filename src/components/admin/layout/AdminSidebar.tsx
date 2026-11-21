@@ -2,23 +2,26 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Package, Grid3x3,
   Megaphone, Flame, Users, Settings, LogOut, X, ExternalLink, MapPin,
+  UserCog,
 } from "lucide-react";
 import { beginAdminLogout } from "@/hooks/useAdminAuth";
 
 const NAV_ITEMS = [
-  { label: "الرئيسية",          href: "/dashboard",            icon: LayoutDashboard },
+  { label: "الرئيسية",          href: "/dashboard",            icon: LayoutDashboard, adminOnly: true },
   { label: "الطلبات",            href: "/dashboard/orders",     icon: ShoppingBag },
-  { label: "المنتجات",           href: "/dashboard/products",   icon: Package },
-  { label: "التصنيفات",          href: "/dashboard/categories", icon: Grid3x3 },
-  { label: "البنرات",            href: "/dashboard/banners",    icon: Megaphone },
-  { label: "العروض الترويجية",   href: "/dashboard/offers",     icon: Flame },
-  { label: "العملاء",            href: "/dashboard/customers",  icon: Users },
-  { label: "مناطق التوصيل",      href: "/dashboard/delivery-zones", icon: MapPin },
-  { label: "إعدادات المتجر",     href: "/dashboard/settings",   icon: Settings },
+  { label: "المنتجات",           href: "/dashboard/products",   icon: Package, adminOnly: true },
+  { label: "التصنيفات",          href: "/dashboard/categories", icon: Grid3x3, adminOnly: true },
+  { label: "البنرات",            href: "/dashboard/banners",    icon: Megaphone, adminOnly: true },
+  { label: "العروض الترويجية",   href: "/dashboard/offers",     icon: Flame, adminOnly: true },
+  { label: "العملاء",            href: "/dashboard/customers",  icon: Users, adminOnly: true },
+  { label: "مناطق التوصيل",      href: "/dashboard/delivery-zones", icon: MapPin, adminOnly: true },
+  { label: "حساب الكاشير",       href: "/dashboard/cashier",    icon: UserCog, adminOnly: true },
+  { label: "إعدادات المتجر",     href: "/dashboard/settings",   icon: Settings, adminOnly: true },
 ];
 
 interface AdminSidebarProps {
@@ -29,6 +32,27 @@ interface AdminSidebarProps {
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d?.success) setRole(d.data.role ?? "admin");
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const navItems =
+    role === "cashier"
+      ? NAV_ITEMS.filter((item) => item.href === "/dashboard/orders")
+      : role === null
+        ? NAV_ITEMS.filter((item) => !item.adminOnly)
+        : NAV_ITEMS;
 
   async function handleLogout() {
     try {
@@ -62,7 +86,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
       {/* القائمة */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
-        {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+        {navItems.map(({ label, href, icon: Icon }) => {
           const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
             <Link

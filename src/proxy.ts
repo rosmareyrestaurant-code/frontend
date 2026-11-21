@@ -28,9 +28,15 @@ export async function proxy(req: NextRequest) {
   }
 
   try {
-    await jwtVerify(token, new TextEncoder().encode(secret), {
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret), {
       algorithms: ["HS256"],
     });
+    const role = typeof payload.role === "string" ? payload.role : "admin";
+    const path = req.nextUrl.pathname;
+    // حساب الكاشير مسموح له بصفحة الطلبات فقط
+    if (role === "cashier" && path !== "/dashboard/orders" && !path.startsWith("/dashboard/orders/")) {
+      return NextResponse.redirect(new URL("/dashboard/orders", req.url));
+    }
     return NextResponse.next();
   } catch {
     // توكن منتهي أو غير صالح — إعادة توجيه لصفحة الدخول

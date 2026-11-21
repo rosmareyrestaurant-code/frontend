@@ -7,13 +7,13 @@ import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { OrderModel } from "@/models/Order";
 import { success, serverError, AppError } from "@/lib/api-response";
-import { requireAdmin } from "@/lib/auth";
+import { requireStaff } from "@/lib/auth";
 
 export const instant = false;
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdmin();
+    await requireStaff();
     await connectToDatabase();
 
     const sinceRaw = Number(req.nextUrl.searchParams.get("since"));

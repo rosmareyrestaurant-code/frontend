@@ -7,7 +7,7 @@ import {
   AppError,
   getPaginationParams,
 } from "@/lib/api-response";
-import { requireAdmin } from "@/lib/auth";
+import { requireStaff } from "@/lib/auth";
 import { toAdminOrder } from "@/lib/serialize";
 import { ORDER_STATUSES } from "@/lib/constants";
 
@@ -15,7 +15,7 @@ import { ORDER_STATUSES } from "@/lib/constants";
 export const instant = false;
 export async function GET(req: NextRequest) {
   try {
-    await requireAdmin();
+    await requireStaff();
     await connectToDatabase();
 
     const sp = req.nextUrl.searchParams;

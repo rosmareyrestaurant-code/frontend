@@ -8,7 +8,7 @@ import {
   serverError,
   AppError,
 } from "@/lib/api-response";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireStaff } from "@/lib/auth";
 import { toAdminOrder } from "@/lib/serialize";
 import { updateOrderSchema } from "@/lib/validation";
 
@@ -20,7 +20,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await requireAdmin();
+    await requireStaff();
     const { id } = await params;
     await connectToDatabase();
 

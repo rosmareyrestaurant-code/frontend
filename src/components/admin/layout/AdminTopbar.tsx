@@ -20,6 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/offers":     "إدارة العروض الترويجية",
   "/dashboard/customers":  "إدارة العملاء",
   "/dashboard/delivery-zones": "مناطق التوصيل",
+  "/dashboard/cashier":    "حساب الكاشير",
   "/dashboard/settings":   "إعدادات المتجر",
 };
 

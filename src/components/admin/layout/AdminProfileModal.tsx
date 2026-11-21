@@ -120,7 +120,7 @@ export default function AdminProfileModal({ open, initial, onClose, onSaved }: A
               </span>
               <span className="flex shrink-0 items-center gap-1 rounded-full bg-[#EAF1E4] px-2 py-0.5 text-[10px] font-black text-[#3F5A46]">
                 <ShieldCheck className="h-3 w-3" />
-                {initial.role === "admin" ? "مدير النظام" : initial.role}
+                {initial.role === "admin" ? "مدير النظام" : initial.role === "cashier" ? "كاشير" : initial.role}
               </span>
             </div>
           )}

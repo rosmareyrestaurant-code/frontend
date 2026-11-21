@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Search, Star, Sparkles } from "lucide-react";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
@@ -9,6 +10,7 @@ import type { AdminProduct } from "@/types/admin";
 
 export default function PopularProductsPage() {
   const { showToast } = useToast();
+  const router = useRouter();
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<{ slug: string; nameAr: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -163,7 +165,10 @@ export default function PopularProductsPage() {
                 {rows.map((p) => (
                   <tr
                     key={p.id}
-                    className={`transition-colors hover:bg-[#F2F2ED] ${p.isFeatured ? "bg-[#ff7a00]/[0.025]" : ""}`}
+                    onClick={() => router.push(`/dashboard/products?edit=${p.id}`)}
+                    tabIndex={0} role="button" aria-label={`تعديل ${p.name}`}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/dashboard/products?edit=${p.id}`); } }}
+                    className={`cursor-pointer transition-colors hover:bg-[#F2F2ED] focus-visible:bg-[#F2F2ED] focus-visible:outline-none ${p.isFeatured ? "bg-[#ff7a00]/[0.025]" : ""}`}
                   >
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
@@ -196,14 +201,14 @@ export default function PopularProductsPage() {
                     <td className="px-5 py-3">
                       {p.isFeatured ? (
                         <button
-                          onClick={() => toggleFeatured(p.id, false)}
+                          onClick={(e) => { e.stopPropagation(); toggleFeatured(p.id, false); }}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-[#ff7a00]/30 bg-[#ff7a00]/15 px-3 py-1.5 text-[11px] font-bold text-[#ff9a3d] transition-colors hover:bg-[#ff7a00]/25"
                         >
                           <Star className="h-3.5 w-3.5 fill-current" /> إزالة
                         </button>
                       ) : (
                         <button
-                          onClick={() => toggleFeatured(p.id, true)}
+                          onClick={(e) => { e.stopPropagation(); toggleFeatured(p.id, true); }}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-[#2f2720] bg-[#F2F2ED] px-3 py-1.5 text-[11px] font-bold text-[#a89f94] transition-colors hover:border-[#ff7a00]/40 hover:text-[#ff9a3d]"
                         >
                           <Star className="h-3.5 w-3.5" /> إضافة للأكثر طلباً

@@ -8,7 +8,7 @@ import {
   serverError,
   AppError,
 } from "@/lib/api-response";
-import { requireAdmin } from "@/lib/auth";
+import { requireStaff } from "@/lib/auth";
 import { toAdminOrder } from "@/lib/serialize";
 import { updateOrderStatusSchema } from "@/lib/validation";
 import { ORDER_STATUS_TRANSITIONS } from "@/types/admin";
@@ -21,7 +21,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await requireAdmin();
+    await requireStaff();
     const { id } = await params;
 
     const body = await req.json();

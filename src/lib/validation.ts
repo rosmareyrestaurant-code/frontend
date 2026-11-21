@@ -203,6 +203,16 @@ export const adminLoginSchema = z.object({
   password: z.string().min(1, "كلمة المرور مطلوبة"),
 });
 
+export const cashierAccountSchema = z.object({
+  name: z.string().trim().min(2, "اسم الكاشير مطلوب").max(60, "الاسم طويل جداً"),
+  email: z.string().trim().email("بريد إلكتروني غير صحيح"),
+  password: z
+    .string()
+    .max(72, "كلمة المرور طويلة جداً")
+    .refine((v) => v === "" || v.length >= 8, "كلمة المرور 8 أحرف على الأقل"),
+  isActive: z.boolean(),
+});
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1),
@@ -271,6 +281,8 @@ export const storeSettingsSchema = z.object({
   address: z.string().trim().optional(),
   logoUrl: z.string().trim().optional(),
   logoPublicId: z.string().trim().optional(),
+  tickerMessage: z.string().trim().max(160, "نص الشريط طويل جداً").optional(),
+  tickerIcon: z.string().trim().max(12, "الأيقونة طويلة جداً").optional(),
   currency: z.string().trim().optional(),
   deliveryFee: z.number().min(0).optional(),
   minimumOrder: z.number().min(0).optional(),

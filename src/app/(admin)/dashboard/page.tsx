@@ -1,13 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { NEW_ORDERS_EVENT } from "@/hooks/useNewOrders";
 import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowLeft,
   BadgeDollarSign,
+  BarChart3,
+  CalendarDays,
   ChevronLeft,
+  Download,
+  Loader2,
   ShoppingBag,
   Tag,
   TrendingUp,
@@ -18,6 +23,7 @@ import {
 import { StatCard } from "@/components/admin/shared/StatCard";
 import { AdminWelcomeHero } from "@/components/admin/dashboard/AdminWelcomeHero";
 import { StatusBadge } from "@/components/admin/shared/StatusBadge";
+import { useToast } from "@/components/admin/shared/Toast";
 import type { DashboardStats, AdminOrder } from "@/types/admin";
 
 // Mock Data معطّلة — الداشبورد بتقرأ الإحصائيات من الـ API
@@ -36,6 +42,8 @@ const EMPTY_STATS: DashboardStats = {
   recentOrders: [],
   topProducts: [],
   salesByDay: [],
+  monthlySales: [],
+  thisMonth: { orders: 0, revenue: 0, avgOrderValue: 0 },
 };
 
 function formatOrderDate(iso: string) {
@@ -46,8 +54,11 @@ function formatOrderDate(iso: string) {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { showToast } = useToast();
   const [stats, setStats] = useState<DashboardStats>(EMPTY_STATS);
   const [offersStats, setOffersStats] = useState({ active: 0, total: 0 });
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/offers?limit=100")
@@ -89,6 +100,21 @@ export default function DashboardPage() {
   const pendingOrders = stats.ordersByStatus?.pending ?? 0;
 
   const topProducts = (stats.topProducts ?? []).slice(0, 6);
+  const monthlySales = stats.monthlySales ?? [];
+  const maxMonthlyRevenue = Math.max(1, ...monthlySales.map((m) => m.revenue));
+
+  const handleExportAnalytics = async () => {
+    setExporting(true);
+    try {
+      const { exportAnalyticsExcel } = await import("@/lib/analyticsExcel");
+      exportAnalyticsExcel(stats);
+      showToast("تم تصدير التحليلات كملف Excel", "success");
+    } catch {
+      showToast("تعذّر تصدير التحليلات", "error");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -140,6 +166,86 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* تحليلات المبيعات */}
+      <section className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 pb-3 pt-4">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-[18px] w-[18px] text-[#50604D]" strokeWidth={2} />
+            <h2 className="text-[15px] font-black text-[#333B2E]">تحليلات المبيعات</h2>
+          </div>
+          <button
+            type="button"
+            onClick={handleExportAnalytics}
+            disabled={exporting}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#DCE3D6] bg-[#EEF3EA] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#E4ECDF] disabled:cursor-wait disabled:opacity-70"
+          >
+            {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            {exporting ? "جاري التصدير..." : "تصدير التحليلات Excel"}
+          </button>
+        </div>
+
+        <div className="grid gap-3 px-5 pb-4 sm:grid-cols-3">
+          <div className="rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-3.5">
+            <p className="text-[11px] font-bold text-[#9A9C90]">طلبات الشهر الحالي</p>
+            <p className="mt-1 text-[20px] font-black leading-none text-[#333B2E]">{stats.thisMonth.orders}</p>
+          </div>
+          <div className="rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-3.5">
+            <p className="text-[11px] font-bold text-[#9A9C90]">مبيعات الشهر الحالي</p>
+            <p className="mt-1 text-[20px] font-black leading-none text-[#333B2E]">
+              {stats.thisMonth.revenue.toLocaleString("en-US")} <span className="text-[11px] font-bold text-[#9A9C90]">ج.م</span>
+            </p>
+          </div>
+          <div className="rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-3.5">
+            <p className="text-[11px] font-bold text-[#9A9C90]">متوسط قيمة الطلب</p>
+            <p className="mt-1 text-[20px] font-black leading-none text-[#333B2E]">
+              {stats.thisMonth.avgOrderValue.toLocaleString("en-US")} <span className="text-[11px] font-bold text-[#9A9C90]">ج.م</span>
+            </p>
+          </div>
+        </div>
+
+        {monthlySales.length === 0 ? (
+          <p className="px-5 py-8 text-center text-[13px] text-[#9A9C90]">لا توجد بيانات مبيعات بعد</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[460px] text-right">
+              <thead>
+                <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
+                  <th className="px-5 py-2.5 font-bold">الشهر</th>
+                  <th className="px-5 py-2.5 font-bold">عدد الطلبات</th>
+                  <th className="px-5 py-2.5 font-bold">المبيعات</th>
+                  <th className="px-5 py-2.5 font-bold">المقارنة</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#F0EDE5]">
+                {monthlySales.map((m, i) => (
+                  <tr key={m.month} className={`text-[12px] ${i === monthlySales.length - 1 ? "bg-[#F3F7F0]" : ""}`}>
+                    <td className="px-5 py-3 font-bold text-[#333B2E]">
+                      <span className="inline-flex items-center gap-1.5">
+                        <CalendarDays className="h-3.5 w-3.5 text-[#9A9C90]" />
+                        {m.label}
+                        {i === monthlySales.length - 1 && (
+                          <span className="rounded-full bg-[#DEE3D5] px-1.5 py-0.5 text-[9.5px] font-black text-[#50604D]">الشهر الحالي</span>
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 font-bold text-[#333B2E]">{m.orders}</td>
+                    <td className="px-5 py-3 font-black text-[#333B2E]">{m.revenue.toLocaleString("en-US")} ج.م</td>
+                    <td className="px-5 py-3">
+                      <div className="h-2 w-full max-w-[160px] overflow-hidden rounded-full bg-[#EDEAE1]">
+                        <div
+                          className="h-full rounded-full bg-[#96A78F]"
+                          style={{ width: `${Math.max(m.revenue > 0 ? 4 : 0, Math.round((m.revenue / maxMonthlyRevenue) * 100))}%` }}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
       {/* أحدث الطلبات + أفضل المنتجات مبيعاً */}
       <div className="grid gap-4 xl:grid-cols-5">
         <section className="flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] xl:col-span-3">
@@ -170,7 +276,10 @@ export default function DashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-[#F0EDE5]">
                   {recentOrders.map((order) => (
-                    <tr key={order.id} className="text-[12px] transition-colors hover:bg-[#F8F6F1]">
+                    <tr key={order.id} onClick={() => router.push("/dashboard/orders")}
+                      tabIndex={0} role="button" aria-label={`فتح الطلب ${order.orderNumber ?? order.id}`}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push("/dashboard/orders"); } }}
+                      className="cursor-pointer text-[12px] transition-colors hover:bg-[#F8F6F1] focus-visible:bg-[#F8F6F1] focus-visible:outline-none">
                       <td className="px-4 py-3 font-black text-[#333B2E]" dir="ltr">
                         #{order.orderNumber ?? order.id}
                       </td>
@@ -222,12 +331,16 @@ export default function DashboardPage() {
                   <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
                     <th className="w-12 px-4 py-2.5 font-bold">#</th>
                     <th className="px-4 py-2.5 font-bold">المنتج</th>
-                    <th className="px-4 py-2.5 font-bold">عدد الطلبات</th>
+                    <th className="px-4 py-2.5 font-bold">الكمية</th>
+                    <th className="px-4 py-2.5 font-bold">المبيعات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F0EDE5]">
                   {topProducts.map((product, index) => (
-                    <tr key={product.id} className="text-[12px] transition-colors hover:bg-[#F8F6F1]">
+                    <tr key={product.id} onClick={() => router.push(`/dashboard/products?edit=${product.id}`)}
+                      tabIndex={0} role="button" aria-label={`فتح ${product.name}`}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/dashboard/products?edit=${product.id}`); } }}
+                      className="cursor-pointer text-[12px] transition-colors hover:bg-[#F8F6F1] focus-visible:bg-[#F8F6F1] focus-visible:outline-none">
                       <td className="px-4 py-2.5">
                         <span
                           className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${
@@ -252,6 +365,7 @@ export default function DashboardPage() {
                         </div>
                       </td>
                       <td className="px-4 py-2.5 font-bold text-[#333B2E]">{product.count}</td>
+                      <td className="px-4 py-2.5 font-bold text-[#50604D]">{product.revenue.toLocaleString("en-US")} ج.م</td>
                     </tr>
                   ))}
                 </tbody>

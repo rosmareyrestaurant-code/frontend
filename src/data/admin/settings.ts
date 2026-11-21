@@ -7,6 +7,8 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   email: "info@rosemary.com",
   address: "حدائق الزيتون الشرقية، أمام محطة المترو، القاهرة",
   logoUrl: "/images/logo-rosemary-green.png",
+  tickerMessage: "",
+  tickerIcon: "truck",
   currency: "EGP",
   deliveryFee: 0,
   minimumOrder: 0,
