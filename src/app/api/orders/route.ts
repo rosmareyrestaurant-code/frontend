@@ -18,6 +18,7 @@ import {
   PricingProduct,
 } from "@/lib/pricing";
 import { rateLimitOrThrow, clientIp } from "@/lib/rate-limit";
+import { scheduleOrderNotification } from "@/lib/notify-order";
 
 
 export const instant = false;
@@ -187,6 +188,22 @@ export async function POST(req: NextRequest) {
         paymentProofPublicId: paymentMethod === "cash" ? "" : paymentProofPublicId ?? "",
         notes: customer.notes ?? "",
         ...(clientOrderId ? { clientOrderId } : {}),
+      });
+
+      scheduleOrderNotification({
+        orderNumber,
+        customerName: customer.name,
+        customerPhone: customer.phone,
+        customerAddress: customer.address,
+        area: customer.areaName ?? customer.areaId,
+        items: pricing.items,
+        subtotal: pricing.subtotal,
+        deliveryFee: pricing.deliveryFee,
+        discount: pricing.discount,
+        total: pricing.total,
+        paymentMethod,
+        paymentProofUrl: paymentMethod === "cash" ? undefined : paymentProofUrl,
+        notes: customer.notes,
       });
 
       return { order: created as unknown as LeanOrder, isNew: true };

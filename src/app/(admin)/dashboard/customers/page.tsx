@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, Users, Phone, X, ChevronLeft, Loader2 } from "lucide-react";
+import { Search, Users, Phone, X, ChevronLeft, Loader2, Download } from "lucide-react";
 import { Modal } from "@/components/admin/shared/Modal";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
@@ -63,6 +63,7 @@ export default function CustomersPage() {
   useEffect(() => { queueMicrotask(() => { void fetchCustomers(); }); }, [fetchCustomers]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
+  const exportHref = `/api/admin/customers/export${debouncedSearch ? `?q=${encodeURIComponent(debouncedSearch)}` : ""}`;
 
   const openCustomer = async (c: AdminCustomer) => {
     setSelected(c);
@@ -95,7 +96,7 @@ export default function CustomersPage() {
       </div>
 
       <div className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
-        <div className="px-5 pb-3 pt-4">
+        <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-4">
           <h2 className="flex items-center gap-2 text-[15px] font-black text-[#333B2E]">
             العملاء <span className="text-[12px] font-bold text-[#9A9C90]">({total})</span>
             {refreshing && (
@@ -104,6 +105,12 @@ export default function CustomersPage() {
               </span>
             )}
           </h2>
+          <a
+            href={exportHref}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#DCE3D6] bg-[#EEF3EA] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#E4ECDF]"
+          >
+            <Download className="h-3.5 w-3.5" /> تصدير CSV
+          </a>
         </div>
         {loading ? (
           <div className="py-12 text-center text-[13px] text-[#9A9C90] animate-pulse">جاري التحميل...</div>

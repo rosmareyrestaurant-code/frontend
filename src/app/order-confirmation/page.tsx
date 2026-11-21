@@ -222,8 +222,16 @@ function OrderConfirmationInner() {
             </div>
             <div className="flex justify-between text-xs text-[#a89f94]">
               <span>التوصيل</span>
-              <span className="font-bold text-emerald-400">مجاني</span>
+              <span className="font-bold text-[#526B58]">
+                {order.deliveryFee > 0 ? `${order.deliveryFee} ج.م` : "مجاني"}
+              </span>
             </div>
+            {order.discount > 0 && (
+              <div className="flex justify-between text-xs text-[#a89f94]">
+                <span>الخصم</span>
+                <span className="font-bold text-[#526B58]">-{order.discount} ج.م</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[#26201a]">
               <span>الإجمالي النهائي</span>
               <span className="text-[#ff7a00] text-base">{order.total} ج.م</span>
@@ -261,9 +269,11 @@ function OrderConfirmationInner() {
                 <Truck className="h-3.5 w-3.5 shrink-0 text-[#ff7a00]" />
               </p>
             </div>
-            <Link href="/" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-600 transition-colors">
-              <span>العودة للرئيسية</span><ArrowLeft className="h-4 w-4" />
-            </Link>
+            <div className="flex flex-col items-center justify-center gap-2.5 sm:flex-row">
+              <Link href="/" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-600 transition-colors">
+                <span>العودة للرئيسية</span><ArrowLeft className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         )}
 

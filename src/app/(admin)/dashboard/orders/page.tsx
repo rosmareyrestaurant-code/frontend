@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
-  Search, Phone, MapPin, Copy, ChevronDown, ShoppingBag, X, Loader2,
+  Search, Phone, MapPin, Copy, ChevronDown, ShoppingBag, X, Loader2, Download, Printer,
 } from "lucide-react";
+import { printOrderReceipt } from "@/lib/receipt";
 import { StatusBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
@@ -90,6 +91,11 @@ export default function OrdersPage() {
 
   const totalPages = Math.ceil(total / PER_PAGE);
 
+  const exportParams = new URLSearchParams();
+  if (debouncedSearch) exportParams.set("q", debouncedSearch);
+  if (statusFilter !== "all") exportParams.set("status", statusFilter);
+  const exportHref = `/api/admin/orders/export${exportParams.toString() ? `?${exportParams}` : ""}`;
+
   const changeStatus = async (orderId: string, status: OrderStatus) => {
     if (USE_MOCK) {
       setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status } : o));
@@ -144,7 +150,7 @@ export default function OrdersPage() {
 
       {/* جدول الطلبات */}
       <div className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
-        <div className="px-5 pb-3 pt-4">
+        <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-4">
           <h2 className="flex items-center gap-2 text-[15px] font-black text-[#333B2E]">
             الطلبات <span className="text-[12px] font-bold text-[#9A9C90]">({total})</span>
             {refreshing && (
@@ -153,6 +159,12 @@ export default function OrdersPage() {
               </span>
             )}
           </h2>
+          <a
+            href={exportHref}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#DCE3D6] bg-[#EEF3EA] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#E4ECDF]"
+          >
+            <Download className="h-3.5 w-3.5" /> تصدير CSV
+          </a>
         </div>
         {loading ? (
           <div className="py-12 text-center text-[13px] text-[#9A9C90] animate-pulse">جاري التحميل...</div>
@@ -293,6 +305,18 @@ export default function OrdersPage() {
                 </span>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!printOrderReceipt(selectedOrder)) {
+                  showToast("المتصفح منع نافذة الطباعة — اسمح بالنوافذ المنبثقة", "error");
+                }
+              }}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-[#50604D] px-4 py-2.5 text-[12px] font-bold text-[#fff] transition-colors hover:bg-[#435241]"
+            >
+              <Printer className="h-4 w-4" /> طباعة إيصال 80mm
+            </button>
 
             {/* إثبات التحويل */}
             {selectedOrder.paymentProofUrl && (

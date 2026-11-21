@@ -149,9 +149,16 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col-reverse items-center gap-4 border-t border-[#DAD9CC] pt-6 lg:flex-row lg:justify-between">
-          <p className="text-center text-xs text-[#6b7665]">
-            © 2026 روزماري (Rosemary) - جميع الحقوق محفوظة
-          </p>
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#6b7665]">
+              <Link href="/privacy" className="transition-colors hover:text-[#3E5B45]">سياسة الخصوصية</Link>
+              <span aria-hidden="true">•</span>
+              <Link href="/terms" className="transition-colors hover:text-[#3E5B45]">الشروط والأحكام</Link>
+            </div>
+            <p className="text-center text-xs text-[#6b7665]">
+              © 2026 روزماري (Rosemary) - جميع الحقوق محفوظة
+            </p>
+          </div>
           <div className="flex flex-wrap items-center justify-center gap-2.5">
             <span className="text-[11px] font-bold text-[#6b7665]">طرق الدفع:</span>
             {[
