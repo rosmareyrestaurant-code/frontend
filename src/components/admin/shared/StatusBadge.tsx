@@ -2,7 +2,7 @@ import { OrderStatus, ORDER_STATUS_LABELS } from "@/types/admin";
 
 const STATUS_STYLES: Record<OrderStatus, string> = {
   pending: "bg-[#FEF3D9] text-[#B98A2C]",
-  delivered: "bg-[#E3F0DE] text-[#4F8A57]",
+  delivered: "bg-[var(--color-primary-soft)] text-[#4F8A57]",
   cancelled: "bg-[#FAE4E0] text-[#C25B4F]",
 };
 
@@ -21,7 +21,7 @@ export function AvailabilityBadge({ available }: { available: boolean }) {
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10.5px] font-bold ${
         available
-          ? "bg-[#E3F0DE] text-[#4F8A57]"
+          ? "bg-[var(--color-primary-soft)] text-[#4F8A57]"
           : "bg-[#FBE4E0] text-[#C25B4F]"
       }`}
     >
@@ -36,7 +36,7 @@ export function VisibilityBadge({ visible }: { visible: boolean }) {
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10.5px] font-bold ${
         visible
           ? "bg-[#E8EFF7] text-[#5B7FA3]"
-          : "bg-[#F0EDE5] text-[#8F9186]"
+          : "bg-[var(--color-border-subtle)] text-[var(--color-text-muted)]"
       }`}
     >
       {visible ? "ظاهر" : "مخفي"}
@@ -49,8 +49,8 @@ export function ActiveBadge({ active }: { active: boolean }) {
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10.5px] font-bold ${
         active
-          ? "bg-[#E3F0DE] text-[#4F8A57]"
-          : "bg-[#F0EDE5] text-[#8F9186]"
+          ? "bg-[var(--color-primary-soft)] text-[#4F8A57]"
+          : "bg-[var(--color-border-subtle)] text-[var(--color-text-muted)]"
       }`}
     >
       {active ? "مفعّل" : "معطّل"}

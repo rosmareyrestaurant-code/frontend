@@ -5,6 +5,7 @@ import { success, badRequest, serverError, AppError } from "@/lib/api-response";
 import { requireAdmin } from "@/lib/auth";
 import { toStoreSettings } from "@/lib/serialize";
 import { storeSettingsSchema } from "@/lib/validation";
+import { revalidateStorefront } from "@/lib/storefront-tags";
 
 
 export const instant = false;
@@ -36,11 +37,20 @@ export async function PATCH(req: NextRequest) {
       return badRequest(parsed.error.issues[0]?.message ?? "بيانات غير صحيحة");
 
     await connectToDatabase();
+    const { theme, ...rest } = parsed.data;
+    const current = await StoreSettingsModel.findOne().lean();
+    // دمج ألوان الهوية بدل ما نستبدل الكائن كله — عشان الإعدادات المتقدمة ما تضيعش
+    const nextTheme = theme
+      ? { ...((current as { theme?: Record<string, string> } | null)?.theme ?? {}), ...theme }
+      : undefined;
     const updated = await StoreSettingsModel.findOneAndUpdate(
       {},
-      { $set: parsed.data },
+      { $set: { ...rest, ...(nextTheme ? { theme: nextTheme } : {}) } },
       { new: true, upsert: true },
     ).lean();
+
+    // الهوية/الشريط بيتقرأوا من كاش الستورفرونت — لازم نبطّله فوراً بعد الحفظ
+    revalidateStorefront();
 
     return success(
       toStoreSettings(updated as Parameters<typeof toStoreSettings>[0]),

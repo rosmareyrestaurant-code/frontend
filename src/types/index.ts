@@ -21,6 +21,10 @@ export interface Category {
   image: string;
   description?: string;
   itemCount?: number;
+  /** ترتيب الظهور المحفوظ في الداتابيز — المصدر الوحيد للترتيب */
+  sortOrder?: number;
+  /** إظهار القسم ومنتجاته في الصفحة الرئيسية */
+  showOnHome?: boolean;
 }
 
 /* ─── أحجام وإضافات المنتج ──────────────────────────────────────── */
@@ -137,7 +141,6 @@ export interface OrderItemSnapshot {
 export interface PublicOrder {
   id: string;
   orderNumber: string;
-  accessToken: string;
   customer: CustomerInfo;
   items: OrderItemSnapshot[];
   subtotal: number;
@@ -146,6 +149,8 @@ export interface PublicOrder {
   total: number;
   paymentMethod: PaymentMethod;
   paymentProofUrl?: string;
+  paymentStatus: "pending" | "verified" | "paid" | "rejected";
+  transactionReference?: string;
   orderStatus: OrderStatus;
   createdAt: string;
 }

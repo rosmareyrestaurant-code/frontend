@@ -76,7 +76,7 @@ export function triggerFlyAnimation({
   (flyer.style as unknown as Record<string, string>)["WebkitMaskImage"] =
     "-webkit-radial-gradient(white, black)";
   flyer.style.boxShadow = "0 12px 28px -2px rgba(0,0,0,0.85), 0 0 25px rgba(255,122,0,0.85)";
-  flyer.style.border = "2.5px solid #ff7a00";
+  flyer.style.border = "2.5px solid var(--color-primary)";
   // وضع الصورة كخلفية لضمان عدم ظهور أي مربع فارغ نهائياً
   flyer.style.backgroundImage = `url("${resolvedSrc}")`;
   flyer.style.backgroundSize = "cover";
@@ -109,7 +109,7 @@ export function triggerFlyAnimation({
   badge.style.justifyContent = "center";
   badge.style.fontSize = "12px";
   badge.style.lineHeight = "1";
-  badge.style.backgroundColor = "#ff7a00";
+  badge.style.backgroundColor = "var(--color-primary)";
   badge.style.boxShadow = "0 2px 6px rgba(0,0,0,0.6)";
   badge.style.border = "1.5px solid #ffffff";
   badge.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`;

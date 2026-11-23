@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, UtensilsCrossed, Tag, Heart, ShoppingBag } from "lucide-react";
+import { Home, UtensilsCrossed, Tag, Heart, ShoppingBag, ClipboardList } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { icon: UtensilsCrossed, label: "الأكلات",  href: "/menu", action: null },
   { icon: Tag,             label: "العروض",   href: "/offers", action: null },
   { icon: Heart,           label: "المفضلة", href: null,     action: "favorites" as const },
+  { icon: ClipboardList,   label: "طلباتي",   href: "/my-orders", action: null },
   { icon: ShoppingBag,     label: "السلة",    href: null,     action: "cart" as const },
 ];
 
@@ -26,7 +27,7 @@ export default function MobileBottomNav() {
   };
 
   const getBadgeColor = (action: Action) =>
-    action === "favorites" ? "bg-[#ff3b30]" : "bg-[#ff7a00]";
+    action === "favorites" ? "bg-[#ff3b30]" : "bg-[var(--color-primary)]";
 
   const handleAction = (action: Action) => {
     if (action === "cart")      setIsCartOpen(true);
@@ -39,7 +40,7 @@ export default function MobileBottomNav() {
       className="fixed bottom-0 inset-x-0 z-50 lg:hidden"
       aria-label="قائمة الموبايل السفلية"
     >
-      <div className="rounded-t-2xl border-t border-[#25201c] bg-[#F2F2ED]/95 px-1 pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] backdrop-blur-md pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+      <div className="rounded-t-2xl border-t border-[var(--color-border)] bg-[var(--color-page-background)]/95 px-1 pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] backdrop-blur-md pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
         <div className="flex items-end justify-around gap-0.5 h-16">
           {navItems.map((item) => {
             const Icon   = item.icon;
@@ -56,20 +57,20 @@ export default function MobileBottomNav() {
                       rounded-t-xl rounded-b-md border border-b-0 overflow-hidden
                       transition-all duration-200
                       ${isActive
-                        ? "bg-[#ff7a00]/12 border-[#ff7a00]/30"
-                        : "bg-[#F2F2ED]/60 border-[#2d2620]/70"}
-                      group-hover:border-[#ff7a00]/40 group-active:scale-95
+                        ? "bg-[var(--color-primary)]/12 border-[var(--color-primary)]/30"
+                        : "bg-[var(--color-page-background)]/60 border-[var(--color-border)]/70"}
+                      group-hover:border-[var(--color-primary)]/40 group-active:scale-95
                     `}
                   >
                     <span
-                      className="absolute inset-0 bg-[#ff7a00] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
+                      className="absolute inset-0 bg-[var(--color-primary)] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
                       aria-hidden="true"
                     />
                     <Icon
                       className={`
                         relative z-10 h-4 w-4 transition-colors duration-200
-                        ${isActive ? "text-[#fff]" : "text-[#9e9188]"}
-                        group-hover:!text-[#fff]
+                        ${isActive ? "text-[var(--color-on-primary)]" : "text-[var(--color-text-muted)]"}
+                        group-hover:!text-[var(--color-on-primary)]
                       `}
                       strokeWidth={isActive ? 2.2 : 1.8}
                     />
@@ -79,7 +80,7 @@ export default function MobileBottomNav() {
                   {badge !== null && (
                     <span className={`
                       absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center
-                      rounded-full text-[8px] font-bold text-[#fff] z-30 shadow-md
+                      rounded-full text-[8px] font-bold text-[var(--color-on-primary)] z-30 shadow-md
                       ${getBadgeColor(item.action)}
                     `}>
                       {badge}
@@ -90,8 +91,8 @@ export default function MobileBottomNav() {
                 {/* التسمية */}
                 <span className={`
                   text-[10px] font-semibold leading-none transition-colors duration-200 mb-1
-                  ${isActive ? "text-[#ff7a00]" : "text-[#6b6259]"}
-                  group-hover:text-[#ff7a00]
+                  ${isActive ? "text-[var(--color-primary)]" : "text-[var(--color-text-muted)]"}
+                  group-hover:text-[var(--color-primary)]
                 `}>
                   {item.label}
                 </span>

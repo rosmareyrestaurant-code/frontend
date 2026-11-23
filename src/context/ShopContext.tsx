@@ -26,6 +26,7 @@ import {
   readFavoriteIds,
   writeFavoriteIds,
   writeLastOrder,
+  addMyOrderRef,
   readCurrentOrder,
   writeCurrentOrder,
   clearCurrentOrder,
@@ -59,7 +60,12 @@ interface ShopContextType {
   /** Async version — use this in new code */
   placeOrderAsync: (
     customer: CustomerInfo,
-    payment?: { method: PaymentMethod; proofUrl?: string; proofPublicId?: string },
+    payment?: {
+      method: PaymentMethod;
+      proofUrl?: string;
+      proofPublicId?: string;
+      transactionReference?: string;
+    },
   ) => Promise<{ order: Order; accessToken: string; orderNumber: string }>;
   cartCount: number;
   favoritesCount: number;
@@ -274,7 +280,12 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const placeOrderAsync = useCallback(
     async (
       customer: CustomerInfo,
-      payment?: { method: PaymentMethod; proofUrl?: string; proofPublicId?: string },
+      payment?: {
+        method: PaymentMethod;
+        proofUrl?: string;
+        proofPublicId?: string;
+        transactionReference?: string;
+      },
     ): Promise<{ order: Order; accessToken: string; orderNumber: string }> => {
       // بناء cartItems للإرسال (refs فقط)
       const items: CartItemInput[] = cart.map((item) => ({
@@ -308,6 +319,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
             paymentMethod: payment?.method ?? "cash",
             paymentProofUrl: payment?.proofUrl,
             paymentProofPublicId: payment?.proofPublicId,
+            transactionReference: payment?.transactionReference || undefined,
             clientOrderId: clientOrderIdRef.current,
           }),
         });
@@ -345,6 +357,9 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
       setCurrentOrderPersisted(order);
       writeLastOrder({ orderNumber, accessToken });
+      if (accessToken) {
+        addMyOrderRef({ orderNumber, accessToken, createdAt: order.createdAt });
+      }
       clearCart();
       return { order, accessToken, orderNumber };
     },

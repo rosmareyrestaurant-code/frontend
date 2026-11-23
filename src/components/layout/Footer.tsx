@@ -95,20 +95,20 @@ export default function Footer() {
   ].filter((item) => Boolean(item.href));
 
   return (
-    <footer id="contact" className="w-full border-t border-[#DAD9CC] bg-[#F2F2ED] pb-24 pt-10 text-center text-[#26352B] sm:pt-14 lg:pb-8">
+    <footer id="contact" className="w-full border-t border-[var(--color-border)] bg-[var(--color-page-background)] pb-24 pt-10 text-center text-[var(--color-text-primary)] sm:pt-14 lg:pb-8">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 pb-10 md:grid-cols-2 lg:grid-cols-[1.5fr_0.9fr_1.4fr_1.4fr] lg:gap-10 lg:pb-12 lg:text-start">
 
           {/* البراند + واتساب */}
           <div className="flex flex-col items-center lg:items-start">
             <Link href="/" className="inline-block shrink-0"><Logo /></Link>
-            <p className="mt-5 max-w-xs text-sm leading-relaxed text-[#5d6b57]">
+            <p className="mt-5 max-w-xs text-sm leading-relaxed text-[var(--color-text-secondary)]">
               دائماً على مزاجك .. نقدم لكم ألذ وأشهى المأكولات السريعة والبيتزا والوجبات الطازجة.
             </p>
 
             {socialItems.length > 0 && (
               <div className="mt-6 flex flex-col items-center lg:items-start">
-                <p className="text-[11px] font-bold tracking-wide text-[#899B83]">تابعنا على</p>
+                <p className="text-[11px] font-bold tracking-wide text-[var(--color-primary-border)]">تابعنا على</p>
                 <div className="mt-2.5 flex items-center justify-center gap-2.5 lg:justify-start">
                   {socialItems.map((item) => (
                     <a
@@ -117,7 +117,7 @@ export default function Footer() {
                       target="_blank"
                       rel="noreferrer noopener"
                       aria-label={`روزماري على ${item.label}`}
-                      className={`group flex h-10 w-10 items-center justify-center rounded-full bg-[#E7EBE2] text-[#435241] ring-1 ring-[#D9DED2] transition-all duration-300 hover:-translate-y-0.5 hover:text-[#fff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#526B58] ${item.hover}`}
+                      className={`group flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-border)] text-[var(--color-primary-hover)] ring-1 ring-[var(--color-border)] transition-all duration-300 hover:-translate-y-0.5 hover:text-[#fff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-icon)] ${item.hover}`}
                     >
                       <svg className="h-[18px] w-[18px] fill-current" viewBox="0 0 24 24" aria-hidden="true">
                         <path d={SOCIAL_PATHS[item.key]} />
@@ -142,22 +142,22 @@ export default function Footer() {
               </span>
               <span className="text-start">
                 <span className="block text-xs font-bold text-[#1f7a44]">تواصل معنا على واتساب</span>
-                <span className="mt-0.5 block text-[11px] font-semibold text-[#4A5545]" dir="ltr">{contact.phone}</span>
+                <span className="mt-0.5 block text-[11px] font-semibold text-[var(--color-text-secondary)]" dir="ltr">{contact.phone}</span>
               </span>
             </a>
           </div>
 
           {/* روابط سريعة */}
           <nav aria-label="روابط سريعة">
-            <h4 className="mb-4 flex items-center justify-center gap-2 text-sm font-extrabold text-[#3E5B45] lg:justify-start">
-              <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#899B83]" />
+            <h4 className="mb-4 flex items-center justify-center gap-2 text-sm font-extrabold text-[var(--color-primary)] lg:justify-start">
+              <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[var(--color-primary-border)]" />
               روابط سريعة
             </h4>
-            <ul className="space-y-2.5 text-sm text-[#4A5545]">
+            <ul className="space-y-2.5 text-sm text-[var(--color-text-secondary)]">
               {[["الرئيسية","/"],["كل الأكلات","/menu"],["العروض","/offers"],["من نحن","/about"]].map(([label,href])=>(
                 <li key={href}>
-                  <Link href={href} className="inline-flex items-center gap-2 transition-colors hover:text-[#526B58]">
-                    <span aria-hidden="true" className="h-1 w-1 rounded-full bg-[#899B83]" />
+                  <Link href={href} className="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-icon)]">
+                    <span aria-hidden="true" className="h-1 w-1 rounded-full bg-[var(--color-primary-border)]" />
                     {label}
                   </Link>
                 </li>
@@ -167,8 +167,8 @@ export default function Footer() {
 
           {/* ليه روزماري؟ */}
           <div>
-            <h4 className="mb-4 flex items-center justify-center gap-2 text-sm font-extrabold text-[#3E5B45] lg:justify-start">
-              <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#899B83]" />
+            <h4 className="mb-4 flex items-center justify-center gap-2 text-sm font-extrabold text-[var(--color-primary)] lg:justify-start">
+              <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[var(--color-primary-border)]" />
               ليه روزماري؟
             </h4>
             <ul className="space-y-4">
@@ -178,12 +178,12 @@ export default function Footer() {
                 { icon: Bike, title: "توصيل سريع", sub: "توصيل ساخن في أقرب وقت" },
               ].map(({ icon: Icon, title, sub }) => (
                 <li key={title} className="flex items-start justify-center gap-3 lg:justify-start">
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#56624A] text-[#fff] ring-1 ring-[#435241]">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] ring-1 ring-[var(--color-primary-hover)]">
                     <Icon className="h-4 w-4" />
                   </span>
                   <div className="text-start">
-                    <p className="text-[13px] font-bold text-[#26352B]">{title}</p>
-                    <p className="mt-0.5 text-[11px] leading-relaxed text-[#6b7665]">{sub}</p>
+                    <p className="text-[13px] font-bold text-[var(--color-text-primary)]">{title}</p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-secondary)]">{sub}</p>
                   </div>
                 </li>
               ))}
@@ -192,26 +192,26 @@ export default function Footer() {
 
           {/* تواصل معنا */}
           <div>
-            <h4 className="mb-4 flex items-center justify-center gap-2 text-sm font-extrabold text-[#3E5B45] lg:justify-start">
-              <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#899B83]" />
+            <h4 className="mb-4 flex items-center justify-center gap-2 text-sm font-extrabold text-[var(--color-primary)] lg:justify-start">
+              <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[var(--color-primary-border)]" />
               تواصل معنا
             </h4>
-            <ul className="space-y-3 text-[13px] text-[#4A5545]">
+            <ul className="space-y-3 text-[13px] text-[var(--color-text-secondary)]">
               {contact.phone && (
                 <li className="flex items-center justify-center gap-3 lg:justify-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E3E7DB] text-[#435241]"><Phone className="h-3.5 w-3.5" /></span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-border)] text-[var(--color-primary-hover)]"><Phone className="h-3.5 w-3.5" /></span>
                   <span dir="ltr" className="font-semibold">{contact.phone}</span>
                 </li>
               )}
               {contact.address && (
                 <li className="flex items-start justify-center gap-3 lg:justify-start">
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E3E7DB] text-[#435241]"><MapPin className="h-3.5 w-3.5" /></span>
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-border)] text-[var(--color-primary-hover)]"><MapPin className="h-3.5 w-3.5" /></span>
                   <span className="max-w-[220px] text-start leading-relaxed">{contact.address}</span>
                 </li>
               )}
               {contact.email && (
                 <li className="flex items-center justify-center gap-3 lg:justify-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E3E7DB] text-[#435241]"><Mail className="h-3.5 w-3.5" /></span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-border)] text-[var(--color-primary-hover)]"><Mail className="h-3.5 w-3.5" /></span>
                   <span dir="ltr" className="font-semibold">{contact.email}</span>
                 </li>
               )}
@@ -219,26 +219,26 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col-reverse items-center gap-5 border-t border-[#DAD9CC] pt-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col-reverse items-center gap-5 border-t border-[var(--color-border)] pt-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col items-center gap-2 lg:items-start">
-            <nav aria-label="روابط قانونية" className="flex items-center gap-3 text-xs font-semibold text-[#6b7665]">
-              <Link href="/privacy" className="underline-offset-4 transition-colors hover:text-[#3E5B45] hover:underline">سياسة الخصوصية</Link>
+            <nav aria-label="روابط قانونية" className="flex items-center gap-3 text-xs font-semibold text-[var(--color-text-secondary)]">
+              <Link href="/privacy" className="underline-offset-4 transition-colors hover:text-[var(--color-primary)] hover:underline">سياسة الخصوصية</Link>
               <span aria-hidden="true" className="h-3 w-px bg-[#C9CEBF]" />
-              <Link href="/terms" className="underline-offset-4 transition-colors hover:text-[#3E5B45] hover:underline">الشروط والأحكام</Link>
+              <Link href="/terms" className="underline-offset-4 transition-colors hover:text-[var(--color-primary)] hover:underline">الشروط والأحكام</Link>
             </nav>
-            <p className="text-center text-xs text-[#6b7665] lg:text-start">
+            <p className="text-center text-xs text-[var(--color-text-secondary)] lg:text-start">
               © 2026 روزماري (Rosemary) - جميع الحقوق محفوظة
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2.5">
-            <span className="text-[11px] font-bold text-[#6b7665]">طرق الدفع:</span>
+            <span className="text-[11px] font-bold text-[var(--color-text-secondary)]">طرق الدفع:</span>
             {[
               { label: "كاش عند الاستلام", Icon: CashPayIcon },
               { label: "فودافون كاش", Icon: VodafoneCashIcon },
               { label: "إنستاباي", Icon: InstaPayIcon },
             ].map(({ label, Icon }) => (
               <span key={label}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[#E7E3D8] bg-[#FBF9F6] px-3 py-1.5 text-[11px] font-bold text-[#4A5545]">
+                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[11px] font-bold text-[var(--color-text-secondary)]">
                 <Icon className="h-4 w-4" />{label}
               </span>
             ))}

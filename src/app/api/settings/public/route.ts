@@ -3,6 +3,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { StoreSettingsModel } from "@/models/StoreSettings";
 import { success, serverError } from "@/lib/api-response";
 import { toPublicSettings } from "@/lib/serialize";
+import { DEFAULT_THEME } from "@/lib/theme";
 
 
 export const instant = false;
@@ -21,6 +22,21 @@ export async function GET(_req: NextRequest) {
         logoUrl: "/images/logo-rosemary-green.png",
         tickerMessage: "",
         tickerIcon: "truck",
+        tickerEnabled: true,
+        tickerIconPosition: "start",
+        theme: {
+          primary: DEFAULT_THEME.primary,
+          icon: DEFAULT_THEME.icon,
+          background: DEFAULT_THEME.background,
+          primaryHover: "",
+          primaryActive: "",
+          iconHover: "",
+          textPrimary: "",
+          surface: "",
+          surfaceSecondary: "",
+          surfaceElevated: "",
+          border: "",
+        },
         currency: "EGP",
         deliveryFee: 0,
         minimumOrder: 0,

@@ -24,7 +24,7 @@ interface MapLocationPickerProps {
 const DEFAULT_CENTER = { lat: 30.0444, lng: 31.2357 };
 
 const PIN_HTML =
-  '<div style="width:28px;height:28px;border-radius:50% 50% 50% 0;background:#526B58;border:3px solid #ffffff;box-shadow:0 4px 10px rgba(0,0,0,.35);transform:rotate(-45deg)"></div>';
+  '<div style="width:28px;height:28px;border-radius:50% 50% 50% 0;background:var(--color-icon);border:3px solid #ffffff;box-shadow:0 4px 10px rgba(0,0,0,.35);transform:rotate(-45deg)"></div>';
 
 export default function MapLocationPicker({
   open,
@@ -188,18 +188,18 @@ export default function MapLocationPicker({
         role="dialog"
         aria-modal="true"
         aria-label="تحديد مكان التوصيل على الخريطة"
-        className="relative w-full sm:max-w-lg bg-[#F2F2ED] border border-[#2b241e] shadow-2xl flex flex-col max-sm:rounded-t-[26px] sm:rounded-2xl overflow-hidden animate-[sheet-slide-up_280ms_cubic-bezier(0.16,1,0.3,1)]"
+        className="relative w-full sm:max-w-lg bg-[var(--color-page-background)] border border-[var(--color-border)] shadow-2xl flex flex-col max-sm:rounded-t-[26px] sm:rounded-2xl overflow-hidden animate-[sheet-slide-up_280ms_cubic-bezier(0.16,1,0.3,1)]"
       >
-        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-[#dcdcd3]">
-          <h3 className="flex items-center gap-2 text-sm font-black text-[#26352B]">
-            <MapPinned className="h-4 w-4 text-[#526B58]" />
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-[var(--color-border)]">
+          <h3 className="flex items-center gap-2 text-sm font-black text-[var(--color-text-primary)]">
+            <MapPinned className="h-4 w-4 text-[var(--color-icon)]" />
             حدد مكان التوصيل على الخريطة
           </h3>
           <button
             type="button"
             onClick={onClose}
             aria-label="إغلاق الخريطة"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#dcdcd3] bg-[#FFFFFF] text-[#526B58] transition-colors hover:bg-[#EFF2EA]"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-icon)] transition-colors hover:bg-[var(--color-primary-soft)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -209,24 +209,24 @@ export default function MapLocationPicker({
           <div ref={containerRef} className="h-[340px] w-full sm:h-[420px]" />
           {!picked && (
             <div className="pointer-events-none absolute inset-x-3 top-3 flex justify-center">
-              <span className="rounded-full bg-[#26352B]/85 px-3.5 py-1.5 text-[11px] font-bold text-[#FFFFFF] shadow-lg">
+              <span className="rounded-full bg-[var(--color-text-primary)]/85 px-3.5 py-1.5 text-[11px] font-bold text-[var(--color-text-on-primary)] shadow-lg">
                 اضغط على مكان التوصيل على الخريطة
               </span>
             </div>
           )}
         </div>
 
-        <div className="p-4 sm:p-5 border-t border-[#dcdcd3] space-y-2.5">
+        <div className="p-4 sm:p-5 border-t border-[var(--color-border)] space-y-2.5">
           {picked && (
-            <div className="rounded-xl border border-[#DCDCD3] bg-[#FFFFFF] px-3.5 py-2.5">
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-3.5 py-2.5">
               {resolving ? (
-                <p className="flex items-center gap-2 text-[11.5px] font-bold text-[#697F6B]">
+                <p className="flex items-center gap-2 text-[11.5px] font-bold text-[var(--color-text-secondary)]">
                   <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
                   جاري تحديد عنوان المكان...
                 </p>
               ) : resolved ? (
-                <p className="flex items-start gap-2 text-[11.5px] font-bold leading-relaxed text-[#26352B]">
-                  <MapPinned className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#526B58]" />
+                <p className="flex items-start gap-2 text-[11.5px] font-bold leading-relaxed text-[var(--color-text-primary)]">
+                  <MapPinned className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-icon)]" />
                   <span>{resolved}</span>
                 </p>
               ) : (
@@ -241,7 +241,7 @@ export default function MapLocationPicker({
             type="button"
             onClick={confirm}
             disabled={!picked || confirming}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#526B58] px-4 py-3 text-sm font-bold text-[#FFFFFF] transition-colors hover:bg-[#465D4C] disabled:cursor-not-allowed disabled:opacity-45"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-icon)] px-4 py-3 text-sm font-bold text-[var(--color-text-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-45"
           >
             {confirming ? (
               <>
@@ -253,7 +253,7 @@ export default function MapLocationPicker({
               </>
             )}
           </button>
-          <p className="text-center text-[10.5px] font-medium text-[#8a8175]">
+          <p className="text-center text-[10.5px] font-medium text-[var(--color-text-muted)]">
             بعد التأكيد هيتكتب العنوان في خانة عنوان التوصيل وتقدر تعدله براحتك.
           </p>
         </div>

@@ -71,7 +71,7 @@ export default function RecoveryPinModal({
   return createPortal(
     <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" dir="rtl">
       <div
-        className="absolute inset-0 bg-[#26352B]/45 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[var(--color-text-primary)]/45 backdrop-blur-[2px]"
         onClick={() => { if (!saving) onClose(); }}
         aria-hidden="true"
       />
@@ -80,11 +80,11 @@ export default function RecoveryPinModal({
         role="dialog"
         aria-modal="true"
         aria-label="رمز استعادة كلمة المرور"
-        className="relative w-full max-w-[380px] overflow-hidden rounded-[22px] border border-[#E6E1D5] bg-[#F8F6F1] shadow-[0_24px_60px_-20px_rgba(38,53,43,0.45)]"
+        className="relative w-full max-w-[380px] overflow-hidden rounded-[22px] border border-[var(--color-border)] bg-[var(--color-surface-soft)] shadow-[0_24px_60px_-20px_rgba(38,53,43,0.45)]"
       >
-        <div className="flex items-center justify-between gap-3 border-b border-[#ECE7DC] px-5 py-4">
-          <h2 className="flex items-center gap-2 text-[14px] font-black text-[#333B2E]">
-            <ShieldCheck className="h-4 w-4 text-[#50604D]" />
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-5 py-4">
+          <h2 className="flex items-center gap-2 text-[14px] font-black text-[var(--color-text-primary)]">
+            <ShieldCheck className="h-4 w-4 text-[var(--color-primary)]" />
             رمز استعادة كلمة المرور
           </h2>
           <button
@@ -92,7 +92,7 @@ export default function RecoveryPinModal({
             onClick={onClose}
             disabled={saving}
             aria-label="إغلاق"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#E7E2D6] bg-white text-[#6B7264] transition-colors hover:bg-[#EFECE3] disabled:opacity-50"
+            className="icon-close flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-elevated)] transition-colors hover:bg-[var(--color-surface-hover)] disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
@@ -100,7 +100,7 @@ export default function RecoveryPinModal({
 
         <div className="space-y-4 px-5 py-5">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#8F9186]" htmlFor="recovery-pin">
+            <label className="block text-xs font-bold text-[var(--color-text-muted)]" htmlFor="recovery-pin">
               رمز الاستعادة
             </label>
             <input
@@ -117,7 +117,7 @@ export default function RecoveryPinModal({
               maxLength={4}
               placeholder="••••"
               dir="ltr"
-              className="w-full rounded-[12px] border border-[#E3DED1] bg-white px-3.5 py-3 text-center font-mono text-[22px] font-black tracking-[0.55em] text-[#333B2E] placeholder:tracking-[0.45em] placeholder:text-[#C9CCC0] focus:border-[#8FA184] focus:outline-none focus:ring-2 focus:ring-[#50604D]/15"
+              className="w-full rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-3.5 py-3 text-center font-mono text-[22px] font-black tracking-[0.55em] text-[var(--color-text-primary)] placeholder:tracking-[0.45em] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/15"
             />
           </div>
 
@@ -128,12 +128,12 @@ export default function RecoveryPinModal({
           )}
         </div>
 
-        <div className="flex items-center gap-2.5 border-t border-[#ECE7DC] bg-[#FBF9F6] px-5 py-4">
+        <div className="flex items-center gap-2.5 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4">
           <button
             type="button"
             onClick={submit}
             disabled={saving || pin.length !== 4}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12.5px] font-bold text-[#FFFFFF] transition-colors hover:bg-[#435241] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[12.5px] font-bold text-[var(--color-text-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري التحديث...</> : "تأكيد وتحديث كلمة المرور"}
           </button>
@@ -141,7 +141,7 @@ export default function RecoveryPinModal({
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="rounded-full border border-[#DDD8CA] bg-white px-5 py-2.5 text-[12.5px] font-bold text-[#6B7264] transition-colors hover:bg-[#F1EEE7] disabled:opacity-50"
+            className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-5 py-2.5 text-[12.5px] font-bold text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-secondary)] disabled:opacity-50"
           >
             إلغاء
           </button>

@@ -11,7 +11,7 @@ interface CategoriesSectionProps {
 }
 
 export default function CategoriesSection({ categories = [] }: CategoriesSectionProps) {
-  // map من slug الـ API إلى id القسم في الصفحة
+  // أسماء أقسام قديمة محفوظة عشان اللينكات تفضل شغالة زي ما هي
   const slugToSectionId: Record<string, string> = {
     pizza: "pizza",
     chicken: "crepe",
@@ -22,32 +22,31 @@ export default function CategoriesSection({ categories = [] }: CategoriesSection
   };
 
   const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, slug: string) => {
-    e.preventDefault();
     const sectionId = slugToSectionId[slug] ?? slug;
     const target = document.getElementById(sectionId);
-    if (target) {
-      const headerOffset = 90;
-      const elementPosition = target.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-      window.history.pushState(null, "", `#${sectionId}`);
-    }
+    if (!target) return; // مفيش قسم بالمنتج — نخلي اللينك يروح للمنيو
+    e.preventDefault();
+    const headerOffset = 90;
+    const elementPosition = target.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+    window.history.pushState(null, "", `#${sectionId}`);
   };
 
   if (categories.length === 0) return null;
 
   return (
-    <section id="categories" className="w-full bg-[#F2F2ED] py-8 sm:py-10 select-none scroll-mt-24">
+    <section id="categories" className="w-full bg-[var(--color-page-background)] py-8 sm:py-10 select-none scroll-mt-24">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <SectionHeading title="التصنيفات" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 lg:gap-5">
           {categories.map((category) => (
             <a key={category.id} href={`#${slugToSectionId[category.slug] ?? category.slug}`}
               onClick={(e) => handleScrollTo(e, category.slug)}
-              className="group relative flex aspect-[2.6/1] w-full items-stretch overflow-hidden rounded-2xl border border-[#e3ded4] bg-white shadow-[0_6px_18px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ff7a00]/40 hover:shadow-lg cursor-pointer">
+              className="group relative flex aspect-[2.6/1] w-full items-stretch overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-[0_6px_18px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-primary)]/40 hover:shadow-lg cursor-pointer">
               {/* اسم التصنيف يمين الكارت */}
               <div className="relative flex w-[41%] shrink-0 items-center justify-center px-2 text-center">
-                <span className="text-sm font-black leading-tight text-[#26352B] transition-colors group-hover:text-[#ff7a00] sm:text-base lg:text-lg">
+                <span className="text-sm font-black leading-tight text-[var(--color-text-primary)] transition-colors group-hover:text-[var(--color-primary)] sm:text-base lg:text-lg">
                   {category.name}
                 </span>
               </div>

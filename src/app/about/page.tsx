@@ -31,18 +31,18 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#F2F2ED] text-[#56624A]">
+    <main className="min-h-screen bg-[var(--color-page-background)] text-[var(--color-primary)]">
       {/* ─── الهيرو: من نحن ─── */}
       <section className="pt-10 pb-6 text-center sm:pt-14 lg:pt-16">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-black leading-tight text-[#56624A] sm:text-5xl lg:text-[54px]">
+          <h1 className="text-4xl font-black leading-tight text-[var(--color-primary)] sm:text-5xl lg:text-[54px]">
             من نحن
           </h1>
-          <p className="mt-3 text-sm font-semibold text-[#5E7054] sm:text-base lg:text-lg">
+          <p className="mt-3 text-sm font-semibold text-[var(--color-primary)] sm:text-base lg:text-lg">
             قصة روزماري .. نكهة مختلفة
           </p>
           <span
-            className="mx-auto mt-4 block h-[3px] w-16 rounded-full bg-[#3F4A3C]"
+            className="mx-auto mt-4 block h-[3px] w-16 rounded-full bg-[var(--color-text-primary)]"
             aria-hidden="true"
           />
         </div>
@@ -54,17 +54,17 @@ export default function AboutPage() {
           <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
             {/* النص — يمين الصفحة في RTL */}
             <div className="order-1">
-              <h2 className="text-3xl font-black leading-[1.2] text-[#56624A] sm:text-4xl lg:text-[50px]">
+              <h2 className="text-3xl font-black leading-[1.2] text-[var(--color-primary)] sm:text-4xl lg:text-[50px]">
                 حكايتنا تبدأ
                 <br />
                 من هنا
               </h2>
               <span
-                className="mt-5 block h-[3px] w-24 rounded-full bg-[#3F4A3C]"
+                className="mt-5 block h-[3px] w-24 rounded-full bg-[var(--color-text-primary)]"
                 aria-hidden="true"
               />
 
-              <div className="mt-7 space-y-5 text-sm font-bold leading-relaxed text-[#4E5C4C] sm:text-base lg:text-lg">
+              <div className="mt-7 space-y-5 text-sm font-bold leading-relaxed text-[var(--color-text-secondary)] sm:text-base lg:text-lg">
                 <p>
                   روزماري هو موقع مصري لطلب الطعام أونلاين، متخصص في البيتزا
                   والبرجر والكريب والباستا.
@@ -78,10 +78,10 @@ export default function AboutPage() {
               <ul className="mt-8 space-y-4">
                 {FEATURES.map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-center gap-3.5">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#BCC8B4] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                      <Icon className="h-5 w-5 text-[#56624A]" strokeWidth={1.9} />
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[var(--color-primary-border)] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+                      <Icon className="h-5 w-5 text-[var(--color-primary)]" strokeWidth={1.9} />
                     </span>
-                    <span className="text-base font-bold text-[#56624A] sm:text-lg">
+                    <span className="text-base font-bold text-[var(--color-primary)] sm:text-lg">
                       {text}
                     </span>
                   </li>
@@ -91,7 +91,7 @@ export default function AboutPage() {
               <div className="mt-9">
                 <Link
                   href="/menu"
-                  className="inline-flex items-center gap-3 rounded-full bg-[#56624A] px-8 py-3.5 text-sm font-bold text-[#fff] shadow-[0_10px_24px_rgba(86,98,74,0.35)] transition-all duration-200 hover:bg-[#4A5540] hover:scale-[1.02] active:scale-95 sm:text-base"
+                  className="inline-flex items-center gap-3 rounded-full bg-[var(--color-primary)] px-8 py-3.5 text-sm font-bold text-[var(--color-on-primary)] shadow-[0_10px_24px_rgba(86,98,74,0.35)] transition-all duration-200 hover:bg-[var(--color-primary)] hover:scale-[1.02] active:scale-95 sm:text-base"
                 >
                   <span>اعرف المزيد</span>
                   <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />

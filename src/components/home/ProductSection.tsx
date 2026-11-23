@@ -34,7 +34,7 @@ export default function ProductSection({
   return (
     <section
       id={id}
-      className="w-full bg-[#F2F2ED] py-8 sm:py-10 scroll-mt-20 sm:scroll-mt-24 transition-all"
+      className="w-full bg-[var(--color-page-background)] py-8 sm:py-10 scroll-mt-20 sm:scroll-mt-24 transition-all"
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* رأس القسم الموحّد: شريط برتقالي + كلمة تمهيدية + العنوان + أسهم التمرير */}

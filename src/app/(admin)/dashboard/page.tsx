@@ -167,17 +167,17 @@ export default function DashboardPage() {
       </div>
 
       {/* تحليلات المبيعات */}
-      <section className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
+      <section className="overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 pb-3 pt-4">
           <div className="flex items-center gap-2">
-            <BarChart3 className="h-[18px] w-[18px] text-[#50604D]" strokeWidth={2} />
-            <h2 className="text-[15px] font-black text-[#333B2E]">تحليلات المبيعات</h2>
+            <BarChart3 className="h-[18px] w-[18px] text-[var(--color-primary)]" strokeWidth={2} />
+            <h2 className="text-[15px] font-black text-[var(--color-text-primary)]">تحليلات المبيعات</h2>
           </div>
           <button
             type="button"
             onClick={handleExportAnalytics}
             disabled={exporting}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#DCE3D6] bg-[#EEF3EA] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#E4ECDF] disabled:cursor-wait disabled:opacity-70"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--color-primary-soft)] bg-[var(--color-primary-soft)] px-3 py-1.5 text-[11px] font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary-soft)] disabled:cursor-wait disabled:opacity-70"
           >
             {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             {exporting ? "جاري التصدير..." : "تصدير التحليلات Excel"}
@@ -185,55 +185,55 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-3 px-5 pb-4 sm:grid-cols-3">
-          <div className="rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-3.5">
-            <p className="text-[11px] font-bold text-[#9A9C90]">طلبات الشهر الحالي</p>
-            <p className="mt-1 text-[20px] font-black leading-none text-[#333B2E]">{stats.thisMonth.orders}</p>
+          <div className="rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-3.5">
+            <p className="text-[11px] font-bold text-[var(--color-text-muted)]">طلبات الشهر الحالي</p>
+            <p className="mt-1 text-[20px] font-black leading-none text-[var(--color-text-primary)]">{stats.thisMonth.orders}</p>
           </div>
-          <div className="rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-3.5">
-            <p className="text-[11px] font-bold text-[#9A9C90]">مبيعات الشهر الحالي</p>
-            <p className="mt-1 text-[20px] font-black leading-none text-[#333B2E]">
-              {stats.thisMonth.revenue.toLocaleString("en-US")} <span className="text-[11px] font-bold text-[#9A9C90]">ج.م</span>
+          <div className="rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-3.5">
+            <p className="text-[11px] font-bold text-[var(--color-text-muted)]">مبيعات الشهر الحالي</p>
+            <p className="mt-1 text-[20px] font-black leading-none text-[var(--color-text-primary)]">
+              {stats.thisMonth.revenue.toLocaleString("en-US")} <span className="text-[11px] font-bold text-[var(--color-text-muted)]">ج.م</span>
             </p>
           </div>
-          <div className="rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] p-3.5">
-            <p className="text-[11px] font-bold text-[#9A9C90]">متوسط قيمة الطلب</p>
-            <p className="mt-1 text-[20px] font-black leading-none text-[#333B2E]">
-              {stats.thisMonth.avgOrderValue.toLocaleString("en-US")} <span className="text-[11px] font-bold text-[#9A9C90]">ج.م</span>
+          <div className="rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-3.5">
+            <p className="text-[11px] font-bold text-[var(--color-text-muted)]">متوسط قيمة الطلب</p>
+            <p className="mt-1 text-[20px] font-black leading-none text-[var(--color-text-primary)]">
+              {stats.thisMonth.avgOrderValue.toLocaleString("en-US")} <span className="text-[11px] font-bold text-[var(--color-text-muted)]">ج.م</span>
             </p>
           </div>
         </div>
 
         {monthlySales.length === 0 ? (
-          <p className="px-5 py-8 text-center text-[13px] text-[#9A9C90]">لا توجد بيانات مبيعات بعد</p>
+          <p className="px-5 py-8 text-center text-[13px] text-[var(--color-text-muted)]">لا توجد بيانات مبيعات بعد</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[460px] text-right">
               <thead>
-                <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
+                <tr className="bg-[var(--color-surface-secondary)] text-[11px] font-bold text-[var(--color-text-muted)]">
                   <th className="px-5 py-2.5 font-bold">الشهر</th>
                   <th className="px-5 py-2.5 font-bold">عدد الطلبات</th>
                   <th className="px-5 py-2.5 font-bold">المبيعات</th>
                   <th className="px-5 py-2.5 font-bold">المقارنة</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F0EDE5]">
+              <tbody className="divide-y divide-[var(--color-border-subtle)]">
                 {monthlySales.map((m, i) => (
-                  <tr key={m.month} className={`text-[12px] ${i === monthlySales.length - 1 ? "bg-[#F3F7F0]" : ""}`}>
-                    <td className="px-5 py-3 font-bold text-[#333B2E]">
+                  <tr key={m.month} className={`text-[12px] ${i === monthlySales.length - 1 ? "bg-[var(--color-surface-soft)]" : ""}`}>
+                    <td className="px-5 py-3 font-bold text-[var(--color-text-primary)]">
                       <span className="inline-flex items-center gap-1.5">
-                        <CalendarDays className="h-3.5 w-3.5 text-[#9A9C90]" />
+                        <CalendarDays className="h-3.5 w-3.5 text-[var(--color-text-muted)]" />
                         {m.label}
                         {i === monthlySales.length - 1 && (
-                          <span className="rounded-full bg-[#DEE3D5] px-1.5 py-0.5 text-[9.5px] font-black text-[#50604D]">الشهر الحالي</span>
+                          <span className="rounded-full bg-[var(--color-primary-soft)] px-1.5 py-0.5 text-[9.5px] font-black text-[var(--color-primary)]">الشهر الحالي</span>
                         )}
                       </span>
                     </td>
-                    <td className="px-5 py-3 font-bold text-[#333B2E]">{m.orders}</td>
-                    <td className="px-5 py-3 font-black text-[#333B2E]">{m.revenue.toLocaleString("en-US")} ج.م</td>
+                    <td className="px-5 py-3 font-bold text-[var(--color-text-primary)]">{m.orders}</td>
+                    <td className="px-5 py-3 font-black text-[var(--color-text-primary)]">{m.revenue.toLocaleString("en-US")} ج.م</td>
                     <td className="px-5 py-3">
-                      <div className="h-2 w-full max-w-[160px] overflow-hidden rounded-full bg-[#EDEAE1]">
+                      <div className="h-2 w-full max-w-[160px] overflow-hidden rounded-full bg-[var(--color-surface-hover)]">
                         <div
-                          className="h-full rounded-full bg-[#96A78F]"
+                          className="h-full rounded-full bg-[var(--color-primary-border)]"
                           style={{ width: `${Math.max(m.revenue > 0 ? 4 : 0, Math.round((m.revenue / maxMonthlyRevenue) * 100))}%` }}
                         />
                       </div>
@@ -248,24 +248,24 @@ export default function DashboardPage() {
 
       {/* أحدث الطلبات + أفضل المنتجات مبيعاً */}
       <div className="grid gap-4 xl:grid-cols-5">
-        <section className="flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] xl:col-span-3">
+        <section className="flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)] xl:col-span-3">
           <div className="flex items-center justify-between px-5 pb-3 pt-4">
-            <h2 className="text-[15px] font-black text-[#333B2E]">أحدث الطلبات</h2>
+            <h2 className="text-[15px] font-black text-[var(--color-text-primary)]">أحدث الطلبات</h2>
             <Link
               href="/dashboard/orders"
-              className="flex items-center gap-1 text-[12px] font-bold text-[#50604D] transition-colors hover:text-[#3C4A38]"
+              className="flex items-center gap-1 text-[12px] font-bold text-[var(--color-primary)] transition-colors hover:text-[var(--color-text-primary)]"
             >
               عرض الكل <ArrowLeft className="h-3.5 w-3.5" />
             </Link>
           </div>
 
           {recentOrders.length === 0 ? (
-            <p className="px-5 py-10 text-center text-[13px] text-[#9A9C90]">لا توجد طلبات بعد</p>
+            <p className="px-5 py-10 text-center text-[13px] text-[var(--color-text-muted)]">لا توجد طلبات بعد</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] text-right">
                 <thead>
-                  <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
+                  <tr className="bg-[var(--color-surface-secondary)] text-[11px] font-bold text-[var(--color-text-muted)]">
                     <th className="px-4 py-2.5 font-bold">رقم الطلب</th>
                     <th className="px-4 py-2.5 font-bold">العميل</th>
                     <th className="px-4 py-2.5 font-bold">المبلغ</th>
@@ -274,28 +274,28 @@ export default function DashboardPage() {
                     <th className="w-10 px-3 py-2.5" aria-label="عرض الطلب" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F0EDE5]">
+                <tbody className="divide-y divide-[var(--color-border-subtle)]">
                   {recentOrders.map((order) => (
                     <tr key={order.id} onClick={() => router.push("/dashboard/orders")}
                       tabIndex={0} role="button" aria-label={`فتح الطلب ${order.orderNumber ?? order.id}`}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push("/dashboard/orders"); } }}
-                      className="cursor-pointer text-[12px] transition-colors hover:bg-[#F8F6F1] focus-visible:bg-[#F8F6F1] focus-visible:outline-none">
-                      <td className="px-4 py-3 font-black text-[#333B2E]" dir="ltr">
+                      className="cursor-pointer text-[12px] transition-colors hover:bg-[var(--color-surface-soft)] focus-visible:bg-[var(--color-surface-soft)] focus-visible:outline-none">
+                      <td className="px-4 py-3 font-black text-[var(--color-text-primary)]" dir="ltr">
                         #{order.orderNumber ?? order.id}
                       </td>
-                      <td className="px-4 py-3 font-semibold text-[#6B7264]">{order.customerName}</td>
-                      <td className="px-4 py-3 font-bold text-[#333B2E]">{order.total} ج.م</td>
+                      <td className="px-4 py-3 font-semibold text-[var(--color-text-secondary)]">{order.customerName}</td>
+                      <td className="px-4 py-3 font-bold text-[var(--color-text-primary)]">{order.total} ج.م</td>
                       <td className="px-4 py-3">
                         <StatusBadge status={order.status} />
                       </td>
-                      <td className="px-4 py-3 text-[11px] font-medium text-[#9A9C90]" dir="ltr">
+                      <td className="px-4 py-3 text-[11px] font-medium text-[var(--color-text-muted)]" dir="ltr">
                         {formatOrderDate(order.createdAt)}
                       </td>
                       <td className="px-3 py-3">
                         <Link
                           href="/dashboard/orders"
                           aria-label={`تفاصيل الطلب ${order.orderNumber ?? order.id}`}
-                          className="flex h-6 w-6 items-center justify-center rounded-full text-[#B5B2A8] transition-colors hover:bg-[#F0EDE5] hover:text-[#50604D]"
+                          className="flex h-6 w-6 items-center justify-center rounded-full text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-border-subtle)] hover:text-[var(--color-primary)]"
                         >
                           <ChevronLeft className="h-4 w-4" />
                         </Link>
@@ -308,43 +308,43 @@ export default function DashboardPage() {
           )}
         </section>
 
-        <section className="flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] xl:col-span-2">
+        <section className="flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)] xl:col-span-2">
           <div className="flex items-center justify-between px-5 pb-3 pt-4">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-[18px] w-[18px] text-[#50604D]" strokeWidth={2} />
-              <h2 className="text-[15px] font-black text-[#333B2E]">أفضل المنتجات مبيعاً</h2>
+              <TrendingUp className="h-[18px] w-[18px] text-[var(--color-primary)]" strokeWidth={2} />
+              <h2 className="text-[15px] font-black text-[var(--color-text-primary)]">أفضل المنتجات مبيعاً</h2>
             </div>
             <Link
               href="/dashboard/products"
-              className="flex items-center gap-1 text-[12px] font-bold text-[#50604D] transition-colors hover:text-[#3C4A38]"
+              className="flex items-center gap-1 text-[12px] font-bold text-[var(--color-primary)] transition-colors hover:text-[var(--color-text-primary)]"
             >
               عرض الكل <ArrowLeft className="h-3.5 w-3.5" />
             </Link>
           </div>
 
           {topProducts.length === 0 ? (
-            <p className="px-5 py-10 text-center text-[13px] text-[#9A9C90]">لا توجد مبيعات بعد</p>
+            <p className="px-5 py-10 text-center text-[13px] text-[var(--color-text-muted)]">لا توجد مبيعات بعد</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[360px] text-right">
                 <thead>
-                  <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
+                  <tr className="bg-[var(--color-surface-secondary)] text-[11px] font-bold text-[var(--color-text-muted)]">
                     <th className="w-12 px-4 py-2.5 font-bold">#</th>
                     <th className="px-4 py-2.5 font-bold">المنتج</th>
                     <th className="px-4 py-2.5 font-bold">الكمية</th>
                     <th className="px-4 py-2.5 font-bold">المبيعات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F0EDE5]">
+                <tbody className="divide-y divide-[var(--color-border-subtle)]">
                   {topProducts.map((product, index) => (
                     <tr key={product.id} onClick={() => router.push(`/dashboard/products?edit=${product.id}`)}
                       tabIndex={0} role="button" aria-label={`فتح ${product.name}`}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/dashboard/products?edit=${product.id}`); } }}
-                      className="cursor-pointer text-[12px] transition-colors hover:bg-[#F8F6F1] focus-visible:bg-[#F8F6F1] focus-visible:outline-none">
+                      className="cursor-pointer text-[12px] transition-colors hover:bg-[var(--color-surface-soft)] focus-visible:bg-[var(--color-surface-soft)] focus-visible:outline-none">
                       <td className="px-4 py-2.5">
                         <span
                           className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${
-                            index < 3 ? "bg-[#DEE3D5] text-[#50604D]" : "bg-[#F0EDE5] text-[#9A9C90]"
+                            index < 3 ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)]" : "bg-[var(--color-border-subtle)] text-[var(--color-text-muted)]"
                           }`}
                         >
                           {index + 1}
@@ -359,13 +359,13 @@ export default function DashboardPage() {
                             height={36}
                             className="h-9 w-9 shrink-0 rounded-lg object-cover"
                           />
-                          <span className="max-w-[170px] truncate font-semibold text-[#333B2E]">
+                          <span className="max-w-[170px] truncate font-semibold text-[var(--color-text-primary)]">
                             {product.name}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-2.5 font-bold text-[#333B2E]">{product.count}</td>
-                      <td className="px-4 py-2.5 font-bold text-[#50604D]">{product.revenue.toLocaleString("en-US")} ج.م</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--color-text-primary)]">{product.count}</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--color-primary)]">{product.revenue.toLocaleString("en-US")} ج.م</td>
                     </tr>
                   ))}
                 </tbody>

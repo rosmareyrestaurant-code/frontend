@@ -23,6 +23,7 @@ import type {
 } from "@/types/admin";
 import type { DeliveryZone } from "@/types/delivery";
 import type { PublicOrder, OrderItemSnapshot, CustomerInfo } from "@/types";
+import { DEFAULT_THEME, isHexColor } from "@/lib/theme";
 
 /* ─── أشكال الـ lean docs (تطابق المخططات) ───────────────────────── */
 interface ProductLean {
@@ -57,6 +58,7 @@ interface CategoryLean {
   description?: string;
   sortOrder: number;
   isActive: boolean;
+  showOnHome?: boolean;
 }
 
 interface BannerLean {
@@ -114,9 +116,21 @@ interface OrderLean {
   paymentMethod: "cash" | "vodafone_cash" | "instapay";
   paymentProofUrl?: string;
   paymentProofPublicId?: string;
-  paymentStatus: "pending" | "paid";
+  paymentStatus: "pending" | "verified" | "paid" | "rejected";
+  transactionReference?: string;
+  verifiedAmount?: number;
+  paymentVerifiedAt?: Date | string;
+  paymentVerifiedBy?: string;
+  paymentVerifiedByName?: string;
+  paymentRejectionReason?: string;
+  paymentRejectedAt?: Date | string;
+  paymentRejectedBy?: string;
   orderStatus: OrderStatus;
   notes?: string;
+  printState?: "pending" | "processing" | "printed" | "failed";
+  printAttempts?: number;
+  printLastError?: string;
+  printedAt?: Date | string;
   createdAt: string;
 }
 
@@ -129,6 +143,21 @@ interface SettingsLean {
   logoUrl: string;
   tickerMessage?: string;
   tickerIcon?: string;
+  tickerEnabled?: boolean;
+  tickerIconPosition?: "start" | "end";
+  theme?: {
+    primary?: string;
+    icon?: string;
+    background?: string;
+    primaryHover?: string;
+    primaryActive?: string;
+    iconHover?: string;
+    textPrimary?: string;
+    surface?: string;
+    surfaceSecondary?: string;
+    surfaceElevated?: string;
+    border?: string;
+  } | null;
   currency: string;
   deliveryFee: number;
   minimumOrder: number;
@@ -211,6 +240,8 @@ export function toPublicCategory(
     image: doc.image,
     description: doc.description,
     itemCount,
+    sortOrder: doc.sortOrder,
+    showOnHome: doc.showOnHome !== false,
   };
 }
 
@@ -227,6 +258,7 @@ export function toAdminCategory(
     description: doc.description,
     sortOrder: doc.sortOrder,
     isActive: doc.isActive,
+    showOnHome: doc.showOnHome !== false,
     productCount,
   };
 }
@@ -320,13 +352,27 @@ export function toAdminOrder(doc: OrderLean): AdminOrder {
     paymentProofUrl: doc.paymentProofUrl || undefined,
     paymentProofPublicId: doc.paymentProofPublicId || undefined,
     paymentStatus: doc.paymentStatus,
+    transactionReference: doc.transactionReference || undefined,
+    verifiedAmount: doc.verifiedAmount,
+    paymentVerifiedAt: doc.paymentVerifiedAt
+      ? new Date(doc.paymentVerifiedAt).toISOString()
+      : undefined,
+    paymentVerifiedByName: doc.paymentVerifiedByName || undefined,
+    paymentRejectionReason: doc.paymentRejectionReason || undefined,
+    paymentRejectedAt: doc.paymentRejectedAt
+      ? new Date(doc.paymentRejectedAt).toISOString()
+      : undefined,
     status: doc.orderStatus,
     notes: doc.notes,
+    printState: doc.printState,
+    printAttempts: doc.printAttempts ?? 0,
+    printLastError: doc.printLastError || undefined,
+    printedAt: doc.printedAt ? new Date(doc.printedAt).toISOString() : undefined,
     createdAt: doc.createdAt,
   };
 }
 
-/** الطلب كما يراه العميل: بيانات محدودة + لا يحتوي على حالة الدفع أو بيانات إدارية */
+/** الطلب كما يراه العميل: بياناته فقط + حالة الدفع والمرجع — بدون أي بيانات إدارية */
 export function toPublicOrder(doc: OrderLean): PublicOrder {
   const customer: CustomerInfo = {
     name: doc.customerName,
@@ -349,7 +395,6 @@ export function toPublicOrder(doc: OrderLean): PublicOrder {
   return {
     id: id(doc._id),
     orderNumber: doc.orderNumber,
-    accessToken: doc.accessToken,
     customer,
     items,
     subtotal: doc.subtotal,
@@ -358,6 +403,8 @@ export function toPublicOrder(doc: OrderLean): PublicOrder {
     total: doc.total,
     paymentMethod: doc.paymentMethod,
     paymentProofUrl: doc.paymentProofUrl || undefined,
+    paymentStatus: doc.paymentStatus || "pending",
+    transactionReference: doc.transactionReference || undefined,
     orderStatus: doc.orderStatus,
     createdAt: doc.createdAt,
   };
@@ -386,6 +433,12 @@ export function toAdminCustomer(
 }
 
 /* ─── الإعدادات ──────────────────────────────────────────────────── */
+// أي قيمة قديمة مش HEX (زي أسماء متغيرات CSS) بترجع للافتراضي بدل ما تتفشل
+const themeHex = (value: string | undefined, fallback: string) =>
+  value && isHexColor(value) ? value : fallback;
+const themeHexOrAuto = (value: string | undefined) =>
+  value && isHexColor(value) ? value : "";
+
 export function toStoreSettings(doc: SettingsLean): StoreSettings {
   return {
     storeName: doc.storeName,
@@ -396,6 +449,21 @@ export function toStoreSettings(doc: SettingsLean): StoreSettings {
     logoUrl: doc.logoUrl,
     tickerMessage: doc.tickerMessage ?? "",
     tickerIcon: doc.tickerIcon || "truck",
+    tickerEnabled: doc.tickerEnabled !== false,
+    tickerIconPosition: doc.tickerIconPosition === "end" ? "end" : "start",
+    theme: {
+      primary: themeHex(doc.theme?.primary, DEFAULT_THEME.primary),
+      icon: themeHex(doc.theme?.icon, DEFAULT_THEME.icon),
+      background: themeHex(doc.theme?.background, DEFAULT_THEME.background),
+      primaryHover: themeHexOrAuto(doc.theme?.primaryHover),
+      primaryActive: themeHexOrAuto(doc.theme?.primaryActive),
+      iconHover: themeHexOrAuto(doc.theme?.iconHover),
+      textPrimary: themeHexOrAuto(doc.theme?.textPrimary),
+      surface: themeHexOrAuto(doc.theme?.surface),
+      surfaceSecondary: themeHexOrAuto(doc.theme?.surfaceSecondary),
+      surfaceElevated: themeHexOrAuto(doc.theme?.surfaceElevated),
+      border: themeHexOrAuto(doc.theme?.border),
+    },
     currency: doc.currency,
     deliveryFee: doc.deliveryFee,
     minimumOrder: doc.minimumOrder,

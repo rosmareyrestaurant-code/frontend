@@ -3,29 +3,70 @@
 @theme {
   --font-sans: var(--font-cairo), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* الهوية البصرية الجديدة لمطعم Rozmaly */
+  /* الهوية الافتراضية لمطعم Rozmaly — القيم المقروءة فعلياً بتيجي من :root تحت */
   --rosemary-light: #899B83;
   --rosemary-medium: #697F6B;
   --rosemary-gray: #F2F2ED;
   --rosemary-dark: #526B58;
+}
 
-  --color-brand-primary: var(--rosemary-dark);
-  --color-brand-primary-hover: #465D4C;
-  --color-brand-secondary: var(--rosemary-medium);
-  --color-brand-light: var(--rosemary-light);
-  --color-page-bg: #F2F2ED;
-  --color-surface-soft: #E7ECE2;
-  --color-surface-card: #FFFFFF;
-  --color-surface-hover: #E5EBDF;
+/* ============================================================
+   Design Tokens — كل المكونات بتقرأ من هنا.
+   القيم الافتراضية = الهوية الحالية بالظبط، وبتتغير من السيرفر
+   بعد حفظ «هوية الموقع والألوان» في الداشبورد.
+   ============================================================ */
+:root {
+  --color-primary: #50604D;
+  --color-primary-hover: #435241;
+  --color-primary-active: #37452F;
+  --color-primary-soft: #EDF1E8;
+  --color-primary-border: #B9C4AF;
+  --color-on-primary: #FFFFFF;
+
+  --color-button-background: var(--color-primary);
+  --color-button-hover: var(--color-primary-hover);
+  --color-button-active: var(--color-primary-active);
+  --color-button-text: var(--color-on-primary);
+
+  --color-icon: #526B58;
+  --color-icon-hover: #435241;
+  --color-icon-active: #37452F;
+
+  --color-page-background: #F2F2ED;
+  --color-header-background: var(--color-page-background);
+  --color-surface: #FBF9F6;
+  --color-surface-secondary: #F4F2EE;
+  --color-surface-soft: #F7F4EE;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-hover: #EDEAE1;
+  --color-overlay: rgba(15, 20, 16, 0.62);
+
   --color-text-primary: #26352B;
   --color-text-secondary: #526B58;
   --color-text-muted: #697F6B;
-  --color-border: #DCDCD3;
-}
+  --color-text-on-primary: var(--color-on-primary);
 
-:root {
-  --background: #F2F2ED;
-  --foreground: #26352B;
+  --color-border: #EDE9E0;
+  --color-border-subtle: #F0EDE5;
+  --color-border-strong: #B9C4AF;
+
+  --color-control-background: #F7F4EE;
+  --color-control-border: #E9E5DA;
+  --color-control-selected: var(--color-primary);
+  --color-control-selected-text: var(--color-on-primary);
+  --color-control-hover: #E7ECE2;
+
+  /* أيقونات الإغلاق مستقلة تماماً عن هوية الأيقونات */
+  --color-close-icon: #6B7264;
+  --color-close-icon-hover: #333B2E;
+
+  --color-success: #4F8A57;
+  --color-warning: #B98A2C;
+  --color-danger: #C25B4F;
+
+  /* توافق مع أسماء المتغيرات القديمة */
+  --background: var(--color-page-background);
+  --foreground: var(--color-text-primary);
 }
 
 html {
@@ -36,8 +77,8 @@ html {
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-page-background);
+  color: var(--color-text-primary);
   font-family: var(--font-sans);
   overflow-x: hidden;
   overscroll-behavior-y: none;
@@ -50,7 +91,10 @@ button, a {
 
 img { -webkit-user-drag: none; }
 
-/* خلفية موحدة لكل الموقع */
+/* ============================================================
+   تحويل الكلاسات القديمة المكتوبة بألوان HEX ثابتة للـ Tokens
+   (بنخليها موجودة للتوافق مع أي مكوّن لم يتم تحويله بعد)
+   ============================================================ */
 [class*="bg-[#0b0a09]"], [class*="bg-[#080706]"], [class*="bg-[#0d0b0a]"],
 [class*="bg-[#0e0d0c]"], [class*="bg-[#1b1714]"], [class*="bg-[#1b1511]"],
 [class*="bg-[#1a1512]"], [class*="bg-[#1c1613]"], [class*="bg-[#1f1915]"],
@@ -63,47 +107,51 @@ img { -webkit-user-drag: none; }
 [class*="bg-[#2a221b]"], [class*="bg-[#201a15]"], [class*="bg-[#1e1914]"],
 [class*="bg-[#26201a]"], [class*="bg-[#2b241e]"], [class*="bg-[#231d17]"],
 [class*="bg-[#29221c]"], [class*="bg-[#181310]"], [class*="bg-[#181512]"],
-[class*="bg-[#899B83]"], [class*="bg-[#899b83]"] {
-  background-color: #F2F2ED !important;
+[class*="bg-[#F2F2ED]"], [class*="bg-[#f2f2ed]"] {
+  background-color: var(--color-page-background) !important;
 }
 
 [class*="text-[#ff7a00]"], [class*="text-[#ff9838]"], [class*="text-[#ffb066]"],
 [class*="text-[#ff9a3d]"], [class*="text-[#c4b9ad]"], [class*="text-[#d1cbc4]"],
 [class*="text-[#a89f94]"], [class*="text-[#857b72]"], [class*="text-[#8a8076]"],
-[class*="text-[#736a61]"], [class*="text-white"] { color: #26352B !important; }
+[class*="text-[#736a61]"], [class*="text-white"] { color: var(--color-text-primary) !important; }
 
 [class*="hover:text-[#ff7a00]"], [class*="group-hover:text-[#ff7a00]"],
 [class*="focus:border-[#ff7a00]"], [class*="hover:border-[#ff7a00]"] {
-  color: var(--rosemary-dark) !important;
-  border-color: var(--rosemary-dark) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
 }
 
 [class*="border-[#2a241f]"], [class*="border-[#26201a]"], [class*="border-[#231d17]"],
 [class*="border-[#2d2620]"], [class*="border-[#25201c]"], [class*="border-[#2b241e]"],
-[class*="border-[#1f1a17]"], [class*="border-[#ff7a00]"] { border-color: var(--rosemary-light) !important; }
+[class*="border-[#1f1a17]"], [class*="border-[#ff7a00]"] { border-color: var(--color-primary-border) !important; }
 
 [class*="bg-[#ff7a00]"], [class*="bg-[#e66e00]"], [class*="from-[#ff7a00]"],
 [class*="to-[#e66e00]"], [class*="via-[#ff7a00]"] {
-  background-color: var(--rosemary-dark) !important;
-  border-color: var(--rosemary-dark) !important;
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
 }
 
 button[class*="bg-[#ff7a00]"], a[class*="bg-[#ff7a00]"],
 button[class*="bg-gradient"], a[class*="bg-gradient"] {
-  background: #526B58 !important;
-  color: #FFFFFF !important;
-  border-color: #526B58 !important;
+  background: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
+  border-color: var(--color-primary) !important;
 }
 button[class*="bg-[#ff7a00]"]:hover, a[class*="bg-[#ff7a00]"]:hover,
 button[class*="bg-gradient"]:hover, a[class*="bg-gradient"]:hover {
-  background: #465D4C !important;
+  background: var(--color-primary-hover) !important;
 }
+
+/* أيقونات الإغلاق — مستقلة عن هوية الأيقونات العامة */
+.icon-close { color: var(--color-close-icon) !important; }
+.icon-close:hover, .icon-close:focus-visible { color: var(--color-close-icon-hover) !important; }
 
 /* تخصيص شريط التمرير */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #F2F2ED; }
-::-webkit-scrollbar-thumb { background: #697F6B; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #526B58; }
+::-webkit-scrollbar-track { background: var(--color-page-background); }
+::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-primary-hover); }
 
 /* ============================================================
    1. أنيميشنات الموديلات والـ Drawers (ظهور/اختفاء)
@@ -224,22 +272,22 @@ button[class*="bg-gradient"]:hover, a[class*="bg-gradient"]:hover {
 
 /* استثناءات الهيدر والشريط العلوي */
 .delivery-ticker-track span,
-.delivery-ticker-track svg { color: #FFFFFF !important; }
+.delivery-ticker-track svg { color: var(--color-on-primary) !important; }
 
 /* حالات الهوية الوظيفية والتباين النهائي */
 .bg-black, [class*="bg-black"] {
-  background-color: #F2F2ED !important;
+  background-color: var(--color-page-background) !important;
 }
-.text-white { color: #26352B !important; }
+.text-white { color: var(--color-text-primary) !important; }
 .text-amber-300, .text-amber-400, .text-yellow-400,
 .text-orange-400 {
-  color: #526B58 !important;
+  color: var(--color-primary) !important;
 }
 .bg-amber-500\/10, .bg-yellow-500\/10, .bg-orange-500\/10 {
-  background-color: rgba(137,155,131,0.18) !important;
+  background-color: color-mix(in srgb, var(--color-primary) 18%, transparent) !important;
 }
 .border-amber-500\/25, .border-yellow-500\/30, .border-orange-500\/30 {
-  border-color: #899B83 !important;
+  border-color: var(--color-primary-border) !important;
 }
 .bg-red-500\/10, .bg-red-600, .text-red-400, .text-red-600 {
   background-color: rgba(166,93,88,0.12) !important;
@@ -250,24 +298,38 @@ button[class*="bg-gradient"]:hover, a[class*="bg-gradient"]:hover {
 }
 .bg-emerald-500\/10, .text-emerald-400, .text-emerald-500 {
   background-color: rgba(82,107,88,0.12) !important;
-  color: #526B58 !important;
+  color: var(--color-success) !important;
 }
 .bg-blue-500\/15, .text-blue-400, .bg-purple-500\/15, .text-purple-400 {
-  background-color: rgba(105,127,107,0.14) !important;
-  color: #526B58 !important;
+  background-color: color-mix(in srgb, var(--color-primary) 14%, transparent) !important;
+  color: var(--color-primary) !important;
 }
 
-header [class*="text-[#526B58]"] { color: #526B58 !important; }
-header [class*="group-hover:text-white"] { color: #FFFFFF !important; }
+/* أي عنصر خلفيته لون الأزرار الأساسي: النص والأيقونة ياخدوا اللون المقروء تلقائياً
+   (متأخر عمداً عشان يتغلب على استثناء .text-white فوق) */
+[class~="bg-[var(--color-primary)]"] { color: var(--color-on-primary) !important; }
+[class~="bg-[var(--color-primary)]"] svg,
+[class~="bg-[var(--color-primary)]"] span,
+[class~="bg-[var(--color-primary)]"] p,
+[class~="bg-[var(--color-primary)]"] h1,
+[class~="bg-[var(--color-primary)]"] h2,
+[class~="bg-[var(--color-primary)]"] h3 { color: var(--color-on-primary) !important; }
+[class~="bg-[var(--color-primary-hover)]"] { color: var(--color-on-primary) !important; }
+[class~="bg-[var(--color-primary-hover)]"] svg,
+[class~="bg-[var(--color-primary-hover)]"] span,
+[class~="bg-[var(--color-primary-hover)]"] p { color: var(--color-on-primary) !important; }
 
-/* أي نص أو أيقونة جوه خلفية روزماري غامقة يبقى أبيض عشان يبان */
+header [class*="text-[#526B58]"] { color: var(--color-icon) !important; }
+header [class*="group-hover:text-white"] { color: var(--color-text-primary) !important; }
+
+/* أي نص أو أيقونة جوه خلفية روزماري غامقة يبقى بلون on-primary عشان يبان */
 :is(
   [class~="bg-[#50604D]"], [class~="bg-[#526B58]"], [class~="bg-[#56624A]"],
   [class~="bg-[#435241]"], [class~="bg-[#3E5B45]"], [class~="bg-[#3F5A46]"],
   [class~="bg-[#465D4C]"], [class~="bg-[#4A5540]"], [class~="bg-[#5E7054]"],
   [class~="bg-[#788B73]"]
 ) {
-  color: #FFFFFF !important;
+  color: var(--color-on-primary) !important;
 }
 
 /* ============================================================
@@ -280,8 +342,8 @@ header [class*="group-hover:text-white"] { color: #FFFFFF !important; }
   gap: 12px;
   width: 100%;
   padding: 12px 18px 12px 46px;
-  background: #FFFFFF;
-  border: 1px solid #E6EADF;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
   border-radius: 18px;
   box-shadow: 0 16px 32px -20px rgba(38,53,43,0.45), 0 4px 10px rgba(38,53,43,0.05);
   overflow: hidden;
@@ -296,13 +358,13 @@ header [class*="group-hover:text-white"] { color: #FFFFFF !important; }
   bottom: 0;
   right: 0;
   width: 6px;
-  background: #3E5B45;
+  background: var(--color-primary);
 }
 .store-sonner-success::before,
-.store-sonner-cart::before { background: #3E5B45; }
+.store-sonner-cart::before { background: var(--color-success); }
 .store-sonner-info::before,
 .store-sonner-favorite::before,
-.store-sonner-loading::before { background: #56624A; }
+.store-sonner-loading::before { background: var(--color-primary); }
 .store-sonner-warning::before { background: #E2A23C; }
 .store-sonner-error::before { background: #D2524E; }
 
@@ -334,8 +396,8 @@ header [class*="group-hover:text-white"] { color: #FFFFFF !important; }
   height: 40px;
   border-radius: 9999px;
   flex-shrink: 0;
-  background: #E7EFE4;
-  color: #3E5B45;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
 .store-toast-icon svg {
   width: 20px;
@@ -344,8 +406,8 @@ header [class*="group-hover:text-white"] { color: #FFFFFF !important; }
 .store-sonner-info .store-toast-icon,
 .store-sonner-favorite .store-toast-icon,
 .store-sonner-loading .store-toast-icon {
-  background: #EAEEE6;
-  color: #56624A;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-elevated));
+  color: var(--color-primary);
 }
 .store-sonner-error .store-toast-icon {
   background: #F8DCDC;
@@ -368,14 +430,14 @@ header [class*="group-hover:text-white"] { color: #FFFFFF !important; }
   font-size: 0.9rem;
   font-weight: 800;
   line-height: 1.45;
-  color: #3D4A3A;
+  color: var(--color-text-primary);
   text-align: right;
 }
 .store-sonner-description {
   margin-top: 2px;
   font-size: 0.72rem;
   font-weight: 600;
-  color: #6B7A66;
+  color: var(--color-text-secondary);
   text-align: right;
 }
 
@@ -393,10 +455,9 @@ header [class*="group-hover:text-white"] { color: #FFFFFF !important; }
   border: 0;
   border-radius: 9999px;
   background: transparent;
-  color: #3D4A3A;
+  color: var(--color-close-icon);
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
-[data-sonner-toast] [data-close-button]:hover { background: rgba(86,98,74,0.12); }
+[data-sonner-toast] [data-close-button]:hover { background: color-mix(in srgb, var(--color-close-icon) 12%, transparent); }
 [data-sonner-toast] [data-close-button] svg { width: 16px; height: 16px; }
-

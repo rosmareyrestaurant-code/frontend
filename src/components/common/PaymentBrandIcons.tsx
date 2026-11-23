@@ -17,7 +17,7 @@ function BrandImage({ src, alt, className = "h-5 w-5", fit = "object-contain" }:
       alt={alt}
       width={128}
       height={128}
-      className={`${className} shrink-0 rounded-[5px] bg-white ${fit}`}
+      className={`${className} shrink-0 rounded-[5px] bg-[var(--color-surface-elevated)] ${fit}`}
     />
   );
 }

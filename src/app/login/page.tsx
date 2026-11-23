@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#F2F2ED]" dir="rtl">
+    <div className="relative min-h-screen overflow-hidden bg-[var(--color-page-background)]" dir="rtl">
       {/* صورة الخلفية */}
       <Image
         src="/images/admin/login-bg.png"
@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
       {/* تفتيح ناحية الكارت */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-l from-[#F2F2ED] via-[#F2F2ED]/55 to-transparent"
+        className="absolute inset-0 bg-gradient-to-l from-[var(--color-page-background)] via-[var(--color-page-background)]/55 to-transparent"
       />
 
       <div className="relative z-10 flex min-h-screen flex-col px-4 pb-8 pt-6 sm:px-8 sm:pt-8 lg:px-16">
@@ -86,26 +86,26 @@ export default function AdminLoginPage() {
             />
           </Link>
           <div className="flex w-full max-w-[260px] items-center gap-3">
-            <span className="h-px flex-1 bg-[#C6CDC0]" />
-            <span className="whitespace-nowrap text-[11px] font-bold text-[#526B58] sm:text-xs">
+            <span className="h-px flex-1 bg-[var(--color-border)]" />
+            <span className="whitespace-nowrap text-[11px] font-bold text-[var(--color-icon)] sm:text-xs">
               لوحة تحكم بالإدارة
             </span>
-            <span className="h-px flex-1 bg-[#C6CDC0]" />
+            <span className="h-px flex-1 bg-[var(--color-border)]" />
           </div>
         </div>
 
         {/* كارت الدخول — على اليمين في الديسكتوب */}
         <div className="flex flex-1 items-center justify-center lg:justify-start">
-          <div className="mt-8 w-full max-w-[400px] rounded-[26px] border border-[#E7EAE0] bg-white p-6 shadow-[0_34px_70px_-34px_rgba(38,53,43,0.55)] sm:p-8">
+          <div className="mt-8 w-full max-w-[400px] rounded-[26px] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6 shadow-[0_34px_70px_-34px_rgba(38,53,43,0.55)] sm:p-8">
             <div className="text-center">
-              <h1 className="text-2xl font-black text-[#2F3A2E] sm:text-[28px]">
+              <h1 className="text-2xl font-black text-[var(--color-text-primary)] sm:text-[28px]">
                 تسجيل الدخول
               </h1>
-              <p className="mt-1.5 text-xs font-semibold text-[#8A8279] sm:text-sm">
+              <p className="mt-1.5 text-xs font-semibold text-[var(--color-text-secondary)] sm:text-sm">
                 مرحبًا بك في Rozmaly
               </p>
               <span
-                className="mx-auto mt-3 block h-[3px] w-14 rounded-full bg-[#56624A]"
+                className="mx-auto mt-3 block h-[3px] w-14 rounded-full bg-[var(--color-primary)]"
                 aria-hidden="true"
               />
             </div>
@@ -120,7 +120,7 @@ export default function AdminLoginPage() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="admin-email"
-                  className="block text-right text-[13px] font-bold text-[#3B4A39]"
+                  className="block text-right text-[13px] font-bold text-[var(--color-text-primary)]"
                 >
                   البريد الإلكتروني
                 </label>
@@ -134,16 +134,16 @@ export default function AdminLoginPage() {
                     required
                     placeholder="admin@rosemary.com"
                     dir="ltr"
-                    className="w-full rounded-full border border-[#DFE3D9] bg-white py-3 pe-11 ps-5 text-sm text-[#2F3A2E] placeholder-[#A29C93] transition-colors focus:border-[#56624A] focus:outline-none focus:ring-2 focus:ring-[#56624A]/15"
+                    className="w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-elevated)] py-3 pe-11 ps-5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] transition-colors focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/15"
                   />
-                  <Mail className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#56624A]" />
+                  <Mail className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-primary)]" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label
                   htmlFor="admin-password"
-                  className="block text-right text-[13px] font-bold text-[#3B4A39]"
+                  className="block text-right text-[13px] font-bold text-[var(--color-text-primary)]"
                 >
                   كلمة المرور
                 </label>
@@ -157,14 +157,14 @@ export default function AdminLoginPage() {
                     required
                     placeholder="••••••••"
                     dir="ltr"
-                    className="w-full rounded-full border border-[#DFE3D9] bg-white py-3 pe-11 ps-11 text-sm text-[#2F3A2E] placeholder-[#A29C93] transition-colors focus:border-[#56624A] focus:outline-none focus:ring-2 focus:ring-[#56624A]/15"
+                    className="w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-elevated)] py-3 pe-11 ps-11 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] transition-colors focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/15"
                   />
-                  <LockKeyhole className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#56624A]" />
+                  <LockKeyhole className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-primary)]" />
                   <button
                     type="button"
                     onClick={() => setShowPass((v) => !v)}
                     aria-label={showPass ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
-                    className="absolute left-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[#56624A] transition-colors hover:bg-[#EFF2EB]"
+                    className="absolute left-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[var(--color-primary)] transition-colors hover:bg-[var(--color-border)]"
                   >
                     {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -174,7 +174,7 @@ export default function AdminLoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#5E7054] py-3 text-sm font-bold text-[#fff] shadow-[0_16px_28px_-18px_rgba(94,112,84,0.95)] transition-all hover:bg-[#526247] active:scale-[0.99] disabled:scale-100 disabled:opacity-70"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] py-3 text-sm font-bold text-[var(--color-on-primary)] shadow-[0_16px_28px_-18px_rgba(94,112,84,0.95)] transition-all hover:bg-[var(--color-primary-hover)] active:scale-[0.99] disabled:scale-100 disabled:opacity-70"
               >
                 {loading ? (
                   <>
@@ -192,15 +192,15 @@ export default function AdminLoginPage() {
 
             {/* فاصل */}
             <div className="flex items-center gap-3 py-4">
-              <span className="h-px flex-1 bg-[#E4E7DE]" />
-              <span className="text-xs font-bold text-[#8A8279]">أو</span>
-              <span className="h-px flex-1 bg-[#E4E7DE]" />
+              <span className="h-px flex-1 bg-[var(--color-border)]" />
+              <span className="text-xs font-bold text-[var(--color-text-secondary)]">أو</span>
+              <span className="h-px flex-1 bg-[var(--color-border)]" />
             </div>
 
             {/* العودة للموقع */}
             <Link
               href="/"
-              className="flex items-center justify-center gap-2 rounded-full border border-[#D8DDD1] py-3 text-sm font-bold text-[#3B4A39] transition-all hover:border-[#56624A] hover:bg-[#F4F6F1]"
+              className="flex items-center justify-center gap-2 rounded-full border border-[var(--color-border)] py-3 text-sm font-bold text-[var(--color-text-primary)] transition-all hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-soft)]"
             >
               <DoorOpen className="h-4 w-4" />
               <span>العودة لموقع روزماري</span>

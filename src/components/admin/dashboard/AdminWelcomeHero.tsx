@@ -71,7 +71,7 @@ export function AdminWelcomeHero({ adminName, pendingOrders = 0 }: AdminWelcomeH
         </Link>
       )}
 
-      <section className="relative min-h-[160px] overflow-hidden rounded-[20px] border border-[#EDE9E0] bg-[#F2EEE7] sm:min-h-[190px]">
+      <section className="relative min-h-[160px] overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] sm:min-h-[190px]">
         <Image
           src="/images/admin/dashboard-hero.png"
           alt="بيتزا روزماري"
@@ -82,32 +82,32 @@ export function AdminWelcomeHero({ adminName, pendingOrders = 0 }: AdminWelcomeH
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-l from-[#F4EFE7] via-[#F4EFE7]/85 to-transparent"
+          className="absolute inset-0 bg-gradient-to-l from-[var(--color-surface-soft)] via-[var(--color-surface-soft)]/85 to-transparent"
         />
         <div className="relative z-10 flex min-h-[160px] flex-col justify-between px-5 py-5 sm:min-h-[190px] sm:px-9 sm:py-6">
           <div className="max-w-[300px] sm:max-w-none">
-            <h1 className="flex flex-wrap items-center gap-2 text-[22px] font-black leading-tight text-[#333B2E] sm:text-[32px]">
+            <h1 className="flex flex-wrap items-center gap-2 text-[22px] font-black leading-tight text-[var(--color-text-primary)] sm:text-[32px]">
               {name === null ? (
                 <>
                   <span>أهلًا بيك،</span>
-                  <span className="mt-1 inline-block h-6 w-32 animate-pulse rounded-full bg-[#E3DECF] sm:h-8 sm:w-40" />
+                  <span className="mt-1 inline-block h-6 w-32 animate-pulse rounded-full bg-[var(--color-border)] sm:h-8 sm:w-40" />
                 </>
               ) : (
                 <span>أهلًا بيك، {name.trim() || "يا فندم"}</span>
               )}
             </h1>
-            <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] font-semibold text-[#8F9186] sm:text-[14px]">
+            <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] font-semibold text-[var(--color-text-muted)] sm:text-[14px]">
               <span aria-hidden="true" className="text-[#D9534F]">♥</span>
-              يوم مليان طلبات حلوة يبدأ من هنا مع <span className="font-black text-[#333B2E]">Rozmaly</span>
+              يوم مليان طلبات حلوة يبدأ من هنا مع <span className="font-black text-[var(--color-text-primary)]">Rozmaly</span>
             </p>
           </div>
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] font-bold text-[#7D8474] sm:text-[12px]">
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] font-bold text-[var(--color-text-secondary)] sm:text-[12px]">
             <span className="flex items-center gap-1.5">
-              <CalendarDays className="h-3.5 w-3.5 text-[#50604D]" strokeWidth={2} />
+              <CalendarDays className="h-3.5 w-3.5 text-[var(--color-primary)]" strokeWidth={2} />
               {dateText ?? "—"}
             </span>
             <span className="flex items-center gap-1.5" dir="ltr">
-              <Clock3 className="h-3.5 w-3.5 text-[#50604D]" strokeWidth={2} />
+              <Clock3 className="h-3.5 w-3.5 text-[var(--color-primary)]" strokeWidth={2} />
               {timeText ?? "—"}
             </span>
           </div>

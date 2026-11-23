@@ -55,6 +55,20 @@ const TRANSIENT_DB_CODES = new Set([
   6, 7, 89, 91, 189, 262, 9001, 10107, 11600, 11602, 13435, 13436,
 ]);
 
+/** رقم مرجع التحويل مكرر على طلب تاني — مش خطأ اتصال، رسالة واضحة للعميل */
+function isDuplicateTransactionReference(e: unknown) {
+  const err = e as {
+    code?: number;
+    keyPattern?: Record<string, unknown>;
+    message?: string;
+  };
+  return (
+    err?.code === 11000 &&
+    (!!err.keyPattern?.transactionReference ||
+      /transactionReference/.test(err.message ?? ""))
+  );
+}
+
 /** أخطاء اتصال/شبكة مع قاعدة البيانات — إعادة المحاولة على السيرفر */
 function isTransientDbError(e: unknown) {
   const err = e as Error & { code?: number | string; labels?: string[] };
@@ -107,6 +121,7 @@ export async function POST(req: NextRequest) {
       paymentMethod,
       paymentProofUrl,
       paymentProofPublicId,
+      transactionReference,
       clientOrderId,
     } = parsed.data;
     clientOrderIdForDedup = clientOrderId;
@@ -185,6 +200,12 @@ export async function POST(req: NextRequest) {
         paymentMethod,
         paymentProofUrl: paymentMethod === "cash" ? "" : paymentProofUrl ?? "",
         paymentProofPublicId: paymentMethod === "cash" ? "" : paymentProofPublicId ?? "",
+        transactionReference:
+          paymentMethod === "cash" ? "" : transactionReference ?? "",
+        // حالة الدفع بتتحدد هنا فقط — أي paymentStatus/isPaid قادم من المتصفح بيتجاهل
+        paymentStatus: "pending",
+        // الطابور بيستقبل الطلبات الجديدة فقط — الطلبات القديمة من غير الحقل مستثناة
+        printState: "pending",
         notes: customer.notes ?? "",
         ...(clientOrderId ? { clientOrderId } : {}),
       });
@@ -218,6 +239,20 @@ export async function POST(req: NextRequest) {
       } catch (lookupErr) {
         console.error("[POST /api/orders] dedupe lookup", lookupErr);
       }
+    }
+
+    if (isDuplicateTransactionReference(e)) {
+      return Response.json(
+        {
+          success: false,
+          error: {
+            code: "DUPLICATE_TRANSACTION_REFERENCE",
+            message:
+              "رقم مرجع التحويل مستخدم في طلب آخر — راجع الرقم على إيصال التحويل وحاول تاني",
+          },
+        },
+        { status: 409 },
+      );
     }
 
     if (isTransientDbError(e)) {

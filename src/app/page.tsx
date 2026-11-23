@@ -7,7 +7,13 @@ import ProductSection from "@/components/home/ProductSection";
 import { getHomeData } from "@/lib/storefront";
 import type { Product } from "@/types";
 
-const SECTION_ORDER = [
+/** أسماء أقسام قديمة محفوظة عشان اللينكات والبانرات القديمة تفضل شغالة */
+const SECTION_ID_ALIAS: Record<string, string> = {
+  chicken: "crepe",
+  burger: "sandwiches",
+};
+
+const LEGACY_SECTIONS = [
   { id: "pizza",      title: "البيتزا",    slug: "pizza"   },
   { id: "crepe",      title: "كريب",       slug: "chicken" },
   { id: "pasta",      title: "مكرونة",     slug: "pasta"   },
@@ -33,15 +39,32 @@ export default async function HomePage() {
 
   const popular = products.filter((p) => p.isPopular).slice(0, 20);
 
+  // الأقسام بتتبني من ترتيب التصنيفات المحفوظ في الداتابيز — مفيش ترتيب يدوي هنا
+  const homeCategories = categories.filter((category) => category.showOnHome !== false);
+  const sections =
+    homeCategories.length > 0
+      ? homeCategories
+          .map((category) => ({
+            id: SECTION_ID_ALIAS[category.slug] ?? category.slug,
+            slug: category.slug,
+            title: category.name,
+            products: byCategory[category.slug] ?? [],
+          }))
+          .filter((section) => section.products.length > 0)
+      : LEGACY_SECTIONS.map((section) => ({
+          ...section,
+          products: byCategory[section.slug] ?? [],
+        }));
+
   return (
     <main className="flex w-full flex-col pb-4 sm:pb-8">
       <HeroSlider slides={slides} />
-      <CategoriesSection categories={categories} />
+      <CategoriesSection categories={homeCategories} />
       <PopularSection products={popular} />
-      {SECTION_ORDER.map(({ id, title, slug }, index) => (
+      {sections.map(({ id, title, products: sectionProducts }, index) => (
         <Fragment key={id}>
-          {index === SECTION_ORDER.length - 1 && <PromoBanners />}
-          <ProductSection id={id} title={title} products={byCategory[slug] ?? []} />
+          {index === sections.length - 1 && <PromoBanners />}
+          <ProductSection id={id} title={title} products={sectionProducts} />
         </Fragment>
       ))}
     </main>

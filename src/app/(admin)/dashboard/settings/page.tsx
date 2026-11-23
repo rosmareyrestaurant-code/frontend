@@ -40,12 +40,12 @@ const DEFAULTS: StoreSettings = {
 };
 
 const fieldClass =
-  "w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-4 py-2.5 text-[13px] text-[#333B2E] placeholder-[#B0B1A6] transition-colors focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20";
+  "w-full rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] transition-colors focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20";
 
 function InputField({ label, value, onChange, type = "text", placeholder = "", id }: { label: string; value: string | number; onChange: (v: string) => void; type?: string; placeholder?: string; id?: string }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="text-xs font-bold text-[#8F9186]">{label}</label>
+      <label htmlFor={id} className="text-xs font-bold text-[var(--color-text-muted)]">{label}</label>
       <input id={id} type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className={fieldClass} />
     </div>
@@ -58,14 +58,14 @@ function PasswordField({ label, value, onChange, placeholder = "•••••�
   const [show, setShow] = useState(false);
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="text-xs font-bold text-[#8F9186]">{label}</label>
+      <label htmlFor={id} className="text-xs font-bold text-[var(--color-text-muted)]">{label}</label>
       <div className="relative">
         <input id={id} type={show ? "text" : "password"} value={value} onChange={e => onChange(e.target.value)}
           placeholder={placeholder} dir="ltr" autoComplete={autoComplete}
           className={`${fieldClass} ps-11 pe-11 text-left`} />
         <button type="button" onClick={() => setShow(s => !s)}
           aria-label={show ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
-          className="absolute inset-y-0 end-2 my-auto flex h-7 w-7 items-center justify-center rounded-full text-[#8F9186] transition-colors hover:bg-[#EFECE3]">
+          className="absolute inset-y-0 end-2 my-auto flex h-7 w-7 items-center justify-center rounded-full text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-hover)]">
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       </div>
@@ -75,13 +75,13 @@ function PasswordField({ label, value, onChange, placeholder = "•••••�
 
 function SectionHeader({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description?: string }) {
   return (
-    <div className="mb-5 flex items-start gap-3 border-b border-[#F0EDE5] pb-4">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#EDF1E8] text-[#50604D]">
+    <div className="mb-5 flex items-start gap-3 border-b border-[var(--color-border-subtle)] pb-4">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <h3 className="text-[14px] font-black text-[#333B2E]">{title}</h3>
-        {description && <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-[#9A9C90]">{description}</p>}
+        <h3 className="text-[14px] font-black text-[var(--color-text-primary)]">{title}</h3>
+        {description && <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-[var(--color-text-muted)]">{description}</p>}
       </div>
     </div>
   );
@@ -91,14 +91,14 @@ function TickerPreview({ message, icon }: { message: string; icon: string }) {
   const { Icon, text } = resolveTickerIcon(icon);
   const shown = message.trim();
   return (
-    <div dir="ltr" className="relative overflow-hidden rounded-[12px] border border-[#697F6B] bg-[#526B58] shadow-[0_8px_20px_-14px_rgba(82,107,88,0.9)]">
+    <div dir="ltr" className="relative overflow-hidden rounded-[12px] border border-[var(--color-text-secondary)] bg-[var(--color-icon)] shadow-[0_8px_20px_-14px_rgba(82,107,88,0.9)]">
       <div dir="rtl" className="flex items-center gap-3 px-4 py-2.5">
         {Icon ? (
-          <Icon className="h-4 w-4 shrink-0 text-[#fff]" />
+          <Icon className="h-4 w-4 shrink-0 text-[var(--color-on-primary)]" />
         ) : text ? (
           <span className="shrink-0 text-sm leading-none" aria-hidden="true">{text}</span>
         ) : null}
-        <span className={`truncate text-[11px] font-bold sm:text-xs ${shown ? "text-[#fff]" : "text-[#DDE7D7]/75"}`}>
+        <span className={`truncate text-[11px] font-bold sm:text-xs ${shown ? "text-[var(--color-on-primary)]" : "text-[var(--color-on-primary)]/75"}`}>
           {shown || "اكتب الجملة فوق وهتظهر هنا زي ما هي على الموقع"}
         </span>
       </div>
@@ -108,8 +108,8 @@ function TickerPreview({ message, icon }: { message: string; icon: string }) {
 
 function CardTitle({ icon: Icon, text }: { icon: React.ElementType; text: string }) {
   return (
-    <p className="flex items-center gap-2 text-[12.5px] font-black text-[#333B2E]">
-      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EDF1E8] text-[#50604D]">
+    <p className="flex items-center gap-2 text-[12.5px] font-black text-[var(--color-text-primary)]">
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
         <Icon className="h-3.5 w-3.5" />
       </span>
       {text}
@@ -230,7 +230,7 @@ export default function SettingsPage() {
     finally { setSaving(false); }
   };
 
-  if (loading) return <div className="animate-pulse py-12 text-center text-[13px] font-semibold text-[#9A9C90]">جاري التحميل...</div>;
+  if (loading) return <div className="animate-pulse py-12 text-center text-[13px] font-semibold text-[var(--color-text-muted)]">جاري التحميل...</div>;
 
   const tickerIcon = settings.tickerIcon ?? "truck";
   const customTickerIcon = !findTickerIcon(tickerIcon);
@@ -239,8 +239,8 @@ export default function SettingsPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-[16px] font-black text-[#333B2E]">إعدادات المتجر</h2>
-          <p className="mt-1 text-[11px] font-medium text-[#9A9C90]">
+          <h2 className="text-[16px] font-black text-[var(--color-text-primary)]">إعدادات المتجر</h2>
+          <p className="mt-1 text-[11px] font-medium text-[var(--color-text-muted)]">
             كل بيانات المتجر في مكان واحد — احفظ التعديلات قبل ما تسيب الصفحة.
           </p>
         </div>
@@ -252,8 +252,8 @@ export default function SettingsPage() {
             </span>
           )}
           <button onClick={handleSave} disabled={saving || !dirty}
-            className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-[12.5px] font-bold text-[#fff] transition-all active:scale-[0.98] ${
-              dirty && !saving ? "bg-[#50604D] hover:bg-[#435241]" : "cursor-not-allowed bg-[#50604D]/45"
+            className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-[12.5px] font-bold text-[var(--color-on-primary)] transition-all active:scale-[0.98] ${
+              dirty && !saving ? "bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]" : "cursor-not-allowed bg-[var(--color-primary)]/45"
             } disabled:active:scale-100`}>
             <Save className="h-4 w-4" />{saving ? "جاري الحفظ..." : "حفظ التغييرات"}
           </button>
@@ -262,24 +262,24 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[224px_minmax(0,1fr)]">
         <nav className="min-w-0 lg:sticky lg:top-[88px]">
-          <div className="flex w-full gap-1.5 overflow-x-auto pb-1 scrollbar-none lg:flex-col lg:gap-1 lg:overflow-visible lg:rounded-[16px] lg:border lg:border-[#EDE9E0] lg:bg-[#FBF9F6] lg:p-2">
+          <div className="flex w-full gap-1.5 overflow-x-auto pb-1 scrollbar-none lg:flex-col lg:gap-1 lg:overflow-visible lg:rounded-[16px] lg:border lg:border-[var(--color-border)] lg:bg-[var(--color-surface)] lg:p-2">
             {TABS.map(({ id, label, desc, icon: Icon }) => {
               const active = activeTab === id;
               return (
                 <button key={id} onClick={() => setActiveTab(id)}
                   className={`group flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[12px] font-bold transition-all lg:w-full lg:justify-start lg:rounded-[12px] lg:px-2.5 lg:py-2.5 ${
                     active
-                      ? "bg-[#50604D] text-[#fff]"
-                      : "border border-[#E7E3D8] bg-[#FBF9F6] text-[#6B7264] hover:border-[#C9D3C3] hover:text-[#333B2E] lg:border-transparent lg:bg-transparent"
+                      ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]"
+                      : "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary-border)] hover:text-[var(--color-text-primary)] lg:border-transparent lg:bg-transparent"
                   }`}>
                   <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors ${
-                    active ? "bg-white/15 text-[#fff]" : "bg-[#EFECE3] text-[#6B7264]"
+                    active ? "bg-white/15 text-[var(--color-on-primary)]" : "bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]"
                   }`}>
                     <Icon className="h-3.5 w-3.5" />
                   </span>
                   <span className="flex flex-col items-start gap-0.5">
                     <span>{label}</span>
-                    <span className={`hidden text-[9.5px] font-semibold lg:block ${active ? "text-[#DDE7D7]" : "text-[#A6A79C]"}`}>{desc}</span>
+                    <span className={`hidden text-[9.5px] font-semibold lg:block ${active ? "text-[var(--color-on-primary)]" : "text-[var(--color-text-muted)]"}`}>{desc}</span>
                   </span>
                 </button>
               );
@@ -287,7 +287,7 @@ export default function SettingsPage() {
           </div>
         </nav>
 
-        <section className="min-w-0 rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] p-5 sm:p-6">
+        <section className="min-w-0 rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6">
           {activeTab === "basic" && (
             <div>
               <SectionHeader icon={Store} title="المعلومات الأساسية" description="اسم المتجر وبيانات التواصل والشعار اللي بيظهروا للعميل." />
@@ -295,7 +295,7 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <InputField label="اسم المتجر" value={settings.storeName} onChange={v => update("storeName", v)} />
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#8F9186]">وصف المتجر</label>
+                    <label className="text-xs font-bold text-[var(--color-text-muted)]">وصف المتجر</label>
                     <textarea rows={3} value={settings.storeDescription} onChange={e => update("storeDescription", e.target.value)}
                       className={`${fieldClass} resize-none`} />
                   </div>
@@ -305,7 +305,7 @@ export default function SettingsPage() {
                   </div>
                   <InputField label="العنوان" value={settings.address} onChange={v => update("address", v)} />
                 </div>
-                <div className="rounded-[16px] border border-[#EDE9E0] bg-[#F4F2EE] p-4">
+                <div className="rounded-[16px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-4">
                   <ImageUpload value={settings.logoUrl}
                     onChange={url => update("logoUrl", url)}
                     onPublicIdChange={pid => setSettings(prev => ({ ...prev, logoPublicId: pid } as typeof prev))}
@@ -321,20 +321,20 @@ export default function SettingsPage() {
               <div className="max-w-2xl space-y-5">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label htmlFor="ticker-message" className="text-xs font-bold text-[#8F9186]">جملة الشريط</label>
-                    <span className="text-[10px] font-bold text-[#B0B1A6]">{(settings.tickerMessage ?? "").length}/160</span>
+                    <label htmlFor="ticker-message" className="text-xs font-bold text-[var(--color-text-muted)]">جملة الشريط</label>
+                    <span className="text-[10px] font-bold text-[var(--color-text-muted)]">{(settings.tickerMessage ?? "").length}/160</span>
                   </div>
                   <input id="ticker-message" type="text" maxLength={160} value={settings.tickerMessage ?? ""}
                     onChange={e => update("tickerMessage", e.target.value)}
                     placeholder="مثال: خصم 20% على كل العروض النهاردة 🎉"
                     className={fieldClass} />
-                  <p className="text-[10.5px] font-medium leading-relaxed text-[#9A9C90]">
+                  <p className="text-[10.5px] font-medium leading-relaxed text-[var(--color-text-muted)]">
                     لو سبتها فاضية، الشريط هيعرض جملة مناطق التوصيل المجاني تلقائياً.
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-xs font-bold text-[#8F9186]">الأيقونة</p>
+                  <p className="text-xs font-bold text-[var(--color-text-muted)]">الأيقونة</p>
                   <div className="flex flex-wrap gap-2">
                     {TICKER_ICON_OPTIONS.map(({ key, label, Icon }) => {
                       const active = !customTickerIcon && tickerIcon === key;
@@ -343,8 +343,8 @@ export default function SettingsPage() {
                           onClick={() => update("tickerIcon", key)}
                           className={`flex h-10 w-10 items-center justify-center rounded-[12px] border transition-all ${
                             active
-                              ? "border-[#50604D] bg-[#50604D] text-[#fff] shadow-[0_6px_14px_-8px_rgba(80,96,77,0.9)]"
-                              : "border-[#E7E3D8] bg-[#F7F4EE] text-[#6B7264] hover:border-[#C9D3C3] hover:text-[#333B2E]"
+                              ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[0_6px_14px_-8px_rgba(80,96,77,0.9)]"
+                              : "border-[var(--color-border)] bg-[var(--color-surface-soft)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary-border)] hover:text-[var(--color-text-primary)]"
                           }`}>
                           <Icon className="h-4 w-4" />
                           <span className="sr-only">{label}</span>
@@ -353,23 +353,23 @@ export default function SettingsPage() {
                     })}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 pt-1">
-                    <label htmlFor="ticker-icon-custom" className="text-[11px] font-bold text-[#8F9186]">أو اكتب إيموجي / حرف:</label>
+                    <label htmlFor="ticker-icon-custom" className="text-[11px] font-bold text-[var(--color-text-muted)]">أو اكتب إيموجي / حرف:</label>
                     <input id="ticker-icon-custom" type="text" maxLength={12} dir="ltr" value={customTickerIcon ? tickerIcon : ""}
                       onChange={e => update("tickerIcon", e.target.value.trim() ? e.target.value : "truck")}
                       placeholder="🚚"
-                      className="w-24 rounded-[10px] border border-[#E9E5DA] bg-[#F7F4EE] px-3 py-2 text-center text-base text-[#333B2E] placeholder-[#B0B1A6] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+                      className="w-24 rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-3 py-2 text-center text-base text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
                     {customTickerIcon && (
-                      <span className="rounded-full bg-[#EDF1E8] px-2.5 py-1 text-[10.5px] font-bold text-[#50604D]">
+                      <span className="rounded-full bg-[var(--color-primary-soft)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-primary)]">
                         أيقونة مخصصة
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-2 border-t border-[#F0EDE5] pt-4">
-                  <p className="text-[11.5px] font-black text-[#6B7264]">معاينة حية للشريط</p>
+                <div className="space-y-2 border-t border-[var(--color-border-subtle)] pt-4">
+                  <p className="text-[11.5px] font-black text-[var(--color-text-secondary)]">معاينة حية للشريط</p>
                   <TickerPreview message={settings.tickerMessage ?? ""} icon={tickerIcon} />
-                  <p className="text-[10px] font-medium text-[#9A9C90]">كده الشريط هيظهر أعلى الموقع بالظبط — التغيير بيتطبق بعد الحفظ.</p>
+                  <p className="text-[10px] font-medium text-[var(--color-text-muted)]">كده الشريط هيظهر أعلى الموقع بالظبط — التغيير بيتطبق بعد الحفظ.</p>
                 </div>
               </div>
             </div>
@@ -380,24 +380,24 @@ export default function SettingsPage() {
               <SectionHeader icon={Clock} title="أوقات العمل" description="حدد الأيام اللي المتجر بيفتح فيها ومواعيد الفتح والقفل." />
               <div className="space-y-2">
                 {settings.workingHours.map((day, idx) => (
-                  <div key={day.day} className="flex flex-wrap items-center gap-3 rounded-[12px] border border-[#EDE9E0] bg-[#F7F4EE] px-4 py-3">
+                  <div key={day.day} className="flex flex-wrap items-center gap-3 rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-3">
                     <label className="flex w-28 shrink-0 cursor-pointer items-center gap-2">
-                      <input type="checkbox" checked={day.isOpen} onChange={e => updateHour(idx, "isOpen", e.target.checked)} className="h-4 w-4 rounded accent-[#50604D]" />
-                      <span className="flex items-center gap-1.5 text-[12.5px] font-bold text-[#333B2E]">
-                        <span className={`h-1.5 w-1.5 rounded-full ${day.isOpen ? "bg-[#7FA47A]" : "bg-[#C9CCC0]"}`} />
+                      <input type="checkbox" checked={day.isOpen} onChange={e => updateHour(idx, "isOpen", e.target.checked)} className="h-4 w-4 rounded accent-[var(--color-primary)]" />
+                      <span className="flex items-center gap-1.5 text-[12.5px] font-bold text-[var(--color-text-primary)]">
+                        <span className={`h-1.5 w-1.5 rounded-full ${day.isOpen ? "bg-[#7FA47A]" : "bg-[var(--color-text-muted)]"}`} />
                         {day.day}
                       </span>
                     </label>
                     {day.isOpen ? (
                       <div className="flex flex-1 items-center gap-2">
                         <input type="time" value={day.openTime} onChange={e => updateHour(idx, "openTime", e.target.value)}
-                          className="rounded-[8px] border border-[#E9E5DA] bg-[#FBF9F6] px-3 py-1.5 text-xs text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none" />
-                        <span className="text-xs text-[#9A9C90]">—</span>
+                          className="rounded-[8px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 py-1.5 text-xs text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none" />
+                        <span className="text-xs text-[var(--color-text-muted)]">—</span>
                         <input type="time" value={day.closeTime} onChange={e => updateHour(idx, "closeTime", e.target.value)}
-                          className="rounded-[8px] border border-[#E9E5DA] bg-[#FBF9F6] px-3 py-1.5 text-xs text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none" />
+                          className="rounded-[8px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 py-1.5 text-xs text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none" />
                       </div>
                     ) : (
-                      <span className="flex-1 text-xs font-medium text-[#9A9C90]">مغلق</span>
+                      <span className="flex-1 text-xs font-medium text-[var(--color-text-muted)]">مغلق</span>
                     )}
                   </div>
                 ))}
@@ -422,8 +422,8 @@ export default function SettingsPage() {
               <SectionHeader icon={Settings} title="الإعدادات العامة" description="رسوم التوصيل، بيانات الدفع، وحالة فتح المتجر." />
               <div className="space-y-5">
                 <div>
-                  <p className="mb-3 flex items-center gap-1.5 text-[11.5px] font-black text-[#6B7264]">
-                    <Truck className="h-3.5 w-3.5 text-[#50604D]" />التوصيل والطلبات
+                  <p className="mb-3 flex items-center gap-1.5 text-[11.5px] font-black text-[var(--color-text-secondary)]">
+                    <Truck className="h-3.5 w-3.5 text-[var(--color-primary)]" />التوصيل والطلبات
                   </p>
                   <div className="grid gap-4 sm:grid-cols-3">
                     <InputField label="رسوم التوصيل (ج.م)" value={settings.deliveryFee ?? 0} onChange={v => update("deliveryFee", Number(v))} type="number" />
@@ -432,9 +432,9 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="border-t border-[#F0EDE5] pt-4">
-                  <p className="mb-3 flex items-center gap-1.5 text-[11.5px] font-black text-[#6B7264]">
-                    <CreditCard className="h-3.5 w-3.5 text-[#50604D]" />بيانات استلام الدفع
+                <div className="border-t border-[var(--color-border-subtle)] pt-4">
+                  <p className="mb-3 flex items-center gap-1.5 text-[11.5px] font-black text-[var(--color-text-secondary)]">
+                    <CreditCard className="h-3.5 w-3.5 text-[var(--color-primary)]" />بيانات استلام الدفع
                   </p>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <InputField label="رقم استلام فودافون كاش" value={settings.vodafoneCashNumber ?? ""} onChange={v => update("vodafoneCashNumber", v)} type="tel" placeholder="0100xxxxxxx" />
@@ -442,14 +442,14 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-3 rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] px-4 py-3">
-                  <span className="flex items-center gap-2 text-[12.5px] font-bold text-[#333B2E]">
+                <div className="flex items-center justify-between gap-3 rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] px-4 py-3">
+                  <span className="flex items-center gap-2 text-[12.5px] font-bold text-[var(--color-text-primary)]">
                     <Power className={`h-4 w-4 ${settings.isStoreOpen ? "text-[#4F8A57]" : "text-[#C25B4F]"}`} />
                     حالة المتجر
                   </span>
                   <label className="flex cursor-pointer items-center gap-2">
-                    <input type="checkbox" checked={settings.isStoreOpen} onChange={e => update("isStoreOpen", e.target.checked)} className="h-4 w-4 rounded accent-[#50604D]" />
-                    <span className="text-[12.5px] font-bold text-[#333B2E]">{settings.isStoreOpen ? "مفتوح" : "مغلق"}</span>
+                    <input type="checkbox" checked={settings.isStoreOpen} onChange={e => update("isStoreOpen", e.target.checked)} className="h-4 w-4 rounded accent-[var(--color-primary)]" />
+                    <span className="text-[12.5px] font-bold text-[var(--color-text-primary)]">{settings.isStoreOpen ? "مفتوح" : "مغلق"}</span>
                   </label>
                 </div>
               </div>
@@ -460,22 +460,22 @@ export default function SettingsPage() {
             <div>
               <SectionHeader icon={ShieldCheck} title="حساب الأدمن" description="بيانات تسجيل الدخول محفوظة في قاعدة البيانات — أي تغيير هنا يسري فوراً." />
               <div className="grid gap-4 xl:grid-cols-2">
-                <div className="space-y-3 rounded-[16px] border border-[#EDE9E0] bg-[#F7F4EE] p-4">
+                <div className="space-y-3 rounded-[16px] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
                   <CardTitle icon={Mail} text="البريد الإلكتروني" />
-                  <div className="rounded-[10px] border border-[#E9E5DA] bg-[#FBF9F6] px-3 py-2">
-                    <p className="text-[10px] font-bold text-[#9A9C90]">البريد الحالي</p>
-                    <p className="mt-0.5 text-[12px] font-bold text-[#50604D]" dir="ltr">{adminEmail || "..."}</p>
+                  <div className="rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 py-2">
+                    <p className="text-[10px] font-bold text-[var(--color-text-muted)]">البريد الحالي</p>
+                    <p className="mt-0.5 text-[12px] font-bold text-[var(--color-primary)]" dir="ltr">{adminEmail || "..."}</p>
                   </div>
                   <InputField id="admin-new-email" label="البريد الإلكتروني الجديد" value={emailForm.newEmail} onChange={v => setEmailForm(p => ({ ...p, newEmail: v }))} type="email" placeholder="new-admin@example.com" />
                   <PasswordField id="admin-email-password" label="كلمة المرور الحالية (للتأكيد)" value={emailForm.currentPassword}
                     onChange={v => setEmailForm(p => ({ ...p, currentPassword: v }))} autoComplete="current-password" />
                   <button onClick={changeEmail} disabled={savingEmail}
-                    className="flex items-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12px] font-bold text-[#fff] transition-colors hover:bg-[#435241] disabled:opacity-50 active:scale-[0.98]">
+                    className="flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[12px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:opacity-50 active:scale-[0.98]">
                     <ShieldCheck className="h-3.5 w-3.5" />{savingEmail ? "جاري التحديث..." : "تحديث البريد الإلكتروني"}
                   </button>
                 </div>
 
-                <div className="space-y-3 rounded-[16px] border border-[#EDE9E0] bg-[#F7F4EE] p-4">
+                <div className="space-y-3 rounded-[16px] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
                   <CardTitle icon={KeyRound} text="تغيير كلمة المرور" />
                   <PasswordField id="admin-current-password" label="كلمة المرور الحالية" value={passForm.currentPassword}
                     onChange={v => setPassForm(p => ({ ...p, currentPassword: v }))} autoComplete="current-password" />
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                   <PasswordField id="admin-confirm-password" label="تأكيد كلمة المرور الجديدة" value={passForm.confirm}
                     onChange={v => setPassForm(p => ({ ...p, confirm: v }))} />
                   <button onClick={changePassword} disabled={savingPass}
-                    className="flex items-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12px] font-bold text-[#fff] transition-colors hover:bg-[#435241] disabled:opacity-50 active:scale-[0.98]">
+                    className="flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[12px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:opacity-50 active:scale-[0.98]">
                     <KeyRound className="h-3.5 w-3.5" />{savingPass ? "جاري الحفظ..." : "تغيير كلمة المرور"}
                   </button>
                 </div>

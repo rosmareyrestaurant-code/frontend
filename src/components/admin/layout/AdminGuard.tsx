@@ -40,7 +40,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
 
   if (!hydrated || !signedIn) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F2F2ED] text-sm text-[#a89f94]">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--color-page-background)] text-sm text-[var(--color-text-muted)]">
         جاري التحقق من الجلسة...
       </div>
     );

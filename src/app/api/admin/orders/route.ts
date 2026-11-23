@@ -41,6 +41,8 @@ export async function GET(req: NextRequest) {
         { orderNumber: { $regex: q, $options: "i" } },
         { customerName: { $regex: q, $options: "i" } },
         { customerPhone: { $regex: q, $options: "i" } },
+        // الكاشير يقدر يلاقي الطلب برقم مرجع التحويل
+        { transactionReference: { $regex: q, $options: "i" } },
       ];
     }
 

@@ -32,9 +32,9 @@ export function Pagination({
   }
 
   return (
-    <div className="flex items-center justify-between border-t border-[#F0EDE5] pt-4">
+    <div className="flex items-center justify-between border-t border-[var(--color-border-subtle)] pt-4">
       {totalItems && start && end ? (
-        <span className="text-[11px] font-semibold text-[#9A9C90]">
+        <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
           {start}–{end} من {totalItems}
         </span>
       ) : (
@@ -44,21 +44,21 @@ export function Pagination({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F2EE] text-[#6B7264] transition-colors hover:bg-[#EDEAE1] hover:text-[#333B2E] disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
         {pages.map((page, i) =>
           page === "..." ? (
-            <span key={i} className="px-1 text-[11px] text-[#B5B2A8]">…</span>
+            <span key={i} className="px-1 text-[11px] text-[var(--color-text-muted)]">…</span>
           ) : (
             <button
               key={page}
               onClick={() => onPageChange(page as number)}
               className={`flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold transition-colors ${
                 currentPage === page
-                  ? "bg-[#50604D] text-[#fff]"
-                  : "bg-[#F4F2EE] text-[#6B7264] hover:bg-[#EDEAE1] hover:text-[#333B2E]"
+                  ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]"
+                  : "bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]"
               }`}
             >
               {page}
@@ -68,7 +68,7 @@ export function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F2EE] text-[#6B7264] transition-colors hover:bg-[#EDEAE1] hover:text-[#333B2E] disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>

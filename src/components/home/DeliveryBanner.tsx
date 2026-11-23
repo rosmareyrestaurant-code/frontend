@@ -4,7 +4,7 @@ export default function DeliveryBanner() {
   return (
     <section
       id="delivery-banner"
-      className="w-full bg-[#F2F2ED] py-5 sm:py-7 select-none"
+      className="w-full bg-[var(--color-page-background)] py-5 sm:py-7 select-none"
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* البانر: صورة فقط بدون هوفر أو بوردر */}

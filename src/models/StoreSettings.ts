@@ -1,4 +1,5 @@
 import mongoose, { Schema, model } from "mongoose";
+import { DEFAULT_THEME } from "@/lib/theme";
 
 const workingHourSchema = new Schema(
   { day: String, isOpen: Boolean, openTime: String, closeTime: String },
@@ -20,6 +21,28 @@ const galleryImageSchema = new Schema(
   { _id: false },
 );
 
+/**
+ * ألوان الهوية: الأساسية إلزامية، والإعدادات المتقدمة اختيارية (فاضية = تُشتق تلقائياً).
+ * كل القيم HEX فقط — أي قيمة تانية بترفضها الـ validation.
+ */
+const themeSchema = new Schema(
+  {
+    // HEX فقط (مش أسماء متغيرات CSS) — عشان الداشبورد يقدر يقرأها ويعرضها
+    primary: { type: String, default: DEFAULT_THEME.primary },
+    icon: { type: String, default: DEFAULT_THEME.icon },
+    background: { type: String, default: DEFAULT_THEME.background },
+    primaryHover: { type: String, default: "" },
+    primaryActive: { type: String, default: "" },
+    iconHover: { type: String, default: "" },
+    textPrimary: { type: String, default: "" },
+    surface: { type: String, default: "" },
+    surfaceSecondary: { type: String, default: "" },
+    surfaceElevated: { type: String, default: "" },
+    border: { type: String, default: "" },
+  },
+  { _id: false },
+);
+
 const storeSettingsSchema = new Schema(
   {
     storeName: { type: String, default: "Rosemary" },
@@ -31,6 +54,9 @@ const storeSettingsSchema = new Schema(
     logoPublicId: { type: String, default: "" },
     tickerMessage: { type: String, default: "" },
     tickerIcon: { type: String, default: "truck" },
+    tickerEnabled: { type: Boolean, default: true },
+    tickerIconPosition: { type: String, enum: ["start", "end"], default: "start" },
+    theme: { type: themeSchema, default: () => ({}) },
     currency: { type: String, default: "EGP" },
     deliveryFee: { type: Number, default: 0, min: 0 },
     minimumOrder: { type: Number, default: 0, min: 0 },

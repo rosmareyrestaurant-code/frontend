@@ -30,7 +30,7 @@ export default function StackedGallery({ images }: StackedGalleryProps) {
         {/* الخلفية الزيتية المائلة خلف الصورة */}
         <div
           aria-hidden="true"
-          className="absolute inset-x-5 inset-y-6 rotate-[4deg] rounded-[38px] bg-[#A9B7A2] shadow-[0_18px_40px_rgba(86,98,74,0.16)]"
+          className="absolute inset-x-5 inset-y-6 rotate-[4deg] rounded-[38px] bg-[var(--color-primary-border)] shadow-[0_18px_40px_rgba(86,98,74,0.16)]"
         />
 
         {/* بطاقة الصورة — مائلة عكس الخلفية */}
@@ -85,8 +85,8 @@ export default function StackedGallery({ images }: StackedGalleryProps) {
             aria-label={`عرض الصورة ${idx + 1}`}
             className={`rounded-full transition-all duration-300 ${
               idx === 0
-                ? "h-2 w-6 bg-[#56624A]"
-                : "h-2 w-2 bg-[#C3CEBB] hover:bg-[#A9B7A2]"
+                ? "h-2 w-6 bg-[var(--color-primary)]"
+                : "h-2 w-2 bg-[var(--color-primary-border)] hover:bg-[var(--color-primary-border)]"
             }`}
           />
         ))}

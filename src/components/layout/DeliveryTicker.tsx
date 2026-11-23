@@ -1,62 +1,54 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useDelivery } from "@/context/DeliveryContext";
 import { resolveTickerIcon } from "@/lib/ticker";
-
-interface TickerSettings {
-  message: string;
-  icon: string;
-}
+import type { PublicTickerSettings } from "@/lib/storefront";
 
 /**
- * شريط متحرك أعلى الهيدر: الجملة والأيقونة بيحددهم الأدمن من الداشبورد.
+ * شريط متحرك أعلى الهيدر: الجملة والأيقونة وترتيبها بيحددهم الأدمن من الداشبورد.
+ * لونه بياخده تلقائياً من لون الأزرار الأساسي في هوية الموقع.
  * لو مفيش جملة محفوظة، بيرجع لنص مناطق التوصيل المجاني الافتراضي.
  */
-export default function DeliveryTicker() {
+export default function DeliveryTicker({ initial }: { initial: PublicTickerSettings }) {
   const { activeZones } = useDelivery();
-  const [ticker, setTicker] = useState<TickerSettings | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/settings/public", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((d) => {
-        if (cancelled || !d.success) return;
-        setTicker({
-          message: typeof d.data.tickerMessage === "string" ? d.data.tickerMessage : "",
-          icon: typeof d.data.tickerIcon === "string" ? d.data.tickerIcon : "truck",
-        });
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // لو الأدمن قافل الشريط، مفيش أي مساحة فاضية أعلى الهيدر
+  if (!initial.enabled) return null;
 
-  const customMessage = ticker?.message.trim() ?? "";
+  const customMessage = initial.message.trim();
   const names = activeZones.map((zone) => zone.name);
   const message = customMessage || (names.length ? `توصيل مجاني إلى ${names.join(" و")}` : "");
 
   if (!message) return null;
 
-  const { Icon, text } = resolveTickerIcon(ticker?.icon ?? "truck");
+  const { Icon, text } = resolveTickerIcon(initial.icon);
+  const iconFirst = initial.iconPosition !== "end";
 
   return (
-    <div dir="ltr" className="relative z-40 overflow-hidden border-b border-[#697F6B] bg-[#526B58]">
+    <div
+      dir="ltr"
+      className="relative z-40 overflow-hidden border-b border-[var(--color-primary-hover)] bg-[var(--color-primary)]"
+    >
       <div className="delivery-ticker-track flex w-max items-center py-2">
         {[0, 1].map((copy) => (
           <div key={copy} dir="rtl" aria-hidden={copy === 1} className="flex shrink-0 items-center gap-3 pe-12">
+            {!iconFirst && (
+              <span className="whitespace-nowrap text-[11px] font-bold text-[var(--color-on-primary)] sm:text-xs">
+                {message}
+              </span>
+            )}
             {Icon ? (
-              <Icon className="h-4 w-4 shrink-0 !text-white" />
+              <Icon className="h-4 w-4 shrink-0 text-[var(--color-on-primary)]" />
             ) : text ? (
-              <span className="shrink-0 text-sm leading-none" aria-hidden="true">
+              <span className="shrink-0 text-sm leading-none text-[var(--color-on-primary)]" aria-hidden="true">
                 {text}
               </span>
             ) : null}
-            <span className="whitespace-nowrap text-[11px] font-bold !text-white sm:text-xs">
-              {message}
-            </span>
+            {iconFirst && (
+              <span className="whitespace-nowrap text-[11px] font-bold text-[var(--color-on-primary)] sm:text-xs">
+                {message}
+              </span>
+            )}
           </div>
         ))}
       </div>

@@ -25,7 +25,6 @@ function fromLocalOrder(order: Order): PublicOrder {
   return {
     id: order.id,
     orderNumber: order.id,
-    accessToken: "",
     customer: order.customer,
     items: order.items.map((item) => ({
       productId: item.product.id,
@@ -43,6 +42,7 @@ function fromLocalOrder(order: Order): PublicOrder {
     discount: 0,
     total: order.total,
     paymentMethod: "cash",
+    paymentStatus: "pending",
     orderStatus: order.status,
     createdAt: order.createdAt,
   };
@@ -51,11 +51,11 @@ function fromLocalOrder(order: Order): PublicOrder {
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#ff7a00]/10 border border-[#ff7a00]/20 text-[#FFFFFF]">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-text-on-primary)]">
         <Icon className="h-4 w-4" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-[#6b6259] font-semibold uppercase tracking-widest">{label}</p>
+        <p className="text-[11px] text-[var(--color-text-muted)] font-semibold uppercase tracking-widest">{label}</p>
         <p className="text-sm text-white mt-0.5 leading-relaxed break-words">{value}</p>
       </div>
     </div>
@@ -134,21 +134,21 @@ function OrderConfirmationInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F2F2ED] flex items-center justify-center">
-        <Loader2 className="h-10 w-10 text-[#ff7a00] animate-spin" />
+      <div className="min-h-screen bg-[var(--color-page-background)] flex items-center justify-center">
+        <Loader2 className="h-10 w-10 text-[var(--color-primary)] animate-spin" />
       </div>
     );
   }
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-[#F2F2ED] flex flex-col items-center justify-center gap-4 p-6 text-center">
-        <div className="h-16 w-16 rounded-2xl bg-[#F2F2ED] text-[#ff7a00] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--color-page-background)] flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <div className="h-16 w-16 rounded-2xl bg-[var(--color-page-background)] text-[var(--color-primary)] flex items-center justify-center">
           <ShoppingBag className="h-8 w-8" />
         </div>
         <h2 className="text-xl font-bold text-white">{error || "لم يتم العثور على الطلب"}</h2>
-        <p className="text-sm text-[#8e8479] max-w-xs">يبدو أن الطلب غير موجود أو انتهت صلاحية الرابط.</p>
-        <Link href="/" className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[#ff7a00] px-6 py-3 text-sm font-bold text-white hover:bg-[#e66e00] transition-colors">
+        <p className="text-sm text-[var(--color-text-secondary)] max-w-xs">يبدو أن الطلب غير موجود أو انتهت صلاحية الرابط.</p>
+        <Link href="/" className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--color-primary-hover)] transition-colors">
           <span>العودة للرئيسية</span><ArrowLeft className="h-4 w-4" />
         </Link>
       </div>
@@ -159,91 +159,91 @@ function OrderConfirmationInner() {
   const isCancelled = order.orderStatus === "cancelled";
 
   return (
-    <div className="min-h-screen bg-[#F2F2ED] py-8 sm:py-12" dir="rtl">
+    <div className="min-h-screen bg-[var(--color-page-background)] py-8 sm:py-12" dir="rtl">
       <div className="mx-auto max-w-2xl px-4 sm:px-6 space-y-5">
 
         {/* شريط الحالة — خلفية خضراء ثابتة ونصوص بيضاء في كل الحالات */}
-        <div className={`flex items-start gap-3 rounded-2xl border p-4 bg-[#526B58] ${
-          isCancelled ? "border-[#7B4C48]" : "border-[#899B83]"
+        <div className={`flex items-start gap-3 rounded-2xl border p-4 bg-[var(--color-icon)] ${
+          isCancelled ? "border-[#7B4C48]" : "border-[var(--color-primary-border)]"
         }`}>
           {isDelivered
-            ? <CheckCircle2 className="h-7 w-7 text-[#FFFFFF] shrink-0" />
-            : <Clock className="h-7 w-7 text-[#FFFFFF] shrink-0" />}
+            ? <CheckCircle2 className="h-7 w-7 text-[var(--color-text-on-primary)] shrink-0" />
+            : <Clock className="h-7 w-7 text-[var(--color-text-on-primary)] shrink-0" />}
           <div className="min-w-0 flex-1">
-            <h1 className="text-base sm:text-lg font-black text-[#FFFFFF]">
+            <h1 className="text-base sm:text-lg font-black text-[var(--color-text-on-primary)]">
               {isDelivered ? "تم تسليم طلبك!" :
                isCancelled ? "تم إلغاء الطلب" :
                "طلبك في الطريق إليك"}
             </h1>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#FFFFFF]/85 mt-1">
-              <span className="text-[#FFFFFF]/85">رقم الطلب:</span>
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#FFFFFF]/15 px-2 py-0.5">
-                <span className="font-mono font-bold text-[#FFFFFF] tracking-wider select-all">#{order.orderNumber}</span>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--color-text-on-primary)]/85 mt-1">
+              <span className="text-[var(--color-text-on-primary)]/85">رقم الطلب:</span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--color-surface-elevated)]/15 px-2 py-0.5">
+                <span className="font-mono font-bold text-[var(--color-text-on-primary)] tracking-wider select-all">#{order.orderNumber}</span>
                 <button type="button" onClick={handleCopy} aria-label="نسخ رقم الطلب"
-                  className="text-[#FFFFFF]/80 hover:text-[#FFFFFF] transition-colors">
-                  {copied ? <Check className="h-3.5 w-3.5 text-[#FFFFFF]" /> : <Copy className="h-3.5 w-3.5" />}
+                  className="text-[var(--color-text-on-primary)]/80 hover:text-[var(--color-text-on-primary)] transition-colors">
+                  {copied ? <Check className="h-3.5 w-3.5 text-[var(--color-text-on-primary)]" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
               </span>
-              <span className="text-[#FFFFFF]/85">{formatDate(order.createdAt)}</span>
+              <span className="text-[var(--color-text-on-primary)]/85">{formatDate(order.createdAt)}</span>
             </div>
           </div>
         </div>
 
         {/* ملخص الطلب */}
-        <div className="rounded-2xl border border-[#2a221b] bg-[#F2F2ED] overflow-hidden">
-          <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-[#2a221b]">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] overflow-hidden">
+          <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-[var(--color-border)]">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <ShoppingBag className="h-4 w-4 text-[#ff7a00]" />ملخص الطلب
+              <ShoppingBag className="h-4 w-4 text-[var(--color-primary)]" />ملخص الطلب
             </h2>
-            <span className="text-xs text-[#8e8479]">
+            <span className="text-xs text-[var(--color-text-secondary)]">
               {order.items.reduce((acc, i) => acc + i.quantity, 0)} وجبات
             </span>
           </div>
-          <div className="divide-y divide-[#201a15]">
+          <div className="divide-y divide-[var(--color-border)]">
             {order.items.map((item, idx) => (
               <div key={idx} className="flex items-center gap-3 px-4 sm:px-5 py-3.5">
-                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#F2F2ED] border border-[#2a221b]">
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)]">
                   <Image src={item.productImage || "/images/logo-rosemary-green.png"} alt={item.productName} fill sizes="56px" className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white truncate">{item.productName}</p>
-                  {item.selectedSize && <p className="text-[11px] text-[#ff9838] mt-0.5">الحجم: {item.selectedSize.name}</p>}
-                  {item.notes && <p className="text-[11px] text-[#ff9838] mt-0.5">ملاحظة: {item.notes}</p>}
-                  <p className="text-xs text-[#8e8479] mt-0.5">{item.quantity} × {item.unitPrice} ج.م</p>
+                  {item.selectedSize && <p className="text-[11px] text-[var(--color-primary)] mt-0.5">الحجم: {item.selectedSize.name}</p>}
+                  {item.notes && <p className="text-[11px] text-[var(--color-primary)] mt-0.5">ملاحظة: {item.notes}</p>}
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{item.quantity} × {item.unitPrice} ج.م</p>
                 </div>
-                <span className="text-sm font-black text-[#ff7a00] shrink-0">{item.itemTotal} ج.م</span>
+                <span className="text-sm font-black text-[var(--color-primary)] shrink-0">{item.itemTotal} ج.م</span>
               </div>
             ))}
           </div>
-          <div className="px-4 sm:px-5 py-4 bg-[#F2F2ED] border-t border-[#2a221b] space-y-2">
-            <div className="flex justify-between text-xs text-[#a89f94]">
+          <div className="px-4 sm:px-5 py-4 bg-[var(--color-page-background)] border-t border-[var(--color-border)] space-y-2">
+            <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
               <span>المجموع الفرعي</span>
               <span className="font-bold text-white">{order.subtotal} ج.م</span>
             </div>
-            <div className="flex justify-between text-xs text-[#a89f94]">
+            <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
               <span>التوصيل</span>
-              <span className="font-bold text-[#526B58]">
+              <span className="font-bold text-[var(--color-icon)]">
                 {order.deliveryFee > 0 ? `${order.deliveryFee} ج.م` : "مجاني"}
               </span>
             </div>
             {order.discount > 0 && (
-              <div className="flex justify-between text-xs text-[#a89f94]">
+              <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
                 <span>الخصم</span>
-                <span className="font-bold text-[#526B58]">-{order.discount} ج.م</span>
+                <span className="font-bold text-[var(--color-icon)]">-{order.discount} ج.م</span>
               </div>
             )}
-            <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[#26201a]">
+            <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[var(--color-border)]">
               <span>الإجمالي النهائي</span>
-              <span className="text-[#ff7a00] text-base">{order.total} ج.م</span>
+              <span className="text-[var(--color-primary)] text-base">{order.total} ج.م</span>
             </div>
           </div>
         </div>
 
         {/* بيانات التوصيل */}
-        <div className="rounded-2xl border border-[#2a221b] bg-[#F2F2ED] overflow-hidden">
-          <div className="px-4 sm:px-5 py-3.5 border-b border-[#2a221b]">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] overflow-hidden">
+          <div className="px-4 sm:px-5 py-3.5 border-b border-[var(--color-border)]">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <User className="h-4 w-4 text-[#ff7a00]" />بيانات التوصيل
+              <User className="h-4 w-4 text-[var(--color-primary)]" />بيانات التوصيل
             </h2>
           </div>
           <div className="p-4 sm:p-5 space-y-3">
@@ -263,10 +263,10 @@ function OrderConfirmationInner() {
             </div>
             <div>
               <h3 className="text-base font-black text-white mb-1">تم تأكيد طلبك بنجاح!</h3>
-              <p className="inline-flex flex-wrap items-center justify-center gap-1.5 text-xs text-[#a89f94]">
+              <p className="inline-flex flex-wrap items-center justify-center gap-1.5 text-xs text-[var(--color-text-muted)]">
                 فريق روزماري بيجهّز وجبتك بكل حب. التوصيل خلال {" "}
-                <span className="text-[#ff7a00] font-bold">30-45 دقيقة</span>
-                <Truck className="h-3.5 w-3.5 shrink-0 text-[#ff7a00]" />
+                <span className="text-[var(--color-primary)] font-bold">30-45 دقيقة</span>
+                <Truck className="h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
               </p>
             </div>
             <div className="flex flex-col items-center justify-center gap-2.5 sm:flex-row">
@@ -277,7 +277,7 @@ function OrderConfirmationInner() {
           </div>
         )}
 
-        <Link href="/menu" className="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-[#857b72] hover:text-[#ff7a00] transition-colors">
+        <Link href="/menu" className="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors">
           <ShoppingBag className="h-4 w-4" /><span>تصفح باقي الوجبات</span>
         </Link>
       </div>
@@ -287,7 +287,7 @@ function OrderConfirmationInner() {
 
 export default function OrderConfirmationPageWrapper() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#F2F2ED] flex items-center justify-center"><Loader2 className="h-10 w-10 text-[#ff7a00] animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[var(--color-page-background)] flex items-center justify-center"><Loader2 className="h-10 w-10 text-[var(--color-primary)] animate-spin" /></div>}>
       <OrderConfirmationInner />
     </Suspense>
   );

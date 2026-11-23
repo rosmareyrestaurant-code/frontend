@@ -40,9 +40,19 @@ const orderSchema = new Schema(
     clientOrderId: { type: String },
     paymentStatus: {
       type: String,
-      enum: ["pending", "paid"],
+      enum: ["pending", "verified", "paid", "rejected"],
       default: "pending",
+      index: true,
     },
+    // مراجعة الدفع اليدوية (فودافون كاش / إنستاباي)
+    transactionReference: { type: String, default: "" },
+    verifiedAmount: { type: Number },
+    paymentVerifiedAt: { type: Date },
+    paymentVerifiedBy: { type: String, default: "" },
+    paymentVerifiedByName: { type: String, default: "" },
+    paymentRejectionReason: { type: String, default: "" },
+    paymentRejectedAt: { type: Date },
+    paymentRejectedBy: { type: String, default: "" },
     orderStatus: {
       type: String,
       enum: ORDER_STATUSES,
@@ -50,14 +60,39 @@ const orderSchema = new Schema(
       index: true,
     },
     notes: { type: String, default: "" },
+    // ─── طابور الطباعة (لا علاقة له بحالة الدفع) ───
+    printState: {
+      type: String,
+      enum: ["pending", "processing", "printed", "failed"],
+      default: "pending",
+    },
+    printClaimId: { type: String, default: "" },
+    printClaimedAt: { type: Date, default: null },
+    printClaimedBy: { type: String, default: "" },
+    printAttempts: { type: Number, default: 0 },
+    printLastAttemptAt: { type: Date, default: null },
+    printLastError: { type: String, default: "" },
+    printNextAttemptAt: { type: Date, default: null },
+    printedAt: { type: Date, default: null },
+    printedBy: { type: String, default: "" },
   },
   { timestamps: true },
 );
 
 orderSchema.index({ createdAt: -1 });
+// استعلام الطابور: الحالات المستحقة الأقدم أولاً
+orderSchema.index({ printState: 1, printNextAttemptAt: 1, createdAt: 1 });
 orderSchema.index(
   { clientOrderId: 1 },
   { unique: true, partialFilterExpression: { clientOrderId: { $exists: true } } },
+);
+// رقم مرجع التحويل فريد على مستوى الطلبات — الفاضي مستثنى من الفهرس
+orderSchema.index(
+  { transactionReference: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { transactionReference: { $gt: "" } },
+  },
 );
 
 export const OrderModel = mongoose.models.Order || model("Order", orderSchema);

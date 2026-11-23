@@ -20,8 +20,8 @@ export default function WhatsAppButton() {
       <span
         className={`
           hidden lg:flex items-center
-          bg-[#F2F2ED] text-white text-xs font-semibold
-          px-3 py-2 rounded-xl border border-[#25201c]
+          bg-[var(--color-page-background)] text-white text-xs font-semibold
+          px-3 py-2 rounded-xl border border-[var(--color-border)]
           shadow-lg whitespace-nowrap
           transition-all duration-300
           ${hovered ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2 pointer-events-none"}

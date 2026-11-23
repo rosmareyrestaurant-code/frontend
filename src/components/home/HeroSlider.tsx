@@ -68,13 +68,13 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
       aria-label="سلايدر العروض والوجبات الرئيسية"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full overflow-hidden bg-[#F2F2ED] select-none"
+      className="relative w-full overflow-hidden bg-[var(--color-page-background)] select-none"
     >
       {/* حاوية السلايدر بنسبة 3:1 بالضبط مطابقة لأبعاد صور الهيرو (4096×1364) */}
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="relative w-full touch-pan-y overflow-hidden bg-[#F2F2ED]"
+        className="relative w-full touch-pan-y overflow-hidden bg-[var(--color-page-background)]"
         style={{ aspectRatio: "3 / 1" }}
       >
         {slides.map((slide, index) => {
@@ -134,8 +134,8 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               aria-label={`الانتقال إلى الشريحة ${index + 1}`}
               className={`transition-all duration-300 ${
                 index === currentSlide
-                  ? "w-7 h-1.5 sm:h-2 bg-[#ff7a00] rounded-full shadow-sm"
-                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/70 hover:bg-white rounded-full"
+                  ? "w-7 h-1.5 sm:h-2 bg-[var(--color-primary)] rounded-full shadow-sm"
+                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/70 hover:bg-[var(--color-surface-elevated)] rounded-full"
               }`}
             />
           ))}

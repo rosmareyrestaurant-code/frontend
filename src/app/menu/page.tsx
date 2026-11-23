@@ -1,7 +1,7 @@
 import MenuClient from "./MenuClient";
-import { getMenuProducts } from "@/lib/storefront";
+import { getActiveCategories, getMenuProducts } from "@/lib/storefront";
 
 export default async function MenuPage() {
-  const products = await getMenuProducts();
-  return <MenuClient products={products} />;
+  const [products, categories] = await Promise.all([getMenuProducts(), getActiveCategories()]);
+  return <MenuClient products={products} categories={categories} />;
 }

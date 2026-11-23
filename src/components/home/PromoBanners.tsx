@@ -54,7 +54,7 @@ export default function PromoBanners() {
             type="button"
             onClick={() => setSelectedProduct(banner.deal)}
             aria-label={`عرض تفاصيل ${banner.deal.name}`}
-            className="group relative block aspect-[3967/1475] w-full overflow-hidden rounded-2xl border border-[#2a221b] bg-[#F2F2ED] text-right shadow-lg shadow-black/40 transition-all duration-300 hover:border-[#ff7a00]/60 hover:shadow-xl hover:shadow-[#ff7a00]/10 hover:scale-[1.012] active:scale-[0.99] sm:rounded-3xl cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7a00]"
+            className="group relative block aspect-[3967/1475] w-full overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] text-right shadow-lg shadow-black/40 transition-all duration-300 hover:border-[var(--color-primary)]/60 hover:shadow-xl hover:shadow-[var(--color-primary)]/10 hover:scale-[1.012] active:scale-[0.99] sm:rounded-3xl cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
           >
             {/* المساحة بنفس نسبة الصور وتملأها بالكامل */}
             <Image

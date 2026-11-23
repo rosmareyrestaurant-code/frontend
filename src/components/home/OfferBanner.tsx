@@ -9,11 +9,11 @@ interface OfferBannerProps {
 
 export default function OfferBanner({ banner }: OfferBannerProps) {
   return (
-    <section id="offers" className="w-full bg-[#F2F2ED] py-6 sm:py-8 select-none">
+    <section id="offers" className="w-full bg-[var(--color-page-background)] py-6 sm:py-8 select-none">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1c1612] via-[#241c16] to-[#15110e] border border-[#ff7a00]/30 p-6 sm:p-10 lg:p-12 shadow-2xl shadow-black">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[var(--color-text-primary)] via-[var(--color-text-primary)] to-[var(--color-text-primary)] border border-[var(--color-primary)]/30 p-6 sm:p-10 lg:p-12 shadow-2xl shadow-black">
           {/* زخارف ضوئية دافئة في الخلفية */}
-          <div className="absolute top-0 right-0 -mr-24 -mt-24 h-72 w-72 rounded-full bg-[#ff7a00]/15 blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 -mr-24 -mt-24 h-72 w-72 rounded-full bg-[var(--color-primary)]/15 blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 -ml-24 -mb-24 h-72 w-72 rounded-full bg-[#ff3b30]/10 blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-8 lg:gap-12">
@@ -33,7 +33,7 @@ export default function OfferBanner({ banner }: OfferBannerProps) {
             {/* تفاصيل العرض والنصوص الترويجية */}
             <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-right space-y-3 sm:space-y-4">
               {banner.badge && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ff7a00]/15 text-[#ff7a00] border border-[#ff7a00]/30 px-3.5 py-1 text-xs font-bold shadow-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)]/15 text-[var(--color-primary)] border border-[var(--color-primary)]/30 px-3.5 py-1 text-xs font-bold shadow-sm">
                   <Flame className="h-3.5 w-3.5" />
                   {banner.badge}
                 </span>
@@ -44,11 +44,11 @@ export default function OfferBanner({ banner }: OfferBannerProps) {
               </h3>
 
               <div className="space-y-1">
-                <p className="text-2xl sm:text-3xl font-black text-[#ff7a00] drop-shadow-sm">
+                <p className="text-2xl sm:text-3xl font-black text-[var(--color-primary)] drop-shadow-sm">
                   {banner.highlightText}
                 </p>
                 {banner.discount && (
-                  <p className="text-sm sm:text-base font-medium text-[#b3a89d]">
+                  <p className="text-sm sm:text-base font-medium text-[var(--color-text-muted)]">
                     {banner.discount}
                   </p>
                 )}
@@ -57,7 +57,7 @@ export default function OfferBanner({ banner }: OfferBannerProps) {
               <div className="pt-2">
                 <Link
                   href={banner.buttonLink}
-                  className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#ff7a00] to-[#e66e00] px-7 py-3 text-sm sm:text-base font-bold text-white shadow-lg shadow-black/50 transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] px-7 py-3 text-sm sm:text-base font-bold text-white shadow-lg shadow-black/50 transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   <ShoppingCart className="h-4 w-4" />
                   <span>{banner.buttonText}</span>

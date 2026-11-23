@@ -89,6 +89,59 @@ export function clearLastOrder(): void {
   }
 }
 
+/* ─── سجل طلبات العميل على الجهاز (رموز وصول فقط — للعرض Read Only) ─ */
+export interface MyOrderRef {
+  orderNumber: string;
+  accessToken: string;
+  createdAt: string;
+}
+
+const MY_ORDERS_KEY = "rozmaly_my_orders";
+const MY_ORDERS_VERSION = 1;
+const MY_ORDERS_LIMIT = 50;
+
+function isValidRef(value: unknown): value is MyOrderRef {
+  if (!value || typeof value !== "object") return false;
+  const ref = value as MyOrderRef;
+  return (
+    typeof ref.accessToken === "string" &&
+    ref.accessToken.length >= 10 &&
+    typeof ref.orderNumber === "string" &&
+    typeof ref.createdAt === "string"
+  );
+}
+
+export function readMyOrderRefs(): MyOrderRef[] {
+  if (!isClient()) return [];
+  try {
+    const raw = window.localStorage.getItem(MY_ORDERS_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw) as { v?: number; orders?: unknown[] };
+    if (!data || data.v !== MY_ORDERS_VERSION || !Array.isArray(data.orders)) return [];
+    return data.orders.filter(isValidRef).slice(0, MY_ORDERS_LIMIT);
+  } catch {
+    return [];
+  }
+}
+
+/** يضيف/يحدّث مرجع طلب من غير تكرار — الرمز نفسه هو دليل الملكية */
+export function addMyOrderRef(ref: MyOrderRef): MyOrderRef[] {
+  if (!isClient() || !isValidRef(ref)) return [];
+  const next = [
+    ref,
+    ...readMyOrderRefs().filter((r) => r.accessToken !== ref.accessToken),
+  ].slice(0, MY_ORDERS_LIMIT);
+  try {
+    window.localStorage.setItem(
+      MY_ORDERS_KEY,
+      JSON.stringify({ v: MY_ORDERS_VERSION, orders: next }),
+    );
+  } catch {
+    /* ignore */
+  }
+  return next;
+}
+
 /* ─── الطلب الحالي (localStorage — يكمل بعد إغلاق التاب) ─────────── */
 const CURRENT_ORDER_KEY = "rosemary_current_order";
 

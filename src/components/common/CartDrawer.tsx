@@ -129,7 +129,7 @@ export default function CartDrawer() {
             transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
             transition: isDragging ? "none" : "transform 280ms cubic-bezier(.16,1,.3,1)",
           }}
-          className={`w-full sm:w-[440px] max-w-full bg-[#F2F2ED] shadow-2xl flex flex-col text-white max-sm:h-[91vh] max-sm:max-h-[94vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[#2b241e] sm:h-full sm:border-r sm:border-[#26201a] overflow-hidden ${
+          className={`w-full sm:w-[440px] max-w-full bg-[var(--color-page-background)] shadow-2xl flex flex-col text-white max-sm:h-[91vh] max-sm:max-h-[94vh] max-sm:rounded-t-[28px] max-sm:border-t max-sm:border-[var(--color-border)] sm:h-full sm:border-r sm:border-[var(--color-border)] overflow-hidden ${
             isClosing
               ? "anim-sheet-or-drawer-out pointer-events-none"
               : "anim-sheet-or-drawer pointer-events-auto"
@@ -144,7 +144,7 @@ export default function CartDrawer() {
             className="mx-auto mt-1 flex h-9 w-20 touch-none items-center justify-center sm:hidden shrink-0"
             aria-label="اسحب لأسفل لإغلاق السلة"
           >
-            <span className="h-1.5 w-12 rounded-full bg-[#C9D2C4]" />
+            <span className="h-1.5 w-12 rounded-full bg-[var(--color-on-primary)]" />
           </div>
 
           {/* ─── رأس الـ Drawer: العنوان + خطوات الطلب ─── */}
@@ -152,18 +152,18 @@ export default function CartDrawer() {
             <div className="relative shrink-0 px-4 pb-4 pt-2 sm:px-5">
               <div className="flex items-center gap-3">
                 {/* أيقونة السلة */}
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#56624A] shadow-[0_10px_20px_-10px_rgba(86,98,74,0.75)] sm:h-16 sm:w-16 sm:rounded-[20px]">
-                  <ShoppingBag className="h-6 w-6 text-[#fff] sm:h-7 sm:w-7" strokeWidth={2} />
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary)] shadow-[0_10px_20px_-10px_rgba(86,98,74,0.75)] sm:h-16 sm:w-16 sm:rounded-[20px]">
+                  <ShoppingBag className="h-6 w-6 text-[var(--color-on-primary)] sm:h-7 sm:w-7" strokeWidth={2} />
                 </div>
 
                 {/* العنوان */}
                 <div className="min-w-0 flex-1 text-center">
-                  <h2 className="truncate text-lg font-black leading-tight text-[#56624A] sm:text-xl">
+                  <h2 className="truncate text-lg font-black leading-tight text-[var(--color-primary)] sm:text-xl">
                     {step === "cart"     ? "سلة الطلبات" :
                      step === "checkout" ? "بيانات التوصيل" :
                                           "مراجعة الطلب"}
                   </h2>
-                  <p className="mt-0.5 truncate text-[11px] font-bold text-[#5E7054] sm:text-xs">
+                  <p className="mt-0.5 truncate text-[11px] font-bold text-[var(--color-primary)] sm:text-xs">
                     {step === "cart" ? "الخطوة الأولى" :
                      step === "checkout" ? "الخطوة الثانية" : "الخطوة الأخيرة"}
                   </p>
@@ -171,7 +171,7 @@ export default function CartDrawer() {
 
                 {/* زر إغلاق */}
                 <button onClick={() => setIsCartOpen(false)} aria-label="إغلاق"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#56624A] bg-[#56624A] text-[#fff] shadow-[0_6px_14px_-6px_rgba(86,98,74,0.8)] transition-colors hover:bg-[#435241] active:scale-95">
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[0_6px_14px_-6px_rgba(86,98,74,0.8)] transition-colors hover:bg-[var(--color-primary-hover)] active:scale-95">
                   <X className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.6} />
                 </button>
               </div>
@@ -187,18 +187,18 @@ export default function CartDrawer() {
                         <div className="flex shrink-0 flex-col items-center gap-1.5">
                           <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-black transition-all duration-300 ${
                             isDone || isActive
-                              ? "bg-[#56624A] text-[#fff] shadow-[0_8px_16px_-8px_rgba(86,98,74,0.8)]"
-                              : "bg-transparent text-[#B3BDB0]"
+                              ? "bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[0_8px_16px_-8px_rgba(86,98,74,0.8)]"
+                              : "bg-transparent text-[var(--color-text-muted)]"
                           }`}>
                             {isDone ? <Check className="h-4 w-4" strokeWidth={3} /> : i + 1}
                           </div>
                           <span className={`whitespace-nowrap text-[11px] font-black leading-none transition-colors duration-300 ${
-                            isDone || isActive ? "text-[#56624A]" : "text-[#A9B3A5]"
+                            isDone || isActive ? "text-[var(--color-primary)]" : "text-[var(--color-text-muted)]"
                           }`}>{s.label}</span>
                         </div>
                         {i < STEPS_META.length - 1 && (
                           <span className={`mx-2 mt-[17px] h-[2px] flex-1 rounded-full transition-colors duration-500 ${
-                            isDone ? "bg-[#56624A]" : "bg-[#DDE3D8]"
+                            isDone ? "bg-[var(--color-primary)]" : "bg-[var(--color-border)]"
                           }`} />
                         )}
                       </div>
@@ -210,7 +210,7 @@ export default function CartDrawer() {
               {/* خط فاصل تحت الهيدر */}
               <span
                 aria-hidden="true"
-                className="absolute inset-x-0 bottom-0 h-px bg-[#DDE3D8]"
+                className="absolute inset-x-0 bottom-0 h-px bg-[var(--color-border)]"
               />
             </div>
           )}
@@ -223,15 +223,15 @@ export default function CartDrawer() {
               <>
                 {cart.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                    <div className="h-20 w-20 rounded-2xl border border-[#435241] bg-[#56624A] text-[#fff] shadow-[0_14px_28px_-14px_rgba(86,98,74,0.9)] flex items-center justify-center mb-4">
+                    <div className="h-20 w-20 rounded-2xl border border-[var(--color-primary-hover)] bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[0_14px_28px_-14px_rgba(86,98,74,0.9)] flex items-center justify-center mb-4">
                       <ShoppingBag className="h-10 w-10 stroke-[1.5]" />
                     </div>
                     <h3 className="text-lg font-bold text-white mb-1">سلتك فارغة حالياً</h3>
-                    <p className="text-xs sm:text-sm text-[#a89f94] max-w-xs mb-6 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-[var(--color-text-muted)] max-w-xs mb-6 leading-relaxed">
                       تصفح قائمة أكلات روزماري اللذيذة وأضف وجباتك المفضلة بضغطة واحدة!
                     </p>
                     <Link href="/menu" onClick={() => setIsCartOpen(false)}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-black/40 hover:scale-105 active:scale-95 transition-all">
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-black/40 hover:scale-105 active:scale-95 transition-all">
                       <span>تصفح كل الأكلات</span>
                       <ArrowLeft className="h-4 w-4" />
                     </Link>
@@ -239,11 +239,11 @@ export default function CartDrawer() {
                 ) : (
                   <>
                     {/* قائمة الوجبات */}
-                    <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-3 divide-y divide-[#1e1914]">
+                    <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-3 divide-y divide-[var(--color-text-primary)]">
                       {cart.map((item) => (
                         <div key={`${item.product.id}-${item.notes ?? ""}`}
                           className="pt-3 first:pt-0 flex gap-3.5 items-center">
-                          <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-xl overflow-hidden bg-[#F2F2ED] shrink-0 border border-[#26201a]">
+                          <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-xl overflow-hidden bg-[var(--color-page-background)] shrink-0 border border-[var(--color-border)]">
                             <Image src={item.product.image} alt={item.product.name}
                               fill className="object-cover" sizes="72px" />
                           </div>
@@ -252,33 +252,33 @@ export default function CartDrawer() {
                               {item.product.name}
                             </h4>
                             {item.notes && (
-                              <p className="mb-1 text-[11px] text-[#ff9838] bg-[#ff7a00]/10 rounded-md px-2 py-0.5 border border-[#ff7a00]/20 truncate">
-                                <span className="font-bold text-[#ff7a00]">ملاحظة: </span>{item.notes}
+                              <p className="mb-1 text-[11px] text-[var(--color-primary)] bg-[var(--color-primary)]/10 rounded-md px-2 py-0.5 border border-[var(--color-primary)]/20 truncate">
+                                <span className="font-bold text-[var(--color-primary)]">ملاحظة: </span>{item.notes}
                               </p>
                             )}
-                            <div className="flex items-baseline gap-1 text-[#ff7a00] font-black text-sm mb-2">
+                            <div className="flex items-baseline gap-1 text-[var(--color-primary)] font-black text-sm mb-2">
                               <span>{item.product.price * item.quantity}</span>
-                              <span className="text-[10px] text-[#a89f94]">ج.م</span>
+                              <span className="text-[10px] text-[var(--color-text-muted)]">ج.م</span>
                               {item.quantity > 1 && (
-                                <span className="text-[10px] text-[#736a61] font-normal mr-1">
+                                <span className="text-[10px] text-[var(--color-text-muted)] font-normal mr-1">
                                   ({item.product.price} ج.م / للقطعة)
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center gap-2.5">
-                              <div className="inline-flex items-center rounded-lg bg-[#F2F2ED] border border-[#2a231d] p-0.5">
+                              <div className="inline-flex items-center rounded-lg bg-[var(--color-page-background)] border border-[var(--color-border)] p-0.5">
                                 <button onClick={() => updateQuantity(item.product.id, -1)} aria-label="تقليل"
-                                  className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-[#F2F2ED] text-[#a89f94] hover:text-white transition-colors">
+                                  className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-[var(--color-page-background)] text-[var(--color-text-muted)] hover:text-white transition-colors">
                                   <Minus className="h-3 w-3" />
                                 </button>
                                 <span className="px-2.5 text-xs font-black text-white">{item.quantity}</span>
                                 <button onClick={() => updateQuantity(item.product.id, 1)} aria-label="زيادة"
-                                  className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-[#F2F2ED] text-[#a89f94] hover:text-white transition-colors">
+                                  className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-[var(--color-page-background)] text-[var(--color-text-muted)] hover:text-white transition-colors">
                                   <Plus className="h-3 w-3" />
                                 </button>
                               </div>
                               <button onClick={() => removeFromCart(item.product.id)} aria-label="حذف"
-                                className="text-[#736a61] hover:text-[#ff3b30] p-1 transition-colors">
+                                className="text-[var(--color-text-muted)] hover:text-[#ff3b30] p-1 transition-colors">
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
@@ -288,30 +288,30 @@ export default function CartDrawer() {
                     </div>
 
                     {/* تذييل السلة */}
-                    <div className="px-4 sm:px-5 py-4 border-t border-[#231d17] bg-[#F2F2ED] space-y-3 shrink-0">
+                    <div className="px-4 sm:px-5 py-4 border-t border-[var(--color-border)] bg-[var(--color-page-background)] space-y-3 shrink-0">
                       <div className="space-y-1.5 text-xs">
-                        <div className="flex justify-between text-[#a89f94]">
+                        <div className="flex justify-between text-[var(--color-text-muted)]">
                           <span>المجموع الفرعي</span>
                           <span className="font-bold text-white">{subtotal} ج.م</span>
                         </div>
-                        <div className="flex justify-between text-[#a89f94]">
+                        <div className="flex justify-between text-[var(--color-text-muted)]">
                           <span>التوصيل</span>
                           <span className={`font-bold ${isFreeDelivery ? "text-[#4F8A57]" : "text-white"}`}>{deliveryLabel}</span>
                         </div>
-                        <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[#26201a]">
+                        <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[var(--color-border)]">
                           <span>الإجمالي النهائي</span>
-                          <span className="text-[#ff7a00] text-lg">{subtotal + deliveryAmount} ج.م</span>
+                          <span className="text-[var(--color-primary)] text-lg">{subtotal + deliveryAmount} ج.م</span>
                         </div>
                       </div>
 
                       <button onClick={() => goTo("checkout", "forward")}
-                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] font-bold text-sm text-white shadow-lg shadow-black/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] font-bold text-sm text-white shadow-lg shadow-black/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
                         <span>إتمام الطلب</span>
                         <ChevronLeft className="h-4 w-4" />
                       </button>
 
-                      <p className="flex items-center justify-center gap-1.5 text-[11px] text-[#8e8479]">
-                        <Banknote className="h-3.5 w-3.5 text-[#ff7a00] shrink-0" />
+                      <p className="flex items-center justify-center gap-1.5 text-[11px] text-[var(--color-text-secondary)]">
+                        <Banknote className="h-3.5 w-3.5 text-[var(--color-primary)] shrink-0" />
                         الدفع عند الاستلام
                       </p>
 
@@ -319,7 +319,7 @@ export default function CartDrawer() {
                         onClick={() => {
                           if (window.confirm("هل تريد تفريغ السلة بالكامل؟")) clearCart();
                         }}
-                        className="w-full py-1.5 text-center text-xs text-[#736a61] hover:text-[#a89f94] transition-colors">
+                        className="w-full py-1.5 text-center text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-muted)] transition-colors">
                         تفريغ السلة بالكامل
                       </button>
                     </div>
@@ -358,9 +358,9 @@ export default function CartDrawer() {
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="text-xl font-black text-white">تم استلام طلبك!</h3>
-                  <p className="inline-flex flex-wrap items-center justify-center gap-1.5 text-sm text-[#a89f94] leading-relaxed max-w-[260px] mx-auto">
+                  <p className="inline-flex flex-wrap items-center justify-center gap-1.5 text-sm text-[var(--color-text-muted)] leading-relaxed max-w-[260px] mx-auto">
                     فريق روزماري بيجهّز وجبتك بكل حب. التوصيل في خلال 30-45 دقيقة
-                    <Truck className="h-4 w-4 shrink-0 text-[#ff7a00]" />
+                    <Truck className="h-4 w-4 shrink-0 text-[var(--color-primary)]" />
                   </p>
                 </div>
                 <button onClick={() => setIsCartOpen(false)}

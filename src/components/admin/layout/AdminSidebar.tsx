@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Package, Grid3x3,
   Megaphone, Flame, Users, Settings, LogOut, X, ExternalLink, MapPin,
-  UserCog,
+  UserCog, Palette,
 } from "lucide-react";
 import { beginAdminLogout } from "@/hooks/useAdminAuth";
 
@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { label: "العملاء",            href: "/dashboard/customers",  icon: Users, adminOnly: true },
   { label: "مناطق التوصيل",      href: "/dashboard/delivery-zones", icon: MapPin, adminOnly: true },
   { label: "حساب الكاشير",       href: "/dashboard/cashier",    icon: UserCog, adminOnly: true },
+  { label: "هوية الموقع والألوان", href: "/dashboard/theme",    icon: Palette, adminOnly: true },
   { label: "إعدادات المتجر",     href: "/dashboard/settings",   icon: Settings, adminOnly: true },
 ];
 
@@ -64,12 +65,12 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   }
 
   const content = (
-    <div className="flex h-full flex-col bg-[#50604D]">
+    <div className="flex h-full flex-col bg-[var(--color-primary)]">
       {/* الشعار */}
       <div className="relative flex shrink-0 flex-col items-center px-5 pb-5 pt-7">
         <button
           onClick={onClose}
-          className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-[#D6DDD0] transition-colors hover:bg-white/10 hover:text-[#fff] lg:hidden"
+          className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-on-primary)] transition-colors hover:bg-white/10 hover:text-[var(--color-on-primary)] lg:hidden"
           aria-label="إغلاق القائمة"
         >
           <X className="h-4 w-4" />
@@ -81,7 +82,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           height={93}
           className="h-16 w-auto object-contain"
         />
-        <p className="mt-1 text-[11px] font-semibold text-[#C9D2C4]">لوحة التحكم</p>
+        <p className="mt-1 text-[11px] font-semibold text-[var(--color-on-primary)]">لوحة التحكم</p>
       </div>
 
       {/* القائمة */}
@@ -95,8 +96,8 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               onClick={onClose}
               className={`flex items-center gap-3 rounded-[12px] px-3.5 py-2.5 text-[13.5px] font-bold transition-all ${
                 isActive
-                  ? "bg-[#788B73] text-[#fff]"
-                  : "text-[#D6DDD0] hover:bg-white/5 hover:text-[#fff]"
+                  ? "bg-[var(--color-primary-hover)] text-[var(--color-on-primary)]"
+                  : "text-[var(--color-on-primary)] hover:bg-white/5 hover:text-[var(--color-on-primary)]"
               }`}
             >
               <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
@@ -107,18 +108,18 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       </nav>
 
       {/* أسفل القائمة */}
-      <div className="shrink-0 space-y-2 border-t border-[#435243] px-3 py-4">
+      <div className="shrink-0 space-y-2 border-t border-[var(--color-primary-hover)] px-3 py-4">
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-3 rounded-[12px] px-3.5 py-2 text-[12px] font-semibold text-[#C9D2C4] transition-colors hover:bg-white/5 hover:text-[#fff]"
+          className="flex items-center gap-3 rounded-[12px] px-3.5 py-2 text-[12px] font-semibold text-[var(--color-on-primary)] transition-colors hover:bg-white/5 hover:text-[var(--color-on-primary)]"
         >
           <ExternalLink className="h-4 w-4 shrink-0" />
           <span>زيارة المتجر</span>
         </Link>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center justify-center gap-2 rounded-[12px] border border-[#86947F] px-4 py-2.5 text-[13px] font-bold text-[#F1F3EC] transition-colors hover:bg-white/10"
+          className="flex w-full items-center justify-center gap-2 rounded-[12px] border border-[var(--color-primary-border)] px-4 py-2.5 text-[13px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-white/10"
         >
           <LogOut className="h-4 w-4" />
           <span>تسجيل الخروج</span>

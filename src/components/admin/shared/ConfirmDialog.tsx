@@ -35,18 +35,18 @@ export function ConfirmDialog({
           }`}>
             <AlertTriangle className="h-5 w-5" strokeWidth={2} />
           </div>
-          <p className="pt-1.5 text-[13px] font-semibold leading-relaxed text-[#6B7264]">{message}</p>
+          <p className="pt-1.5 text-[13px] font-semibold leading-relaxed text-[var(--color-text-secondary)]">{message}</p>
         </div>
         <div className="flex justify-end gap-2.5">
           <button
             onClick={onClose}
-            className="rounded-full bg-[#F0EDE5] px-4 py-2.5 text-[12px] font-bold text-[#50604D] transition-colors hover:bg-[#E7E3D8]"
+            className="rounded-full bg-[var(--color-border-subtle)] px-4 py-2.5 text-[12px] font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-border)]"
           >
             {cancelText}
           </button>
           <button
             onClick={() => { onConfirm(); onClose(); }}
-            className={`rounded-full px-4 py-2.5 text-[12px] font-bold text-[#fff] transition-colors ${
+            className={`rounded-full px-4 py-2.5 text-[12px] font-bold text-[var(--color-on-primary)] transition-colors ${
               variant === "danger"
                 ? "bg-[#C25B4F] hover:bg-[#B0503F]"
                 : "bg-[#C08A2E] hover:bg-[#AC7A26]"

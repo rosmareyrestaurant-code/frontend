@@ -7,7 +7,7 @@
 export type OrderStatus = "pending" | "delivered" | "cancelled";
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: "في الانتظار",
+  pending: "قيد الانتظار",
   delivered: "تم التسليم",
   cancelled: "ملغي",
 };
@@ -38,6 +38,27 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   cash: "كاش عند الاستلام",
   vodafone_cash: "فودافون كاش",
   instapay: "إنستاباي",
+};
+
+// ─── حالة الدفع (مراجعة يدوية من المدير للتحويلات) ─────────────────
+/** pending: بانتظار المراجعة — verified: المدير أكد استلام المبلغ — rejected: رُفض التحويل */
+export type PaymentStatus = "pending" | "verified" | "paid" | "rejected";
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  pending: "بانتظار التحقق",
+  verified: "مدفوع مؤكد",
+  paid: "مدفوع مؤكد",
+  rejected: "تحويل مرفوض",
+};
+
+// ─── حالة الطباعة (طابور الطباعة التلقائية) ───────────────────────
+export type PrintState = "pending" | "processing" | "printed" | "failed";
+
+export const PRINT_STATE_LABELS: Record<PrintState, string> = {
+  pending: "بانتظار الطباعة",
+  processing: "جارٍ الطباعة",
+  printed: "تمت الطباعة",
+  failed: "فشلت الطباعة",
 };
 
 // ─── عنصر في الطلب ─────────────────────────────────────────────────
@@ -76,9 +97,24 @@ export interface AdminOrder {
   /** رابط صورة التحويل (فودافون كاش / إنستاباي) */
   paymentProofUrl?: string;
   paymentProofPublicId?: string;
-  paymentStatus?: "pending" | "paid";
+  paymentStatus?: PaymentStatus;
+  /** رقم مرجع عملية التحويل — فريد على مستوى الطلبات */
+  transactionReference?: string;
+  /** المبلغ اللي المدير أكد استلامه (لازم يساوي إجمالي الطلب) */
+  verifiedAmount?: number;
+  /** بيانات من أكد الدفع ومتى */
+  paymentVerifiedAt?: string;
+  paymentVerifiedByName?: string;
+  /** سبب رفض التحويل */
+  paymentRejectionReason?: string;
+  paymentRejectedAt?: string;
   status: OrderStatus;
   notes?: string;
+  /** حالة الطباعة — غير موجودة في الطلبات القديمة قبل تشغيل الطابور */
+  printState?: PrintState;
+  printAttempts?: number;
+  printLastError?: string;
+  printedAt?: string;
   createdAt: string; // ISO string
 }
 
@@ -136,6 +172,7 @@ export interface AdminCategory {
   description?: string;
   sortOrder: number;
   isActive: boolean;
+  showOnHome: boolean;
   productCount: number;
 }
 
@@ -194,6 +231,24 @@ export interface StoreSettings {
   tickerMessage?: string;
   /** أيقونة الشريط: مفتاح جاهز (truck…) أو إيموجي/حرف */
   tickerIcon?: string;
+  /** إظهار/إخفاء شريط الإعلان بالكامل */
+  tickerEnabled?: boolean;
+  /** مكان الأيقونة بالنسبة للنص */
+  tickerIconPosition?: "start" | "end";
+  /** ألوان الهوية — الأساسية + إعدادات متقدمة اختيارية */
+  theme?: {
+    primary: string;
+    icon: string;
+    background: string;
+    primaryHover?: string;
+    primaryActive?: string;
+    iconHover?: string;
+    textPrimary?: string;
+    surface?: string;
+    surfaceSecondary?: string;
+    surfaceElevated?: string;
+    border?: string;
+  };
   currency: string;
   deliveryFee?: number;
   minimumOrder?: number;

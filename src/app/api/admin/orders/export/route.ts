@@ -7,6 +7,7 @@ import { toAdminOrder } from "@/lib/serialize";
 import { buildCsv, cairoTimestamp, csvResponse } from "@/lib/csv";
 import { AppError, serverError } from "@/lib/api-response";
 import { ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/types/admin";
+import { isOnlinePaymentMethod, isPaymentVerified } from "@/lib/payment-review";
 
 export const instant = false;
 
@@ -54,6 +55,13 @@ export async function GET(req: NextRequest) {
           return `${item.quantity}× ${item.productName}${size}`;
         })
         .join(" | ");
+      const paymentState = !isOnlinePaymentMethod(order.paymentMethod)
+        ? "—"
+        : isPaymentVerified(order.paymentStatus)
+          ? "مؤكد"
+          : order.paymentStatus === "rejected"
+            ? "مرفوض"
+            : "بانتظار المراجعة";
       return [
         order.orderNumber ?? order.id,
         cairoTimestamp(order.createdAt),
@@ -67,6 +75,8 @@ export async function GET(req: NextRequest) {
         order.discount ?? 0,
         order.total,
         PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod,
+        paymentState,
+        order.transactionReference ?? "",
         ORDER_STATUS_LABELS[order.status] ?? order.status,
         order.notes ?? "",
       ];
@@ -86,6 +96,8 @@ export async function GET(req: NextRequest) {
         "الخصم",
         "الإجمالي",
         "طريقة الدفع",
+        "حالة الدفع",
+        "مرجع العملية",
         "الحالة",
         "ملاحظات",
       ],

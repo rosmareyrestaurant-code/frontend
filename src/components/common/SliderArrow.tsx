@@ -36,13 +36,13 @@ export default function SliderArrow({
       aria-label={ariaLabel}
       className={`group/arrow flex shrink-0 items-center justify-center overflow-hidden rounded-full border bg-transparent transition-colors duration-200 active:scale-95 ${
         onImage
-          ? "border-white/50 text-[#fff] hover:border-[#526B58]"
-          : "border-[#899B83] text-[#526B58] hover:border-[#526B58]"
+          ? "border-white/50 text-[#fff] hover:border-[var(--color-icon)]"
+          : "border-[var(--color-primary-border)] text-[var(--color-icon)] hover:border-[var(--color-icon)]"
       } ${className}`}
     >
       <span
         aria-hidden="true"
-        className={`absolute inset-0 rounded-full bg-[#526B58] transition-transform duration-300 ease-out ${
+        className={`absolute inset-0 rounded-full bg-[var(--color-icon)] transition-transform duration-300 ease-out ${
           direction === "left"
             ? "left-0 -translate-x-full group-hover/arrow:translate-x-0"
             : "right-0 translate-x-full group-hover/arrow:translate-x-0"

@@ -49,6 +49,7 @@ export default function OrderReviewStep({
   const [paymentMethod, setPaymentMethod]     = useState<PaymentMethod>("cash");
   const [proofUrl, setProofUrl]               = useState("");
   const [proofPublicId, setProofPublicId]     = useState("");
+  const [transactionReference, setTransactionReference] = useState("");
   const [paymentConfig, setPaymentConfig]     = useState<PaymentConfig>({
     vodafoneCashNumber: SITE_CONTACT.phone,
     instapayAccount: SITE_CONTACT.phone,
@@ -83,6 +84,7 @@ export default function OrderReviewStep({
         method: paymentMethod,
         proofUrl: proofUrl || undefined,
         proofPublicId: proofPublicId || undefined,
+        transactionReference: transactionReference.trim() || undefined,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "فشل إرسال الطلب";
@@ -97,15 +99,15 @@ export default function OrderReviewStep({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* رأس */}
-      <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-[#231d17] shrink-0">
+      <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-[var(--color-border)] shrink-0">
         <button onClick={onEditInfo}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F2F2ED] text-[#a89f94] hover:text-white hover:bg-[#F2F2ED] transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-page-background)] text-[var(--color-text-muted)] hover:text-white hover:bg-[var(--color-page-background)] transition-colors"
           aria-label="رجوع لتعديل البيانات">
           <ArrowRight className="h-5 w-5" />
         </button>
         <div>
           <h2 className="text-base sm:text-lg font-bold text-white">مراجعة الطلب</h2>
-          <p className="text-xs text-[#857b72]">الخطوة الأخيرة — تأكد وأكمل</p>
+          <p className="text-xs text-[var(--color-text-muted)]">الخطوة الأخيرة — تأكد وأكمل</p>
         </div>
       </div>
 
@@ -114,14 +116,14 @@ export default function OrderReviewStep({
 
         {/* ─── الوجبات المطلوبة ─── */}
         <div>
-          <p className="text-xs font-bold text-[#857b72] uppercase tracking-widest mb-3">
+          <p className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-3">
             الوجبات المطلوبة
           </p>
-          <div className="rounded-2xl border border-[#2a221b] bg-[#F2F2ED] overflow-hidden divide-y divide-[#201a15]">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] overflow-hidden divide-y divide-[var(--color-border)]">
             {cart.map((item) => (
               <div key={`${item.product.id}-${item.notes ?? ""}`}
                 className="flex items-center gap-3 px-3 py-3">
-                <div className="relative h-13 w-13 shrink-0 overflow-hidden rounded-xl bg-[#F2F2ED] border border-[#2a221b]">
+                <div className="relative h-13 w-13 shrink-0 overflow-hidden rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)]">
                   <Image src={item.product.image} alt={item.product.name}
                     fill sizes="52px" className="object-cover" />
                 </div>
@@ -130,15 +132,15 @@ export default function OrderReviewStep({
                     {item.product.name}
                   </p>
                   {item.notes && (
-                    <p className="text-[10px] text-[#ff9838] truncate mt-0.5">
+                    <p className="text-[10px] text-[var(--color-primary)] truncate mt-0.5">
                       ملاحظة: {item.notes}
                     </p>
                   )}
-                  <p className="text-[11px] text-[#6b6259] mt-0.5">
+                  <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
                     {item.quantity} × {item.product.price} ج.م
                   </p>
                 </div>
-                <span className="text-xs sm:text-sm font-black text-[#ff7a00] shrink-0">
+                <span className="text-xs sm:text-sm font-black text-[var(--color-primary)] shrink-0">
                   {item.product.price * item.quantity} ج.م
                 </span>
               </div>
@@ -147,31 +149,31 @@ export default function OrderReviewStep({
         </div>
 
         {/* ─── ملخص المبالغ ─── */}
-        <div className="rounded-2xl border border-[#2a221b] bg-[#F2F2ED] px-4 py-3.5 space-y-2">
-          <div className="flex justify-between text-xs text-[#a89f94]">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] px-4 py-3.5 space-y-2">
+          <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
             <span>المجموع</span>
             <span className="font-bold text-white">{subtotal} ج.م</span>
           </div>
-          <div className="flex justify-between text-xs text-[#a89f94]">
+          <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
             <span>التوصيل</span>
             <span className={`font-bold ${isFreeArea ? "text-[#4F8A57]" : "text-white"}`}>{deliveryLabel}</span>
           </div>
-          <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[#26201a]">
+          <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[var(--color-border)]">
             <span>الإجمالي النهائي</span>
-            <span className="text-[#ff7a00] text-base">{subtotal + deliveryAmount} ج.م</span>
+            <span className="text-[var(--color-primary)] text-base">{subtotal + deliveryAmount} ج.م</span>
           </div>
         </div>
 
         {/* ─── بيانات التوصيل ─── */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-[#857b72] uppercase tracking-widest">بيانات التوصيل</p>
+            <p className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest">بيانات التوصيل</p>
             <button onClick={onEditInfo}
-              className="flex items-center gap-1 text-xs font-semibold text-[#ff7a00] hover:text-[#ff9838] transition-colors">
+              className="flex items-center gap-1 text-xs font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors">
               <Pencil className="h-3 w-3" /> تعديل
             </button>
           </div>
-          <div className="rounded-2xl border border-[#2a221b] bg-[#F2F2ED] px-4 py-3.5 space-y-3">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] px-4 py-3.5 space-y-3">
             <InfoRow icon={User}       label="الاسم"    value={customer.name} />
             <InfoRow icon={Phone}      label="الهاتف"   value={customer.phone} />
             <InfoRow icon={MapPin}     label="العنوان"  value={customer.address} />
@@ -193,16 +195,18 @@ export default function OrderReviewStep({
         {/* ─── طريقة الدفع ─── */}
         <PaymentMethodPicker
           method={paymentMethod}
-          onMethodChange={(m) => { setPaymentMethod(m); if (m === "cash") { setProofUrl(""); setProofPublicId(""); } }}
+          onMethodChange={(m) => { setPaymentMethod(m); if (m === "cash") { setProofUrl(""); setProofPublicId(""); setTransactionReference(""); } }}
           proofUrl={proofUrl}
           onProofChange={(url, pid) => { setProofUrl(url); setProofPublicId(pid); }}
+          transactionReference={transactionReference}
+          onTransactionReferenceChange={setTransactionReference}
           config={paymentConfig}
           showMessage={showMessage}
         />
       </div>
 
       {/* تذييل الأكشن */}
-      <div className="px-4 sm:px-5 py-4 border-t border-[#231d17] bg-[#F2F2ED] space-y-2.5 shrink-0">
+      <div className="px-4 sm:px-5 py-4 border-t border-[var(--color-border)] bg-[var(--color-page-background)] space-y-2.5 shrink-0">
         {proofMissing && (
           <p className="text-center text-[11px] font-bold text-amber-400">
             ارفع صورة التحويل عشان تقدر تأكد الطلب
@@ -210,7 +214,7 @@ export default function OrderReviewStep({
         )}
         {/* تأكيد الطلب */}
         <button onClick={handleConfirm} disabled={confirming || proofMissing}
-          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] font-bold text-sm text-white shadow-lg shadow-black/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2">
+          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] font-bold text-sm text-white shadow-lg shadow-black/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2">
           {confirming
             ? <><Loader2 className="h-4 w-4 animate-spin" /><span>جاري تأكيد طلبك...</span></>
             : <><CheckCircle2 className="h-4 w-4" /><span>تأكيد الطلب الآن</span></>
@@ -220,7 +224,7 @@ export default function OrderReviewStep({
         {/* إلغاء */}
         {!showCancelConfirm ? (
           <button onClick={() => setShowCancelConfirm(true)}
-            className="w-full py-2 text-xs text-[#736a61] hover:text-red-400 transition-colors">
+            className="w-full py-2 text-xs text-[var(--color-text-muted)] hover:text-red-400 transition-colors">
             إلغاء الطلب والعودة
           </button>
         ) : (
@@ -235,7 +239,7 @@ export default function OrderReviewStep({
                 نعم، ألغِ
               </button>
               <button onClick={() => setShowCancelConfirm(false)}
-                className="flex-1 py-2 rounded-lg bg-[#F2F2ED] text-xs font-bold text-[#a89f94] border border-[#2d2620] hover:text-white transition-colors">
+                className="flex-1 py-2 rounded-lg bg-[var(--color-page-background)] text-xs font-bold text-[var(--color-text-muted)] border border-[var(--color-border)] hover:text-white transition-colors">
                 لا، تراجع
               </button>
             </div>
@@ -249,11 +253,11 @@ export default function OrderReviewStep({
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
     <div className="flex items-start gap-2.5">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#56624A] border border-[#435241] text-[#fff]">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)] border border-[var(--color-primary-hover)] text-[var(--color-on-primary)]">
         <Icon className="h-3.5 w-3.5" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] text-[#6b6259] font-semibold uppercase tracking-widest">{label}</p>
+        <p className="text-[10px] text-[var(--color-text-muted)] font-semibold uppercase tracking-widest">{label}</p>
         <p className="text-xs text-white mt-0.5 leading-relaxed break-words">{value}</p>
       </div>
     </div>

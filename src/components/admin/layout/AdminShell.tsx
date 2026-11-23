@@ -10,7 +10,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   useAutoPrintOrders();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F4EF]">
+    <div className="flex h-screen overflow-hidden bg-[var(--color-page-background)]">
       <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         <AdminTopbar onMenuToggle={() => setSidebarOpen((v) => !v)} />

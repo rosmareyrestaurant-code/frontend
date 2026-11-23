@@ -167,7 +167,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
             transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
             transition: isDragging ? "none" : "transform 280ms cubic-bezier(.16,1,.3,1)",
           }}
-          className={`w-full sm:max-w-lg bg-[#F2F2ED] border border-[#2b241e] shadow-2xl flex flex-col text-white max-sm:rounded-t-[30px] sm:rounded-3xl max-sm:max-h-[88vh] sm:max-h-[90vh] overflow-hidden ${
+          className={`w-full sm:max-w-lg bg-[var(--color-page-background)] border border-[var(--color-border)] shadow-2xl flex flex-col text-white max-sm:rounded-t-[30px] sm:rounded-3xl max-sm:max-h-[88vh] sm:max-h-[90vh] overflow-hidden ${
             isClosing
               ? "anim-sheet-or-modal-out pointer-events-none"
               : "anim-sheet-or-modal pointer-events-auto"
@@ -175,7 +175,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
         >
           {/* صورة المنتج تغطي أعلى الموديل وجوانبه بالكامل */}
           <div
-            className={`relative w-full overflow-hidden bg-[#F2F2ED] group shrink-0 ${
+            className={`relative w-full overflow-hidden bg-[var(--color-page-background)] group shrink-0 ${
               product.image.includes("/promo/")
                 ? "aspect-[3967/1475]"
                 : "h-48 sm:h-56"
@@ -207,7 +207,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
               type="button"
               onClick={requestClose}
               aria-label="إغلاق النافذة"
-              className="absolute left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/95 text-[#26352B] shadow-[0_4px_14px_rgba(0,0,0,0.35)] backdrop-blur-sm transition-all duration-200 hover:bg-white hover:scale-105 active:scale-95"
+              className="icon-close absolute left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/95 shadow-[0_4px_14px_rgba(0,0,0,0.35)] backdrop-blur-sm transition-all duration-200 hover:bg-[var(--color-surface-elevated)] hover:scale-105 active:scale-95"
             >
               <X className="h-5 w-5" />
             </button>
@@ -228,12 +228,12 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
 
                 {/* السعر — يتغير حسب الحجم المختار */}
                 <div className="flex flex-col items-end shrink-0">
-                  <div className="flex items-baseline gap-1 text-[#ff7a00] font-black text-xl sm:text-2xl">
+                  <div className="flex items-baseline gap-1 text-[var(--color-primary)] font-black text-xl sm:text-2xl">
                     <span>{effectivePrice}</span>
-                    <span className="text-xs text-[#a89f94]">ج.م</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">ج.م</span>
                   </div>
                   {effectiveOriginalPrice && effectiveOriginalPrice > effectivePrice && (
-                    <span className="text-xs text-[#736a61] line-through font-medium">
+                    <span className="text-xs text-[var(--color-text-muted)] line-through font-medium">
                       {effectiveOriginalPrice} ج.م
                     </span>
                   )}
@@ -241,7 +241,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
               </div>
 
               {/* الوصف */}
-              <p className="text-xs sm:text-sm text-[#a89f94] leading-relaxed">
+              <p className="text-xs sm:text-sm text-[var(--color-text-muted)] leading-relaxed">
                 {product.description ||
                   "وجبة شهية ومميزة محضرة طازجة يومياً بأجود المكونات والتوابل الخاصة من مطعم روزماري لإرضاء ذوقك الرفيع."}
               </p>
@@ -250,9 +250,9 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
             {/* ━━━ اختيار الحجم (يظهر فقط للمنتجات التي لها أحجام) ━━━ */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="space-y-2.5">
-                <p className="text-xs sm:text-sm font-bold text-[#d1cbc4] flex items-center gap-1.5">
+                <p className="text-xs sm:text-sm font-bold text-[var(--color-text-primary)] flex items-center gap-1.5">
                   <span>اختار الحجم</span>
-                  <span className="text-[10px] text-[#736a61] font-normal">(مطلوب)</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)] font-normal">(مطلوب)</span>
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {product.sizes.map((size) => {
@@ -264,13 +264,13 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                         onClick={() => setSelectedSize(size)}
                         className={`flex flex-col items-center gap-0.5 rounded-xl border p-2.5 transition-all duration-200 ${
                           isSelected
-                            ? "border-[#ff7a00] bg-[#ff7a00]/10 shadow-md shadow-[#ff7a00]/15 scale-[1.03]"
-                            : "border-[#2b241e] bg-[#F2F2ED] hover:border-[#ff7a00]/50 hover:bg-[#F2F2ED]"
+                            ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 shadow-md shadow-[var(--color-primary)]/15 scale-[1.03]"
+                            : "border-[var(--color-border)] bg-[var(--color-page-background)] hover:border-[var(--color-primary)]/50 hover:bg-[var(--color-page-background)]"
                         }`}
                       >
                         <span
                           className={`text-xs font-black ${
-                            isSelected ? "text-[#fff]" : "text-white"
+                            isSelected ? "text-[var(--color-on-primary)]" : "text-white"
                           }`}
                         >
                           {size.name}
@@ -278,7 +278,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                         {size.detail && (
                           <span
                             className={`text-[9px] leading-tight text-center ${
-                              isSelected ? "text-[#fff]/85" : "text-[#857b72]"
+                              isSelected ? "text-[var(--color-on-primary)]/85" : "text-[var(--color-text-muted)]"
                             }`}
                           >
                             {size.detail}
@@ -286,7 +286,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                         )}
                         <span
                           className={`text-xs font-bold mt-0.5 ${
-                            isSelected ? "text-[#fff]" : "text-[#c4b9b0]"
+                            isSelected ? "text-[var(--color-on-primary)]" : "text-[var(--color-text-muted)]"
                           }`}
                         >
                           {size.price} ج.م
@@ -294,7 +294,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                         {size.originalPrice && size.originalPrice > size.price && (
                           <span
                             className={`text-[9px] line-through ${
-                              isSelected ? "text-[#fff]/70" : "text-[#6b6259]"
+                              isSelected ? "text-[var(--color-on-primary)]/70" : "text-[var(--color-text-muted)]"
                             }`}
                           >
                             {size.originalPrice} ج.م
@@ -309,12 +309,12 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
             )}
 
             {/* اختيار الكمية */}
-            <div className="rounded-2xl bg-[#F2F2ED] border border-[#26201a] p-3.5 flex items-center justify-between">
+            <div className="rounded-2xl bg-[var(--color-page-background)] border border-[var(--color-border)] p-3.5 flex items-center justify-between">
               <div>
                 <span className="text-xs sm:text-sm font-bold text-white block">
                   الكمية المطلوبة
                 </span>
-                <span className="text-[11px] text-[#8a8175]">
+                <span className="text-[11px] text-[var(--color-text-muted)]">
                   المجموع: {lineTotal} ج.م
                 </span>
               </div>
@@ -325,12 +325,12 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                   disabled={quantity <= 1}
                   aria-label="تقليل الكمية"
-                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-[#F2F2ED] border border-[#30251e] text-white hover:bg-[#ff7a00] hover:border-[#ff7a00] disabled:opacity-30 disabled:hover:bg-[#F2F2ED] disabled:hover:border-[#30251e] transition-colors"
+                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] text-white hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] disabled:opacity-30 disabled:hover:bg-[var(--color-page-background)] disabled:hover:border-[var(--color-border)] transition-colors"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
 
-                <span className="text-base font-black text-[#ff7a00] min-w-[20px] text-center">
+                <span className="text-base font-black text-[var(--color-primary)] min-w-[20px] text-center">
                   {quantity}
                 </span>
 
@@ -338,7 +338,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                   type="button"
                   onClick={() => setQuantity((prev) => prev + 1)}
                   aria-label="زيادة الكمية"
-                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-[#F2F2ED] border border-[#30251e] text-white hover:bg-[#ff7a00] hover:border-[#ff7a00] transition-colors"
+                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] text-white hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
@@ -349,14 +349,14 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
             <div className="space-y-1.5">
               <label
                 htmlFor="product-notes"
-                className="text-xs sm:text-sm font-bold text-[#d1cbc4] flex items-center justify-between"
+                className="text-xs sm:text-sm font-bold text-[var(--color-text-primary)] flex items-center justify-between"
               >
                 <span>
                   {product.category === "offers"
                     ? "ملاحظات وتفاصيل العرض"
                     : "ملاحظات خاصة على الوجبة"}
                 </span>
-                <span className="text-[10px] text-[#736a61] font-normal">(اختياري)</span>
+                <span className="text-[10px] text-[var(--color-text-muted)] font-normal">(اختياري)</span>
               </label>
               <textarea
                 id="product-notes"
@@ -369,9 +369,9 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                     ? "مثل: اختيارات الساندوتشات، صوصات إضافية، كانز دايت أو عادي..."
                     : "مثل: بدون بصل، صوص زيادة، درجة التسوية، بدون كاتشب..."
                 }
-                className="w-full rounded-xl bg-[#F2F2ED] border border-[#2b241e] p-3 text-xs sm:text-sm text-white placeholder-[#685f55] focus:outline-none focus:border-[#ff7a00] transition-colors resize-none"
+                className="w-full rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] p-3 text-xs sm:text-sm text-white placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors resize-none"
               />
-              <div className="flex justify-between items-center text-[10px] text-[#736a61] px-1">
+              <div className="flex justify-between items-center text-[10px] text-[var(--color-text-muted)] px-1">
                 <span>
                   {product.category === "offers"
                     ? "سيتم إرفاق اختياراتك وملاحظاتك مع الطلب للمطبخ مباشرة"
@@ -383,7 +383,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
           </div>
 
           {/* تذييل الموديل: زر الإضافة للسلة مع المفضلة والإجمالي */}
-          <div className="p-4 sm:p-5 border-t border-[#231d17] bg-[#F2F2ED] shrink-0">
+          <div className="p-4 sm:p-5 border-t border-[var(--color-border)] bg-[var(--color-page-background)] shrink-0">
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -392,7 +392,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                 className={`flex-1 py-3.5 rounded-xl font-bold text-sm text-white shadow-lg shadow-black/50 transition-all flex items-center justify-center gap-2 ${
                   isAdded
                     ? "bg-emerald-600 scale-[0.99]"
-                    : "bg-gradient-to-r from-[#ff7a00] to-[#e66e00] hover:scale-[1.01] active:scale-95"
+                    : "bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] hover:scale-[1.01] active:scale-95"
                 }`}
               >
                 {isAdded ? (
@@ -412,16 +412,16 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                 )}
               </button>
 
-              {/* زر المفضلة — بنفس هوفر كارت المنتج (امتلاء #526B58) */}
+              {/* زر المفضلة — بنفس هوفر كارت المنتج (امتلاء var(--color-icon)) */}
               <button
                 type="button"
                 onClick={handleToggleFavorite}
                 aria-label={favorited ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
-                className="group/fav relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#899B83] bg-white transition-colors duration-200 active:scale-95"
+                className="group/fav relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--color-primary-border)] bg-[var(--color-surface-elevated)] transition-colors duration-200 active:scale-95"
               >
                 {!favorited && (
                   <span
-                    className="absolute inset-0 translate-y-full rounded-xl bg-[#526B58] transition-transform duration-300 ease-out group-hover/fav:translate-y-0"
+                    className="absolute inset-0 translate-y-full rounded-xl bg-[var(--color-icon)] transition-transform duration-300 ease-out group-hover/fav:translate-y-0"
                     aria-hidden="true"
                   />
                 )}
@@ -429,7 +429,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                   className={`relative z-10 h-5 w-5 transition-colors duration-200 ${
                     favorited
                       ? "fill-[#ff3b30] text-[#ff3b30]"
-                      : "text-[#526B58] group-hover/fav:text-[#fff]"
+                      : "text-[var(--color-icon)] group-hover/fav:text-[var(--color-on-primary)]"
                   }`}
                 />
               </button>

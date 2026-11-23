@@ -78,16 +78,27 @@ const baseCategoryFields = {
   description: z.string().trim().optional(),
   sortOrder: z.number().int().min(0),
   isActive: z.boolean(),
+  showOnHome: z.boolean(),
 };
 
 export const createCategorySchema = z.object({
   ...baseCategoryFields,
   image: z.string().trim().optional().default(""),
   imagePublicId: z.string().trim().optional().default(""),
-  sortOrder: z.number().int().min(0).default(0),
+  sortOrder: z.number().int().min(0).optional(),
   isActive: z.boolean().default(true),
+  showOnHome: z.boolean().default(true),
 });
 export const updateCategorySchema = z.object(baseCategoryFields).partial();
+
+/** حفظ ترتيب التصنيفات من الداشبورد — قائمة IDs بالترتيب النهائي */
+export const reorderCategoriesSchema = z.object({
+  ids: z
+    .array(z.string().regex(/^[0-9a-fA-F]{24}$/, "معرّف تصنيف غير صحيح"))
+    .min(1, "لا يوجد تصنيفات لحفظ ترتيبها")
+    .max(300, "عدد التصنيفات أكثر من المسموح")
+    .refine((ids) => new Set(ids).size === ids.length, "ترتيب التصنيفات فيه تكرار"),
+});
 
 /* ─── البنرات ────────────────────────────────────────────────────── */
 const baseBannerFields = {
@@ -180,6 +191,13 @@ export const createOrderSchema = z.object({
   paymentMethod: z.enum(["cash", "vodafone_cash", "instapay"]).optional().default("cash"),
   paymentProofUrl: z.string().trim().url().optional(),
   paymentProofPublicId: z.string().trim().optional(),
+  /** رقم مرجع التحويل كما أدخله العميل — اختياري ويظهر على ورقة الطلب للمراجعة */
+  transactionReference: z
+    .string()
+    .trim()
+    .min(3, "رقم مرجع التحويل قصير جداً")
+    .max(80, "رقم مرجع التحويل طويل جداً")
+    .optional(),
   clientOrderId: z.string().trim().min(8, "معرّف الطلب غير صالح").max(80, "معرّف الطلب غير صالح").optional(),
 });
 
@@ -188,6 +206,30 @@ export const updateOrderStatusSchema = z.object({
   status: z.enum(["pending", "delivered", "cancelled"]),
 });
 
+/** مراجعة المدير لدفعة تحويل إلكتروني: تأكيد استلام المبلغ أو رفض التحويل */
+export const orderPaymentActionSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("verify"),
+    transactionReference: z
+      .string()
+      .trim()
+      .min(3, "اكتب رقم مرجع عملية التحويل")
+      .max(80, "رقم المرجع طويل جداً"),
+    amount: z
+      .number({ error: "المبلغ المستلم غير صحيح" })
+      .finite("المبلغ المستلم غير صحيح")
+      .positive("المبلغ المستلم غير صحيح"),
+  }),
+  z.object({
+    action: z.literal("reject"),
+    reason: z
+      .string()
+      .trim()
+      .min(3, "اكتب سبب رفض التحويل")
+      .max(300, "سبب الرفض طويل جداً"),
+  }),
+]);
+
 /** تعديل بيانات العميل فقط (للأدمن) */
 export const updateOrderSchema = z.object({
   customerName: z.string().trim().optional(),
@@ -195,6 +237,20 @@ export const updateOrderSchema = z.object({
   customerAddress: z.string().trim().optional(),
   area: z.string().trim().optional(),
   notes: z.string().trim().optional(),
+});
+
+/* ─── طابور الطباعة ──────────────────────────────────────────────── */
+export const printClaimSchema = z.object({
+  orderId: z.string().trim().min(1, "معرّف الطلب مطلوب"),
+  /** true = طباعة يدوية من زر الكاشير (تسمح بإعادة طباعة طلب مطبوع) */
+  manual: z.boolean().optional().default(false),
+});
+
+export const printResultSchema = z.object({
+  orderId: z.string().trim().min(1, "معرّف الطلب مطلوب"),
+  claimId: z.string().trim().min(1, "معرّف الحجز مطلوب"),
+  status: z.enum(["printed", "failed"]),
+  error: z.string().trim().max(300).optional(),
 });
 
 /* ─── المصادقة ───────────────────────────────────────────────────── */
@@ -273,6 +329,33 @@ const galleryImageSchema = z.object({
   alt: z.string().trim().optional().default(""),
 });
 
+/** لون HEX فقط — الفاضي معناه «اترك القيمة المشتقة تلقائياً» (للإعدادات المتقدمة) */
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+const hexOrEmpty = z
+  .string()
+  .trim()
+  .refine((v) => v === "" || HEX_COLOR.test(v), "لون HEX غير صحيح")
+  .max(7, "لون HEX غير صحيح");
+
+const hexRequired = z
+  .string()
+  .trim()
+  .regex(HEX_COLOR, "لون HEX غير صحيح — لازم يبدأ بـ # ويتبعه 6 أرقام أو حروف مثل #50604D");
+
+const themeColorsSchema = z.object({
+  primary: hexRequired,
+  icon: hexRequired,
+  background: hexRequired,
+  primaryHover: hexOrEmpty.optional(),
+  primaryActive: hexOrEmpty.optional(),
+  iconHover: hexOrEmpty.optional(),
+  textPrimary: hexOrEmpty.optional(),
+  surface: hexOrEmpty.optional(),
+  surfaceSecondary: hexOrEmpty.optional(),
+  surfaceElevated: hexOrEmpty.optional(),
+  border: hexOrEmpty.optional(),
+});
+
 export const storeSettingsSchema = z.object({
   storeName: z.string().trim().optional(),
   storeDescription: z.string().trim().optional(),
@@ -283,6 +366,9 @@ export const storeSettingsSchema = z.object({
   logoPublicId: z.string().trim().optional(),
   tickerMessage: z.string().trim().max(160, "نص الشريط طويل جداً").optional(),
   tickerIcon: z.string().trim().max(12, "الأيقونة طويلة جداً").optional(),
+  tickerEnabled: z.boolean().optional(),
+  tickerIconPosition: z.enum(["start", "end"]).optional(),
+  theme: themeColorsSchema.partial().optional(),
   currency: z.string().trim().optional(),
   deliveryFee: z.number().min(0).optional(),
   minimumOrder: z.number().min(0).optional(),

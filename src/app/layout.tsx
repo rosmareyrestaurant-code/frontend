@@ -5,6 +5,7 @@ import SiteChrome from "@/components/layout/SiteChrome";
 import { DeliveryProvider } from "@/context/DeliveryContext";
 import { Toaster } from "sonner";
 import { SITE_CONTACT, SITE_URL } from "@/data/siteConfig";
+import { getPublicTicker, getThemeCss } from "@/lib/storefront";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -81,14 +82,16 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [themeCss, ticker] = await Promise.all([getThemeCss(), getPublicTicker()]);
   return (
     <html lang="ar" dir="rtl" className={`${cairo.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans bg-[#F2F2ED] text-[#26352B] antialiased">
+      <body className="min-h-full flex flex-col font-sans bg-[var(--color-page-background)] text-[var(--color-text-primary)] antialiased">
+        <style id="rozmaly-theme" dangerouslySetInnerHTML={{ __html: themeCss }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurantJsonLd) }}
@@ -116,7 +119,7 @@ export default function RootLayout({
               },
             }}
           />
-          <SiteChrome>{children}</SiteChrome>
+          <SiteChrome ticker={ticker}>{children}</SiteChrome>
         </DeliveryProvider>
       </body>
     </html>

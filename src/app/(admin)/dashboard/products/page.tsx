@@ -323,69 +323,69 @@ export default function ProductsPage() {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9A9C90]" />
+            <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]" />
             <input type="text" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
               placeholder="ابحث باسم المنتج..."
-              className="w-full rounded-full border border-[#E9E5DA] bg-[#FBF9F6] py-2.5 pe-4 ps-10 text-[13px] text-[#333B2E] placeholder-[#A6A79C] transition-colors focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
-            {search && <button onClick={() => setSearch("")} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9A9C90] transition-colors hover:text-[#50604D]" aria-label="مسح البحث"><X className="h-3.5 w-3.5" /></button>}
+              className="w-full rounded-full border border-[var(--color-control-border)] bg-[var(--color-surface)] py-2.5 pe-4 ps-10 text-[13px] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] transition-colors focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
+            {search && <button onClick={() => setSearch("")} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-primary)]" aria-label="مسح البحث"><X className="h-3.5 w-3.5" /></button>}
           </div>
           <div className="relative">
             <select value={catFilter} onChange={e => { setCatFilter(e.target.value); setPage(1); }}
-              className="w-full min-w-[150px] appearance-none rounded-full border border-[#E9E5DA] bg-[#FBF9F6] py-2.5 pe-4 ps-9 text-[13px] font-semibold text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20">
+              className="w-full min-w-[150px] appearance-none rounded-full border border-[var(--color-control-border)] bg-[var(--color-surface)] py-2.5 pe-4 ps-9 text-[13px] font-semibold text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20">
               <option value="all">كل التصنيفات</option>
               {categories.map(c => <option key={c.slug} value={c.slug}>{c.nameAr}</option>)}
             </select>
-            <ChevronDown className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9A9C90]" />
+            <ChevronDown className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--color-text-muted)]" />
           </div>
           <div className="relative">
             <select value={availFilter} onChange={e => { setAvailFilter(e.target.value as "all" | "true" | "false"); setPage(1); }}
-              className="w-full min-w-[140px] appearance-none rounded-full border border-[#E9E5DA] bg-[#FBF9F6] py-2.5 pe-4 ps-9 text-[13px] font-semibold text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20">
+              className="w-full min-w-[140px] appearance-none rounded-full border border-[var(--color-control-border)] bg-[var(--color-surface)] py-2.5 pe-4 ps-9 text-[13px] font-semibold text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20">
               <option value="all">كل الحالات</option>
               <option value="true">متاح</option>
               <option value="false">غير متاح</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9A9C90]" />
+            <ChevronDown className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--color-text-muted)]" />
           </div>
-          <button onClick={openAdd} className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[13px] font-bold text-[#fff] transition-colors hover:bg-[#435241]">
+          <button onClick={openAdd} className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[13px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)]">
             <Plus className="h-4 w-4" /> إضافة منتج
           </button>
         </div>
         {/* Excel import/export */}
-        <div className="flex flex-wrap items-center gap-2 rounded-[14px] border border-[#EDE9E0] bg-[#FBF9F6] px-4 py-2.5">
-          <span className="min-w-[180px] flex-1 text-[11px] font-semibold text-[#9A9C90]">استيراد / تصدير المنتجات من ملف الإكسيل</span>
+        <div className="flex flex-wrap items-center gap-2 rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5">
+          <span className="min-w-[180px] flex-1 text-[11px] font-semibold text-[var(--color-text-muted)]">استيراد / تصدير المنتجات من ملف الإكسيل</span>
           <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={e => handleExcel(e.target.files?.[0])} />
           <button onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-1.5 rounded-full border border-[#D6DCCF] bg-[#EDF1E8] px-3.5 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#E3E9DC]">
+            className="flex items-center gap-1.5 rounded-full border border-[var(--color-primary-border)] bg-[var(--color-primary-soft)] px-3.5 py-1.5 text-[11px] font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary-soft)]">
             <Upload className="h-3.5 w-3.5" /> استيراد إكسيل
           </button>
           <button onClick={handleExport}
-            className="flex items-center gap-1.5 rounded-full border border-[#E7E3D8] bg-[#F4F2EE] px-3.5 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#EDEAE1]">
+            className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-secondary)] px-3.5 py-1.5 text-[11px] font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-surface-hover)]">
             <Download className="h-3.5 w-3.5" /> تصدير إكسيل
           </button>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6]">
+      <div className="overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="px-5 pb-3 pt-4">
-          <h2 className="flex items-center gap-2 text-[15px] font-black text-[#333B2E]">
-            المنتجات <span className="text-[12px] font-bold text-[#9A9C90]">({total})</span>
+          <h2 className="flex items-center gap-2 text-[15px] font-black text-[var(--color-text-primary)]">
+            المنتجات <span className="text-[12px] font-bold text-[var(--color-text-muted)]">({total})</span>
             {refreshing && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#9A9C90]">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[var(--color-text-muted)]">
                 <Loader2 className="h-3 w-3 animate-spin" /> تحديث
               </span>
             )}
           </h2>
         </div>
         {loading ? (
-          <div className="py-12 text-center text-[13px] text-[#9A9C90] animate-pulse">جاري التحميل...</div>
+          <div className="py-12 text-center text-[13px] text-[var(--color-text-muted)] animate-pulse">جاري التحميل...</div>
         ) : products.length === 0 ? (
-          <EmptyState icon={Package} title="لا توجد منتجات" action={<button onClick={openAdd} className="rounded-full bg-[#50604D] px-4 py-2 text-[12px] font-bold text-[#fff]">إضافة منتج</button>} />
+          <EmptyState icon={Package} title="لا توجد منتجات" action={<button onClick={openAdd} className="rounded-full bg-[var(--color-primary)] px-4 py-2 text-[12px] font-bold text-[var(--color-on-primary)]">إضافة منتج</button>} />
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[750px] text-right">
                 <thead>
-                  <tr className="bg-[#F4F2EE] text-[11px] font-bold text-[#8F9186]">
+                  <tr className="bg-[var(--color-surface-secondary)] text-[11px] font-bold text-[var(--color-text-muted)]">
                     <th className="px-5 py-2.5 font-bold">المنتج</th>
                     <th className="px-5 py-2.5 font-bold">التصنيف</th>
                     <th className="px-5 py-2.5 font-bold">السعر</th>
@@ -394,33 +394,33 @@ export default function ProductsPage() {
                     <th className="px-5 py-2.5 font-bold">الإجراءات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F0EDE5]">
+                <tbody className="divide-y divide-[var(--color-border-subtle)]">
                   {products.map(p => (
                     <tr key={p.id} onClick={() => openEdit(p)}
                       tabIndex={0} role="button" aria-label={`تعديل ${p.name}`}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEdit(p); } }}
-                      className="cursor-pointer text-[12px] transition-colors hover:bg-[#F8F6F1] focus-visible:bg-[#F8F6F1] focus-visible:outline-none">
+                      className="cursor-pointer text-[12px] transition-colors hover:bg-[var(--color-surface-soft)] focus-visible:bg-[var(--color-surface-soft)] focus-visible:outline-none">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[10px] border border-[#EDE9E0] bg-[#F1EEE7]">
+                          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)]">
                             {p.image ? <Image src={p.image} alt={p.name} fill className="object-cover" sizes="44px" unoptimized={p.image.startsWith("data:")} />
-                              : <Package className="m-auto h-5 w-5 text-[#9A9C90]" />}
+                              : <Package className="m-auto h-5 w-5 text-[var(--color-text-muted)]" />}
                           </div>
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <p className="text-[13px] font-bold text-[#333B2E]">{p.name}</p>
+                              <p className="text-[13px] font-bold text-[var(--color-text-primary)]">{p.name}</p>
                               {p.isFeatured && <Star className="h-3 w-3 fill-[#C08A2E] text-[#C08A2E]" />}
                             </div>
-                            <p className="max-w-[200px] truncate text-[11px] text-[#9A9C90]">
+                            <p className="max-w-[200px] truncate text-[11px] text-[var(--color-text-muted)]">
                               {p.sizes?.length ? `${p.sizes.length} أحجام` : p.description}
                             </p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-[12px] font-medium text-[#6B7264]">{p.categoryNameAr || catName(p.category)}</td>
+                      <td className="px-5 py-3 text-[12px] font-medium text-[var(--color-text-secondary)]">{p.categoryNameAr || catName(p.category)}</td>
                       <td className="px-5 py-3">
-                        <p className="text-[13px] font-black text-[#333B2E]">{p.price} ج.م</p>
-                        {p.originalPrice && <p className="text-[11px] text-[#9A9C90] line-through">{p.originalPrice} ج.م</p>}
+                        <p className="text-[13px] font-black text-[var(--color-text-primary)]">{p.price} ج.م</p>
+                        {p.originalPrice && <p className="text-[11px] text-[var(--color-text-muted)] line-through">{p.originalPrice} ج.م</p>}
                       </td>
                       <td className="px-5 py-3">
                         <button onClick={(e) => { e.stopPropagation(); toggleAvail(p.id, p.isAvailable); }}><AvailabilityBadge available={p.isAvailable} /></button>
@@ -429,11 +429,11 @@ export default function ProductsPage() {
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-1.5">
                           <button onClick={(e) => { e.stopPropagation(); openEdit(p); }}
-                            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F2EE] text-[#6B7264] transition-colors hover:bg-[#EDEAE1] hover:text-[#50604D]">
+                            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-primary)]">
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
                           <button onClick={(e) => { e.stopPropagation(); setDeleteId(p.id); }} disabled={deletingId === p.id}
-                            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F4F2EE] text-[#6B7264] transition-colors hover:bg-[#FBE4E0] hover:text-[#C25B4F] disabled:opacity-60">
+                            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] transition-colors hover:bg-[#FBE4E0] hover:text-[#C25B4F] disabled:opacity-60">
                             {deletingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                           </button>
                         </div>
@@ -455,14 +455,14 @@ export default function ProductsPage() {
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#8F9186]">اسم المنتج *</label>
+              <label className="text-xs font-bold text-[var(--color-text-muted)]">اسم المنتج *</label>
               <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-4 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+                className="w-full rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#8F9186]">الاسم بالإنجليزية</label>
+              <label className="text-xs font-bold text-[var(--color-text-muted)]">الاسم بالإنجليزية</label>
               <input type="text" value={form.nameEn ?? ""} dir="ltr" onChange={e => setForm(p => ({ ...p, nameEn: e.target.value }))}
-                className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-4 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+                className="w-full rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
             </div>
           </div>
           <ImageUpload value={form.image}
@@ -470,21 +470,21 @@ export default function ProductsPage() {
             onPublicIdChange={pid => setForm(p => ({ ...p, imagePublicId: pid }))}
             label="صورة المنتج" folder="rozmaly/products" />
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#8F9186]">الوصف</label>
+            <label className="text-xs font-bold text-[var(--color-text-muted)]">الوصف</label>
             <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={2}
-              className="w-full resize-none rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-4 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+              className="w-full resize-none rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#8F9186]">التصنيف</label>
+              <label className="text-xs font-bold text-[var(--color-text-muted)]">التصنيف</label>
               <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
-                className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-4 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20">
+                className="w-full rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20">
                 {categories.map(c => <option key={c.slug} value={c.slug}>{c.nameAr}</option>)}
                 {!categories.length && <option value="pizza">بيتزا</option>}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#8F9186]">السعر (ج.م) *</label>
+              <label className="text-xs font-bold text-[var(--color-text-muted)]">السعر (ج.م) *</label>
               <input type="number" min={0} value={form.price} onChange={e => {
                 const price = Number(e.target.value);
                 setForm(p => {
@@ -495,44 +495,44 @@ export default function ProductsPage() {
                   return { ...p, price, sizes: sizes.map((s, i) => (i === target ? { ...s, price } : s)) };
                 });
               }}
-                className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-4 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+                className="w-full rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
               {(form.sizes ?? []).length > 0 && (
-                <p className="text-[10px] font-medium text-[#9A9C90]">بيتزامن مع سعر الحجم الافتراضي</p>
+                <p className="text-[10px] font-medium text-[var(--color-text-muted)]">بيتزامن مع سعر الحجم الافتراضي</p>
               )}
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#8F9186]">السعر قبل الخصم (اختياري)</label>
+            <label className="text-xs font-bold text-[var(--color-text-muted)]">السعر قبل الخصم (اختياري)</label>
             <input type="number" min={0} value={form.originalPrice ?? ""} onChange={e => setForm(p => ({ ...p, originalPrice: e.target.value ? Number(e.target.value) : undefined }))}
-              className="w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-4 py-2.5 text-[13px] text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20" />
+              className="w-full rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
           </div>
           {/* الأحجام */}
-          <div className="space-y-3 rounded-[14px] border border-[#E9E5DA] bg-[#F4F2EE] p-3">
+          <div className="space-y-3 rounded-[14px] border border-[var(--color-control-border)] bg-[var(--color-surface-secondary)] p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-[#50604D]" />
-                <p className="text-xs font-bold text-[#6B7264]">الأحجام / القطع</p>
+                <Layers className="h-4 w-4 text-[var(--color-primary)]" />
+                <p className="text-xs font-bold text-[var(--color-text-secondary)]">الأحجام / القطع</p>
               </div>
               <button type="button" onClick={() => setForm(p => ({ ...p, sizes: [...(p.sizes ?? []), newSize()] }))}
-                className="flex items-center gap-1 rounded-full border border-[#D6DCCF] bg-[#EDF1E8] px-3 py-1.5 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#E3E9DC]">
+                className="flex items-center gap-1 rounded-full border border-[var(--color-primary-border)] bg-[var(--color-primary-soft)] px-3 py-1.5 text-[11px] font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary-soft)]">
                 <Plus className="h-3.5 w-3.5" /> إضافة حجم
               </button>
             </div>
             {(form.sizes ?? []).map((s, i) => (
-              <div key={s.id} className="grid grid-cols-[1fr_80px_80px_auto] gap-2 rounded-[10px] border border-[#E9E5DA] bg-[#F7F4EE] p-2">
+              <div key={s.id} className="grid grid-cols-[1fr_80px_80px_auto] gap-2 rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] p-2">
                 <input type="text" value={s.name} placeholder="كبير / قطعة..." onChange={e => updateSize(i, { name: e.target.value })}
-                  className="min-w-0 rounded-[8px] border border-[#E9E5DA] bg-[#FBF9F6] px-2.5 py-2 text-xs text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none" />
+                  className="min-w-0 rounded-[8px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-2.5 py-2 text-xs text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none" />
                 <input type="number" min={0} value={s.price || ""} placeholder="السعر" onChange={e => updateSize(i, { price: Number(e.target.value) })}
-                  className="min-w-0 rounded-[8px] border border-[#E9E5DA] bg-[#FBF9F6] px-2 py-2 text-xs text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none" />
+                  className="min-w-0 rounded-[8px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-2 py-2 text-xs text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none" />
                 <input type="number" min={0} value={s.originalPrice ?? ""} placeholder="قبل الخصم" onChange={e => updateSize(i, { originalPrice: e.target.value ? Number(e.target.value) : undefined })}
-                  className="min-w-0 rounded-[8px] border border-[#E9E5DA] bg-[#FBF9F6] px-2 py-2 text-xs text-[#333B2E] focus:border-[#B9C4AF] focus:outline-none" />
+                  className="min-w-0 rounded-[8px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-2 py-2 text-xs text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none" />
                 <div className="flex items-center gap-1">
                   <button type="button" onClick={() => makeDefaultSize(i)} title="افتراضي"
-                    className={`flex h-8 w-8 items-center justify-center rounded-full border ${s.isDefault ? "border-[#B9C4AF] bg-[#DEE3D5] text-[#50604D]" : "border-[#E9E5DA] bg-[#FBF9F6] text-[#9A9C90] hover:text-[#50604D]"}`}>
+                    className={`flex h-8 w-8 items-center justify-center rounded-full border ${s.isDefault ? "border-[var(--color-primary-border)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]" : "border-[var(--color-control-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)]"}`}>
                     <Star className={`h-3.5 w-3.5 ${s.isDefault ? "fill-current" : ""}`} />
                   </button>
                   <button type="button" onClick={() => setForm(p => ({ ...p, sizes: (p.sizes ?? []).filter((_, idx) => idx !== i) }))}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E9E5DA] bg-[#FBF9F6] text-[#9A9C90] hover:text-[#C25B4F]">
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--color-control-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[#C25B4F]">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -544,15 +544,15 @@ export default function ProductsPage() {
               <label key={key} className="flex cursor-pointer select-none items-center gap-2">
                 <input type="checkbox" checked={(form as unknown as Record<string, boolean>)[key]}
                   onChange={e => setForm(p => ({ ...p, [key]: e.target.checked }))}
-                  className="h-4 w-4 rounded accent-[#50604D]" />
-                <span className="text-[13px] font-medium text-[#6B7264]">{label}</span>
+                  className="h-4 w-4 rounded accent-[var(--color-primary)]" />
+                <span className="text-[13px] font-medium text-[var(--color-text-secondary)]">{label}</span>
               </label>
             ))}
           </div>
-          <div className="flex justify-end gap-3 border-t border-[#F0EDE5] pt-3">
-            <button onClick={() => setModalOpen(false)} className="rounded-full bg-[#F0EDE5] px-4 py-2.5 text-[12px] font-bold text-[#50604D] transition-colors hover:bg-[#E7E3D8]">إلغاء</button>
+          <div className="flex justify-end gap-3 border-t border-[var(--color-border-subtle)] pt-3">
+            <button onClick={() => setModalOpen(false)} className="rounded-full bg-[var(--color-border-subtle)] px-4 py-2.5 text-[12px] font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-border)]">إلغاء</button>
             <button onClick={saveProduct} disabled={saving}
-              className="rounded-full bg-[#50604D] px-5 py-2.5 text-[12px] font-bold text-[#fff] transition-colors hover:bg-[#435241] disabled:opacity-70">
+              className="rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[12px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:opacity-70">
               {saving ? "جاري الحفظ..." : editProduct ? "حفظ التعديلات" : "إضافة المنتج"}
             </button>
           </div>

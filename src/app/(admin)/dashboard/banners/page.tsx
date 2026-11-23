@@ -18,7 +18,7 @@ const USE_MOCK = false; // الموك معطّل — الواجهة متصلة �
 
 const POSITION_INFO: Record<BannerPosition, { label: string; icon: React.ElementType; color: string; bg: string; border: string; desc: string }> = {
   hero:     { label: "سلايدر الهيرو",          icon: Sliders,    color: "text-amber-400",   bg: "bg-amber-500/10",   border: "border-amber-500/25",  desc: "السلايدر التفاعلي أعلى الموقع" },
-  middle:   { label: "بانرات منتصف الصفحة",    icon: Sparkles,   color: "text-[#ff7a00]",   bg: "bg-[#ff7a00]/10",   border: "border-[#ff7a00]/25",  desc: "البانران الكبيران في منتصف الصفحة" },
+  middle:   { label: "بانرات منتصف الصفحة",    icon: Sparkles,   color: "text-[var(--color-primary)]",   bg: "bg-[var(--color-primary)]/10",   border: "border-[var(--color-primary)]/25",  desc: "البانران الكبيران في منتصف الصفحة" },
   delivery: { label: "بانر أسفل الصفحة",       icon: PanelBottom, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/25", desc: "البانر أسفل الصفحة قبل الفوتر" },
 };
 
@@ -106,7 +106,7 @@ export default function BannersPage() {
     setDeleteId(null);
   };
 
-  if (loading) return <div className="py-12 text-center text-sm text-[#5a4f45] animate-pulse">جاري التحميل...</div>;
+  if (loading) return <div className="py-12 text-center text-sm text-[var(--color-text-muted)] animate-pulse">جاري التحميل...</div>;
 
   return (
     <div className="space-y-6 select-none">
@@ -114,19 +114,19 @@ export default function BannersPage() {
         <div>
           <h1 className="flex items-center gap-2 text-xl sm:text-2xl font-black text-white">
             إدارة بانرات الموقع
-            {refreshing && <Loader2 className="h-4 w-4 animate-spin text-[#8a8076]" />}
+            {refreshing && <Loader2 className="h-4 w-4 animate-spin text-[var(--color-text-muted)]" />}
           </h1>
-          <p className="text-xs sm:text-sm text-[#8a8076] mt-1">تحكم في بنرات الصفحة الرئيسية</p>
+          <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-1">تحكم في بنرات الصفحة الرئيسية</p>
         </div>
-        <button onClick={openAdd} className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#ff7a00]/20">
+        <button onClick={openAdd} className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[var(--color-primary)]/20">
           <Plus className="h-4 w-4" /> إضافة بانر جديد
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-[#231d17] pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[var(--color-border)] pb-3">
         {(["all", "hero", "middle", "delivery"] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${activeTab === tab ? "bg-[#ff7a00] text-white" : "bg-[#F2F2ED] border border-[#2b221a] text-[#8a8076] hover:text-white hover:bg-[#F2F2ED]"}`}>
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${activeTab === tab ? "bg-[var(--color-primary)] text-white" : "bg-[var(--color-page-background)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-white hover:bg-[var(--color-page-background)]"}`}>
             {tab === "all" ? <><Layers className="h-3.5 w-3.5" /> كل البنرات ({banners.length})</> :
              tab === "hero" ? <><Sliders className="h-3.5 w-3.5" /> الهيرو ({banners.filter(b => (b.position||"hero")==="hero").length})</> :
              tab === "middle" ? <><Sparkles className="h-3.5 w-3.5" /> المنتصف ({banners.filter(b => b.position==="middle").length})</> :
@@ -143,10 +143,10 @@ export default function BannersPage() {
             const pos = POSITION_INFO[banner.position || "hero"] || POSITION_INFO.hero;
             const PosIcon = pos.icon;
             return (
-              <div key={banner.id} className="group relative overflow-hidden rounded-2xl bg-[#F2F2ED] border border-[#26201a] hover:border-[#ff7a00]/40 hover:shadow-xl transition-all">
+              <div key={banner.id} className="group relative overflow-hidden rounded-2xl bg-[var(--color-page-background)] border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:shadow-xl transition-all">
                 <div className="flex flex-col sm:flex-row">
-                  <div className="relative h-48 p-2 sm:h-auto sm:min-h-44 sm:w-80 shrink-0 bg-[#F2F2ED] overflow-hidden">
-                    {banner.image ? <Image src={banner.image} alt={banner.title} fill className="object-contain object-center" sizes="320px" /> : <div className="flex h-full items-center justify-center text-[#5a4f45]"><Megaphone className="h-8 w-8" /></div>}
+                  <div className="relative h-48 p-2 sm:h-auto sm:min-h-44 sm:w-80 shrink-0 bg-[var(--color-page-background)] overflow-hidden">
+                    {banner.image ? <Image src={banner.image} alt={banner.title} fill className="object-contain object-center" sizes="320px" /> : <div className="flex h-full items-center justify-center text-[var(--color-text-muted)]"><Megaphone className="h-8 w-8" /></div>}
                     <div className="absolute top-3 right-3">
                       <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-black backdrop-blur-md ${pos.bg} ${pos.color} ${pos.border}`}>
                         <PosIcon className="h-3 w-3" />{pos.label}
@@ -157,25 +157,25 @@ export default function BannersPage() {
                     <div className="space-y-2">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <div className="flex items-center gap-2"><h3 className="text-base font-bold text-white group-hover:text-[#ff7a00]">{banner.title}</h3><ActiveBadge active={banner.isActive} /></div>
-                          {banner.description && <p className="text-xs text-[#8a8076] mt-1.5 max-w-2xl">{banner.description}</p>}
+                          <div className="flex items-center gap-2"><h3 className="text-base font-bold text-white group-hover:text-[var(--color-primary)]">{banner.title}</h3><ActiveBadge active={banner.isActive} /></div>
+                          {banner.description && <p className="text-xs text-[var(--color-text-muted)] mt-1.5 max-w-2xl">{banner.description}</p>}
                         </div>
-                        <span className="text-xs font-mono text-[#5a4f45] shrink-0">#{banner.sortOrder}</span>
+                        <span className="text-xs font-mono text-[var(--color-text-muted)] shrink-0">#{banner.sortOrder}</span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 pt-2 text-xs text-[#736a61]">
-                        {banner.ctaText && <span className="rounded-lg bg-[#F2F2ED] border border-[#2b221a] px-2.5 py-1 text-[#b5aba0]">زر: <strong className="text-white">{banner.ctaText}</strong></span>}
-                        {banner.ctaLink && <span className="flex items-center gap-1 rounded-lg bg-[#F2F2ED] border border-[#2b221a] px-2.5 py-1"><code className="text-[#ff7a00]" dir="ltr">{banner.ctaLink}</code><ExternalLink className="h-3 w-3 opacity-60" /></span>}
+                      <div className="flex flex-wrap items-center gap-3 pt-2 text-xs text-[var(--color-text-muted)]">
+                        {banner.ctaText && <span className="rounded-lg bg-[var(--color-page-background)] border border-[var(--color-border)] px-2.5 py-1 text-[var(--color-text-muted)]">زر: <strong className="text-white">{banner.ctaText}</strong></span>}
+                        {banner.ctaLink && <span className="flex items-center gap-1 rounded-lg bg-[var(--color-page-background)] border border-[var(--color-border)] px-2.5 py-1"><code className="text-[var(--color-primary)]" dir="ltr">{banner.ctaLink}</code><ExternalLink className="h-3 w-3 opacity-60" /></span>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 pt-3 border-t border-[#1e1914]">
+                    <div className="flex items-center gap-2 pt-3 border-t border-[var(--color-text-primary)]">
                       <button onClick={() => toggleActive(banner.id, banner.isActive)}
-                        className="flex items-center gap-1.5 rounded-xl bg-[#F2F2ED] border border-[#2a231d] px-3.5 py-1.5 text-xs font-bold text-[#8a8076] hover:text-white transition-colors">
+                        className="flex items-center gap-1.5 rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] px-3.5 py-1.5 text-xs font-bold text-[var(--color-text-muted)] hover:text-white transition-colors">
                         {banner.isActive ? <><EyeOff className="h-3.5 w-3.5 text-amber-400" /> إيقاف</> : <><Eye className="h-3.5 w-3.5 text-emerald-400" /> تفعيل</>}
                       </button>
-                      <button onClick={() => openEdit(banner)} className="flex items-center gap-1.5 rounded-xl bg-[#F2F2ED] border border-[#2a231d] px-3.5 py-1.5 text-xs font-bold text-[#8a8076] hover:text-[#ff7a00] transition-colors">
+                      <button onClick={() => openEdit(banner)} className="flex items-center gap-1.5 rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] px-3.5 py-1.5 text-xs font-bold text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors">
                         <Pencil className="h-3.5 w-3.5" /> تعديل
                       </button>
-                      <button onClick={() => setDeleteId(banner.id)} className="flex items-center gap-1.5 rounded-xl bg-[#F2F2ED] border border-[#2a231d] px-3.5 py-1.5 text-xs font-bold text-[#8a8076] hover:text-red-400 mr-auto transition-colors">
+                      <button onClick={() => setDeleteId(banner.id)} className="flex items-center gap-1.5 rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] px-3.5 py-1.5 text-xs font-bold text-[var(--color-text-muted)] hover:text-red-400 mr-auto transition-colors">
                         <Trash2 className="h-3.5 w-3.5" /> حذف
                       </button>
                     </div>
@@ -191,15 +191,15 @@ export default function BannersPage() {
         <div className="space-y-4">
           {[{ label: "عنوان البانر *", key: "title", ph: "برجر روزماري" }, { label: "الوصف", key: "description", ph: "نص توضيحي" }].map(({ label, key, ph }) => (
             <div key={key}>
-              <label className="block text-xs font-bold text-[#8a8076] mb-1.5">{label}</label>
+              <label className="block text-xs font-bold text-[var(--color-text-muted)] mb-1.5">{label}</label>
               <input type="text" value={(form as Record<string, unknown>)[key] as string} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))} placeholder={ph}
-                className="w-full rounded-xl bg-[#F2F2ED] border border-[#2a231d] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff7a00]" />
+                className="w-full rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" />
             </div>
           ))}
           <div>
-            <label className="block text-xs font-bold text-[#8a8076] mb-1.5">موضع البانر *</label>
+            <label className="block text-xs font-bold text-[var(--color-text-muted)] mb-1.5">موضع البانر *</label>
             <select value={form.position || "hero"} onChange={e => setForm(p => ({ ...p, position: e.target.value as BannerPosition }))}
-              className="w-full rounded-xl bg-[#F2F2ED] border border-[#2a231d] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff7a00]">
+              className="w-full rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]">
               <option value="hero">سلايدر الهيرو (أعلى الصفحة)</option>
               <option value="middle">بانرات منتصف الصفحة</option>
               <option value="delivery">بانر أسفل الصفحة</option>
@@ -212,28 +212,28 @@ export default function BannersPage() {
           <div className="grid grid-cols-2 gap-3">
             {[{ label: "نص الزر", key: "ctaText", ph: "اطلب الآن" }, { label: "الرابط", key: "ctaLink", ph: "#burger", dir: "ltr" as const }].map(({ label, key, ph, dir }) => (
               <div key={key}>
-                <label className="block text-xs font-bold text-[#8a8076] mb-1.5">{label}</label>
+                <label className="block text-xs font-bold text-[var(--color-text-muted)] mb-1.5">{label}</label>
                 <input type="text" dir={dir} value={(form as Record<string, unknown>)[key] as string} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))} placeholder={ph}
-                  className="w-full rounded-xl bg-[#F2F2ED] border border-[#2a231d] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff7a00]" />
+                  className="w-full rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" />
               </div>
             ))}
           </div>
           <div className="grid grid-cols-2 gap-3 pt-2">
             <div>
-              <label className="block text-xs font-bold text-[#8a8076] mb-1.5">ترتيب الظهور</label>
+              <label className="block text-xs font-bold text-[var(--color-text-muted)] mb-1.5">ترتيب الظهور</label>
               <input type="number" value={form.sortOrder} onChange={e => setForm(p => ({ ...p, sortOrder: Number(e.target.value) || 1 }))} min={1}
-                className="w-full rounded-xl bg-[#F2F2ED] border border-[#2a231d] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff7a00]" />
+                className="w-full rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]" />
             </div>
             <div className="flex items-center gap-2 pt-6">
               <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-white">
-                <input type="checkbox" checked={form.isActive} onChange={e => setForm(p => ({ ...p, isActive: e.target.checked }))} className="rounded accent-[#ff7a00]" />
+                <input type="checkbox" checked={form.isActive} onChange={e => setForm(p => ({ ...p, isActive: e.target.checked }))} className="rounded accent-[var(--color-primary)]" />
                 تفعيل البانر
               </label>
             </div>
           </div>
-          <div className="flex justify-end gap-2.5 pt-4 border-t border-[#231d17]">
-            <button onClick={() => setModalOpen(false)} className="rounded-xl bg-[#F2F2ED] border border-[#2a231d] px-4 py-2.5 text-xs font-bold text-[#8a8076] hover:text-white">إلغاء</button>
-            <button onClick={save} disabled={saving} className="rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] px-5 py-2.5 text-xs font-bold text-white disabled:opacity-70">
+          <div className="flex justify-end gap-2.5 pt-4 border-t border-[var(--color-border)]">
+            <button onClick={() => setModalOpen(false)} className="rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] px-4 py-2.5 text-xs font-bold text-[var(--color-text-muted)] hover:text-white">إلغاء</button>
+            <button onClick={save} disabled={saving} className="rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] px-5 py-2.5 text-xs font-bold text-white disabled:opacity-70">
               {saving ? "جاري..." : editBanner ? "حفظ التعديلات" : "إضافة البانر"}
             </button>
           </div>

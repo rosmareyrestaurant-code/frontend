@@ -14,7 +14,7 @@ interface CashierAccount {
 }
 
 const fieldClass =
-  "w-full rounded-[12px] border border-[#E9E5DA] bg-[#F7F4EE] px-4 py-2.5 text-[13px] text-[#333B2E] placeholder-[#B0B1A6] transition-colors focus:border-[#B9C4AF] focus:outline-none focus:ring-2 focus:ring-[#96A78F]/20";
+  "w-full rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] transition-colors focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20";
 
 const EMPTY_FORM = { name: "", email: "", password: "", isActive: true };
 
@@ -115,31 +115,31 @@ export default function CashierAccountPage() {
   };
 
   if (loading) {
-    return <div className="animate-pulse py-12 text-center text-[13px] font-semibold text-[#9A9C90]">جاري التحميل...</div>;
+    return <div className="animate-pulse py-12 text-center text-[13px] font-semibold text-[var(--color-text-muted)]">جاري التحميل...</div>;
   }
 
   return (
     <div className="space-y-5">
-      <h2 className="text-[16px] font-black text-[#333B2E]">حساب الكاشير</h2>
+      <h2 className="text-[16px] font-black text-[var(--color-text-primary)]">حساب الكاشير</h2>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-4">
           {account && (
-            <section className="rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] p-4 sm:p-5">
+            <section className="rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-5">
               <div className="flex flex-wrap items-center gap-3.5">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#EDF1E8] text-[#50604D]">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
                   <UserRound className="h-6 w-6" strokeWidth={1.8} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13.5px] font-black text-[#333B2E]">{account.name}</p>
-                  <p className="mt-1 truncate text-[11px] font-semibold text-[#9A9C90]" dir="ltr">
+                  <p className="truncate text-[13.5px] font-black text-[var(--color-text-primary)]">{account.name}</p>
+                  <p className="mt-1 truncate text-[11px] font-semibold text-[var(--color-text-muted)]" dir="ltr">
                     {account.email}
                   </p>
                 </div>
                 <span
                   className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
                     account.isActive
-                      ? "border border-[#CFE0C7] bg-[#EEF5E9] text-[#4F7A4A]"
+                      ? "border border-[var(--color-primary-soft)] bg-[var(--color-primary-soft)] text-[#4F7A4A]"
                       : "border border-[#EBD0CB] bg-[#FBEFEC] text-[#B5544A]"
                   }`}
                 >
@@ -151,7 +151,7 @@ export default function CashierAccountPage() {
                     onClick={startEdit}
                     title="تعديل بيانات الكاشير"
                     aria-label="تعديل بيانات الكاشير"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E7E3D8] bg-[#F4F2EE] text-[#50604D] transition-colors hover:bg-[#EDEAE1]"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-secondary)] text-[var(--color-primary)] transition-colors hover:bg-[var(--color-surface-hover)]"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
@@ -171,16 +171,16 @@ export default function CashierAccountPage() {
           )}
 
           {showForm && (
-            <section className="rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] p-5 sm:p-6">
-              <div className="mb-5 flex items-center gap-3 border-b border-[#F0EDE5] pb-4">
-                <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[#EDF1E8] text-[#50604D]">
+            <section className="rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6">
+              <div className="mb-5 flex items-center gap-3 border-b border-[var(--color-border-subtle)] pb-4">
+                <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
                   <UserCog className="h-4 w-4" />
                 </span>
                 <div>
-                  <h3 className="text-[14px] font-black text-[#333B2E]">
+                  <h3 className="text-[14px] font-black text-[var(--color-text-primary)]">
                     {account ? "تعديل بيانات الكاشير" : "إنشاء حساب كاشير"}
                   </h3>
-                  <p className="mt-0.5 text-[11px] font-medium text-[#9A9C90]">
+                  <p className="mt-0.5 text-[11px] font-medium text-[var(--color-text-muted)]">
                     {account ? "عدّل البيانات أو غيّر كلمة المرور في أي وقت" : "حساب واحد فقط للكاشير على المتجر"}
                   </p>
                 </div>
@@ -189,12 +189,12 @@ export default function CashierAccountPage() {
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label htmlFor="cashier-name" className="text-xs font-bold text-[#8F9186]">اسم الكاشير</label>
+                    <label htmlFor="cashier-name" className="text-xs font-bold text-[var(--color-text-muted)]">اسم الكاشير</label>
                     <input id="cashier-name" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                       placeholder="مثال: كاشير الفرع" className={fieldClass} />
                   </div>
                   <div className="space-y-1.5">
-                    <label htmlFor="cashier-email" className="text-xs font-bold text-[#8F9186]">البريد الإلكتروني (للدخول)</label>
+                    <label htmlFor="cashier-email" className="text-xs font-bold text-[var(--color-text-muted)]">البريد الإلكتروني (للدخول)</label>
                     <input id="cashier-email" type="email" dir="ltr" value={form.email}
                       onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                       placeholder="cashier@example.com" className={`${fieldClass} text-left`} />
@@ -202,7 +202,7 @@ export default function CashierAccountPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="cashier-password" className="text-xs font-bold text-[#8F9186]">
+                  <label htmlFor="cashier-password" className="text-xs font-bold text-[var(--color-text-muted)]">
                     {account ? "كلمة مرور جديدة (اتركها فاضية لو مش عايز تغيّرها)" : "كلمة المرور"}
                   </label>
                   <div className="relative">
@@ -211,34 +211,34 @@ export default function CashierAccountPage() {
                       placeholder="8 أحرف على الأقل" className={`${fieldClass} ps-11 text-left`} />
                     <button type="button" onClick={() => setShowPass((v) => !v)}
                       aria-label={showPass ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
-                      className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[#8F9186] transition-colors hover:bg-[#EFECE3]">
+                      className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-hover)]">
                       {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-3 rounded-[14px] border border-[#EDE9E0] bg-[#F4F2EE] px-4 py-3">
-                  <span className="flex items-center gap-2 text-[12.5px] font-bold text-[#333B2E]">
+                <div className="flex items-center justify-between gap-3 rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] px-4 py-3">
+                  <span className="flex items-center gap-2 text-[12.5px] font-bold text-[var(--color-text-primary)]">
                     <ShieldCheck className={`h-4 w-4 ${form.isActive ? "text-[#4F8A57]" : "text-[#C25B4F]"}`} />
                     حالة الحساب
                   </span>
                   <label className="flex cursor-pointer items-center gap-2">
                     <input type="checkbox" checked={form.isActive}
                       onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.checked }))}
-                      className="h-4 w-4 rounded accent-[#50604D]" />
-                    <span className="text-[12.5px] font-bold text-[#333B2E]">{form.isActive ? "مفعّل" : "موقوف"}</span>
+                      className="h-4 w-4 rounded accent-[var(--color-primary)]" />
+                    <span className="text-[12.5px] font-bold text-[var(--color-text-primary)]">{form.isActive ? "مفعّل" : "موقوف"}</span>
                   </label>
                 </div>
 
                 <div className="flex items-center gap-2.5">
                   <button onClick={save} disabled={saving}
-                    className="flex items-center gap-2 rounded-full bg-[#50604D] px-5 py-2.5 text-[12.5px] font-bold text-[#fff] transition-all hover:bg-[#435241] active:scale-[0.98] disabled:opacity-60">
+                    className="flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[12.5px] font-bold text-[var(--color-on-primary)] transition-all hover:bg-[var(--color-primary-hover)] active:scale-[0.98] disabled:opacity-60">
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     {saving ? "جاري الحفظ..." : account ? "حفظ التعديلات" : "إنشاء الحساب"}
                   </button>
                   {account && (
                     <button onClick={cancelEdit} disabled={saving}
-                      className="rounded-full border border-[#DDD8CA] bg-white px-5 py-2.5 text-[12.5px] font-bold text-[#6B7264] transition-colors hover:bg-[#F1EEE7] disabled:opacity-50">
+                      className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-5 py-2.5 text-[12.5px] font-bold text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-secondary)] disabled:opacity-50">
                       إلغاء
                     </button>
                   )}
@@ -248,19 +248,19 @@ export default function CashierAccountPage() {
           )}
         </div>
 
-        <aside className="space-y-3 rounded-[18px] border border-[#EDE9E0] bg-[#FBF9F6] p-4">
-          <p className="flex items-center gap-2 text-[12px] font-black text-[#333B2E]">
-            <LogIn className="h-4 w-4 text-[#50604D]" /> طريقة دخول الكاشير
+        <aside className="space-y-3 rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <p className="flex items-center gap-2 text-[12px] font-black text-[var(--color-text-primary)]">
+            <LogIn className="h-4 w-4 text-[var(--color-primary)]" /> طريقة دخول الكاشير
           </p>
-          <p className="text-[11px] leading-relaxed text-[#7A7F72]">
+          <p className="text-[11px] leading-relaxed text-[var(--color-text-secondary)]">
             الكاشير يفتح نفس رابط الدخول ويستخدم الإيميل وكلمة المرور اللي حددتهم هنا.
           </p>
-          <div className="rounded-[10px] border border-[#E9E5DA] bg-[#F7F4EE] px-3 py-2">
-            <p className="text-[10px] font-bold text-[#9A9C90]">رابط الدخول</p>
-            <p className="mt-0.5 break-all text-[11px] font-bold text-[#50604D]" dir="ltr">/login</p>
+          <div className="rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-3 py-2">
+            <p className="text-[10px] font-bold text-[var(--color-text-muted)]">رابط الدخول</p>
+            <p className="mt-0.5 break-all text-[11px] font-bold text-[var(--color-primary)]" dir="ltr">/login</p>
           </div>
           <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/login`).then(() => showToast("تم نسخ رابط الدخول", "success")); }}
-            className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#E7E3D8] bg-[#F4F2EE] px-3 py-2 text-[11px] font-bold text-[#50604D] transition-colors hover:bg-[#EDEAE1]">
+            className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-secondary)] px-3 py-2 text-[11px] font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-surface-hover)]">
             <Copy className="h-3.5 w-3.5" /> نسخ الرابط
           </button>
         </aside>

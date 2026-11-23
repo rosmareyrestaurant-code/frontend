@@ -23,12 +23,12 @@ export default function PopularSection({ products }: { products: Product[] }) {
   if (products.length === 0) return null;
 
   return (
-    <section className="w-full bg-[#F2F2ED] py-8 border-b border-[#1e1915]">
+    <section className="w-full bg-[var(--color-page-background)] py-8 border-b border-[var(--color-text-primary)]">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* رأس القسم الموحّد + أسهم التمرير */}
         <SectionHeading
           title="الأكثر طلباً"
-          icon={<Flame className="h-[18px] w-[18px] fill-[#ef7a2a] text-[#ef7a2a] sm:h-5 sm:w-5" />}
+          icon={<Flame className="h-[18px] w-[18px] fill-[var(--color-primary)] text-[var(--color-primary)] sm:h-5 sm:w-5" />}
           actions={
             <>
               {/* سهم يمين (للخلف في RTL) — يتملّى من اليمين عند الهاوفر */}

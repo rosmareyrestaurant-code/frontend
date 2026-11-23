@@ -14,7 +14,7 @@ export default function SweetsSection() {
   return (
     <section className="w-full select-none px-4 py-5 sm:py-6">
       <div className="mx-auto max-w-[1400px]">
-        <div className="relative overflow-hidden rounded-2xl bg-[#3E5B45] shadow-2xl shadow-black/30 sm:rounded-3xl">
+        <div className="relative overflow-hidden rounded-2xl bg-[var(--color-primary)] shadow-2xl shadow-black/30 sm:rounded-3xl">
           {/* زخارف الخلفية */}
           <div aria-hidden="true" className="pointer-events-none absolute inset-0">
             <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-[#F0DFC0]/15" />
@@ -59,7 +59,7 @@ export default function SweetsSection() {
                 </svg>
               </h2>
 
-              <p className="mx-auto mt-4 max-w-md text-xs font-semibold leading-relaxed text-[#D8E1D3] sm:text-sm lg:mx-0">
+              <p className="mx-auto mt-4 max-w-md text-xs font-semibold leading-relaxed text-[var(--color-primary-soft)] sm:text-sm lg:mx-0">
                 تشكيلة حلويات روزماري الجديدة — كريب نوتيلا ووافل شوكولاتة وميلك شيك بارد،
                 بتتعمل طازة كل يوم بمزاج روزماري.
               </p>
@@ -68,7 +68,7 @@ export default function SweetsSection() {
                 {SWEET_TAGS.map(({ label, Icon }) => (
                   <span
                     key={label}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[#F0DFC0]/25 bg-[#fff]/8 px-3 py-1.5 text-[11px] font-bold text-[#EDF1E8]"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#F0DFC0]/25 bg-[#fff]/8 px-3 py-1.5 text-[11px] font-bold text-[var(--color-primary-soft)]"
                   >
                     <Icon className="h-3.5 w-3.5 text-[#F0DFC0]" />
                     {label}
@@ -78,7 +78,7 @@ export default function SweetsSection() {
 
               <Link
                 href="/menu"
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#F0DFC0] px-6 py-3 text-sm font-black text-[#3E5B45] shadow-lg shadow-black/25 transition-all hover:scale-[1.02] hover:bg-[#F7EBD6] active:scale-95"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#F0DFC0] px-6 py-3 text-sm font-black text-[var(--color-primary)] shadow-lg shadow-black/25 transition-all hover:scale-[1.02] hover:bg-[#F7EBD6] active:scale-95"
               >
                 اطلب الحلو دلوقتي
                 <ArrowLeft className="h-4 w-4" />
@@ -102,7 +102,7 @@ export default function SweetsSection() {
               </div>
 
               {/* ختم "طازة كل يوم" */}
-              <div className="absolute -bottom-5 right-5 flex h-20 w-20 -rotate-6 flex-col items-center justify-center rounded-full bg-[#F0DFC0] text-[#3E5B45] shadow-xl ring-4 ring-[#3E5B45]">
+              <div className="absolute -bottom-5 right-5 flex h-20 w-20 -rotate-6 flex-col items-center justify-center rounded-full bg-[#F0DFC0] text-[var(--color-primary)] shadow-xl ring-4 ring-[var(--color-primary)]">
                 <Sparkles className="h-4 w-4" />
                 <span className="mt-0.5 text-[11px] font-black leading-none">طازة</span>
                 <span className="mt-0.5 text-[10px] font-bold leading-none">كل يوم</span>

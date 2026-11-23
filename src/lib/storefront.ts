@@ -8,6 +8,8 @@ import { ProductModel } from "@/models/Product";
 import { CategoryModel } from "@/models/Category";
 import { BannerModel } from "@/models/Banner";
 import { OfferModel } from "@/models/Offer";
+import { StoreSettingsModel } from "@/models/StoreSettings";
+import { resolveTheme, themeCss, type ThemeColors } from "@/lib/theme";
 import { toPublicBanner, toPublicCategory, toPublicOffer, toPublicProduct } from "@/lib/serialize";
 import { STOREFRONT_TAG } from "@/lib/storefront-tags";
 import type { Category, Product } from "@/types";
@@ -44,6 +46,54 @@ export async function getActiveCategories(): Promise<Category[]> {
     .lean();
 
   return categories.map((c) => toPublicCategory(c as unknown as CategoryLean));
+}
+
+/**
+ * متغيرات الهوية تُحقن من السيرفر في root layout قبل أي محتوى،
+ * فمفيش Flash بالتصميم القديم ومفيش اختلاف Hydration.
+ */
+export async function getThemeCss(): Promise<string> {
+  "use cache";
+  cacheLife("storefront");
+  cacheTag(STOREFRONT_TAG);
+
+  await connectToDatabase();
+  const settings = await StoreSettingsModel.findOne().select("theme").lean();
+  const theme = (settings as { theme?: Partial<ThemeColors> } | null)?.theme;
+  return themeCss(resolveTheme(theme));
+}
+
+export interface PublicTickerSettings {
+  message: string;
+  icon: string;
+  enabled: boolean;
+  iconPosition: "start" | "end";
+}
+
+/** إعدادات شريط الإعلانات تُقرأ على السيرفر — مفيش وميض أو مساحة فاضية عند التعطيل */
+export async function getPublicTicker(): Promise<PublicTickerSettings> {
+  "use cache";
+  cacheLife("storefront");
+  cacheTag(STOREFRONT_TAG);
+
+  await connectToDatabase();
+  const settings = (await StoreSettingsModel.findOne()
+    .select("tickerMessage tickerIcon tickerEnabled tickerIconPosition")
+    .lean()) as
+    | {
+        tickerMessage?: string;
+        tickerIcon?: string;
+        tickerEnabled?: boolean;
+        tickerIconPosition?: string;
+      }
+    | null;
+
+  return {
+    message: typeof settings?.tickerMessage === "string" ? settings.tickerMessage : "",
+    icon: settings?.tickerIcon || "truck",
+    enabled: settings?.tickerEnabled !== false,
+    iconPosition: settings?.tickerIconPosition === "end" ? "end" : "start",
+  };
 }
 
 export async function getHomeData() {

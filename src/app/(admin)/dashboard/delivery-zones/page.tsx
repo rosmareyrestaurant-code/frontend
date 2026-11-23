@@ -75,7 +75,7 @@ export default function DeliveryZonesPage() {
     fetchZones();
   };
 
-  if (loading) return <div className="py-12 text-center text-sm text-[#5a4f45] animate-pulse">جاري التحميل...</div>;
+  if (loading) return <div className="py-12 text-center text-sm text-[var(--color-text-muted)] animate-pulse">جاري التحميل...</div>;
 
   return (
     <div className="space-y-5">
@@ -83,47 +83,47 @@ export default function DeliveryZonesPage() {
         <div>
           <h1 className="flex items-center gap-2 text-lg font-black text-white">
             مناطق التوصيل
-            {refreshing && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#8a8076]" />}
+            {refreshing && <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--color-text-muted)]" />}
           </h1>
-          <p className="mt-1 text-xs text-[#8a8076]">أضف الأماكن التي لها توصيل مجاني — ستظهر في شريط التنبيهات أعلى الموقع</p>
+          <p className="mt-1 text-xs text-[var(--color-text-muted)]">أضف الأماكن التي لها توصيل مجاني — ستظهر في شريط التنبيهات أعلى الموقع</p>
         </div>
-        <button onClick={openAdd} className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#ff7a00] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#e66e00] transition-colors">
+        <button onClick={openAdd} className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[var(--color-primary-hover)] transition-colors">
           <Plus className="h-4 w-4" /> إضافة منطقة
         </button>
       </div>
 
       {zones.length === 0 ? (
         <EmptyState icon={MapPin} title="لا توجد مناطق" description="أضف مناطق التوصيل المجاني"
-          action={<button onClick={openAdd} className="rounded-xl bg-[#ff7a00] px-4 py-2 text-sm font-bold text-white">إضافة منطقة</button>} />
+          action={<button onClick={openAdd} className="rounded-xl bg-[var(--color-primary)] px-4 py-2 text-sm font-bold text-white">إضافة منطقة</button>} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {zones.map(zone => (
-            <div key={zone.id} className="rounded-2xl border border-[#26201a] bg-[#F2F2ED] p-4 hover:border-[#3a3229] transition-colors">
+            <div key={zone.id} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] p-4 hover:border-[#3a3229] transition-colors">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#ff7a00]/25 bg-[#ff7a00]/10 text-[#ff7a00]"><MapPin className="h-5 w-5" /></div>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-primary)]/10 text-[var(--color-primary)]"><MapPin className="h-5 w-5" /></div>
                   <div className="min-w-0">
                     <h3 className="truncate text-sm font-black text-white">{zone.name}</h3>
-                    <p className="mt-0.5 text-[11px] text-[#6b6259]">{zone.note || "منطقة توصيل"}</p>
+                    <p className="mt-0.5 text-[11px] text-[var(--color-text-muted)]">{zone.note || "منطقة توصيل"}</p>
                   </div>
                 </div>
                 <ActiveBadge active={zone.isActive} />
               </div>
-              <div className="mt-4 flex items-start gap-2 rounded-xl border border-[#2a231d] bg-[#F2F2ED] px-3 py-2.5">
-                <CalendarDays className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ff7a00]" />
+              <div className="mt-4 flex items-start gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-page-background)] px-3 py-2.5">
+                <CalendarDays className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
                 <div>
-                  <p className="text-[10px] text-[#6b6259]">أيام التوصيل المجاني</p>
-                  <p className="mt-0.5 text-xs font-bold text-[#ffb066]">{formatDays(zone.days)}</p>
+                  <p className="text-[10px] text-[var(--color-text-muted)]">أيام التوصيل المجاني</p>
+                  <p className="mt-0.5 text-xs font-bold text-[var(--color-primary)]">{formatDays(zone.days)}</p>
                 </div>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t border-[#1e1914] pt-3">
-                <button onClick={() => toggleActive(zone)} className="flex items-center gap-1.5 text-xs font-bold text-[#8a8076] hover:text-[#ff7a00] transition-colors">
+              <div className="mt-4 flex items-center justify-between border-t border-[var(--color-text-primary)] pt-3">
+                <button onClick={() => toggleActive(zone)} className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors">
                   {zone.isActive ? <PowerOff className="h-3.5 w-3.5" /> : <Power className="h-3.5 w-3.5" />}
                   {zone.isActive ? "إيقاف" : "تفعيل"}
                 </button>
                 <div className="flex gap-1.5">
-                  <button onClick={() => openEdit(zone)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2a231d] bg-[#F2F2ED] text-[#8a8076] hover:text-[#ff7a00] transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                  <button onClick={() => setDeleteTarget(zone)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2a231d] bg-[#F2F2ED] text-[#8a8076] hover:text-red-400 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => openEdit(zone)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-page-background)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => setDeleteTarget(zone)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-page-background)] text-[var(--color-text-muted)] hover:text-red-400 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
                 </div>
               </div>
             </div>
@@ -134,18 +134,18 @@ export default function DeliveryZonesPage() {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editing ? `تعديل ${editing.name}` : "إضافة منطقة توصيل"} size="md">
         <div className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#c4b9b0]">اسم المنطقة *</label>
+            <label className="text-xs font-bold text-[var(--color-text-muted)]">اسم المنطقة *</label>
             <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="مثال: المرج"
-              className="w-full rounded-xl border border-[#2d2620] bg-[#F2F2ED] px-3 py-2.5 text-sm text-white focus:border-[#ff7a00] focus:outline-none" />
+              className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-page-background)] px-3 py-2.5 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none" />
           </div>
           <div className="space-y-2">
-            <label className="flex items-center gap-1.5 text-xs font-bold text-[#c4b9b0]"><CalendarDays className="h-3.5 w-3.5 text-[#ff7a00]" /> أيام التوصيل المجاني *</label>
+            <label className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-text-muted)]"><CalendarDays className="h-3.5 w-3.5 text-[var(--color-primary)]" /> أيام التوصيل المجاني *</label>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {DELIVERY_DAYS.map(day => {
                 const active = form.days.includes(day.key);
                 return (
                   <button key={day.key} type="button" onClick={() => toggleDay(day.key)}
-                    className={`rounded-lg border px-2 py-2 text-xs font-bold transition-colors ${active ? "border-[#ff7a00] bg-[#ff7a00]/15 text-[#ffb066]" : "border-[#2a231d] bg-[#F2F2ED] text-[#8a8076] hover:border-[#ff7a00]/40 hover:text-white"}`}>
+                    className={`rounded-lg border px-2 py-2 text-xs font-bold transition-colors ${active ? "border-[var(--color-primary)] bg-[var(--color-primary)]/15 text-[var(--color-primary)]" : "border-[var(--color-border)] bg-[var(--color-page-background)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/40 hover:text-white"}`}>
                     {day.label}
                   </button>
                 );
@@ -153,17 +153,17 @@ export default function DeliveryZonesPage() {
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#c4b9b0]">ملاحظة (اختياري)</label>
+            <label className="text-xs font-bold text-[var(--color-text-muted)]">ملاحظة (اختياري)</label>
             <input value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))} placeholder="مثال: توصيل مجاني كل يوم سبت"
-              className="w-full rounded-xl border border-[#2d2620] bg-[#F2F2ED] px-3 py-2.5 text-sm text-white focus:border-[#ff7a00] focus:outline-none" />
+              className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-page-background)] px-3 py-2.5 text-sm text-white focus:border-[var(--color-primary)] focus:outline-none" />
           </div>
-          <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-[#c4b9b0]">
-            <input type="checkbox" checked={form.isActive} onChange={e => setForm(p => ({ ...p, isActive: e.target.checked }))} className="h-4 w-4 accent-[#ff7a00]" />
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-[var(--color-text-muted)]">
+            <input type="checkbox" checked={form.isActive} onChange={e => setForm(p => ({ ...p, isActive: e.target.checked }))} className="h-4 w-4 accent-[var(--color-primary)]" />
             المنطقة مفعّلة
           </label>
           <div className="flex gap-3 pt-1">
-            <button onClick={() => setModalOpen(false)} className="flex-1 rounded-xl border border-[#2a231d] bg-[#F2F2ED] px-4 py-2.5 text-sm font-bold text-[#a89f94] hover:text-white">إلغاء</button>
-            <button onClick={save} disabled={saving} className="flex-1 rounded-xl bg-[#ff7a00] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#e66e00] disabled:opacity-70">
+            <button onClick={() => setModalOpen(false)} className="flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-page-background)] px-4 py-2.5 text-sm font-bold text-[var(--color-text-muted)] hover:text-white">إلغاء</button>
+            <button onClick={save} disabled={saving} className="flex-1 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-bold text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-70">
               {saving ? "جاري..." : editing ? "حفظ" : "إضافة"}
             </button>
           </div>

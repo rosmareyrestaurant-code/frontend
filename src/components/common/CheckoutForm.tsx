@@ -107,15 +107,15 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden" noValidate>
       {/* رأس */}
-      <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-[#231d17] shrink-0">
+      <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-[var(--color-border)] shrink-0">
         <button type="button" onClick={onBack}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F2F2ED] text-[#a89f94] hover:text-white hover:bg-[#F2F2ED] transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-page-background)] text-[var(--color-text-muted)] hover:text-white hover:bg-[var(--color-page-background)] transition-colors"
           aria-label="رجوع للسلة">
           <ArrowRight className="h-5 w-5" />
         </button>
         <div>
           <h2 className="text-base sm:text-lg font-bold text-white">بياناتك للتوصيل</h2>
-          <p className="text-xs text-[#857b72]">الخطوة الثانية — ادخل بياناتك</p>
+          <p className="text-xs text-[var(--color-text-muted)]">الخطوة الثانية — ادخل بياناتك</p>
         </div>
       </div>
 
@@ -133,8 +133,8 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
               </p>
             )}
 
-            <label className="flex items-center gap-1.5 text-xs font-bold text-[#c4b9b0]">
-              <Icon className="h-3.5 w-3.5 text-[#ff7a00]" />{label}
+            <label className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-text-muted)]">
+              <Icon className="h-3.5 w-3.5 text-[var(--color-primary)]" />{label}
             </label>
 
             {key === "address" ? (
@@ -143,13 +143,13 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
                 value={form.address} rows={2}
                 onChange={(e) => change("address", e.target.value)}
                 placeholder={placeholder}
-                className={`w-full resize-none rounded-xl bg-[#F2F2ED] border ${errors.address ? "border-red-500/70" : "border-[#2d2620]"} px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
+                className={`w-full resize-none rounded-xl bg-[var(--color-page-background)] border ${errors.address ? "border-red-500/70" : "border-[var(--color-border)]"} px-3 py-2.5 text-sm text-white placeholder-[var(--color-text-secondary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]/30 transition-all`}
               />
               <button type="button" onClick={() => setMapOpen(true)}
                 className={`flex w-full items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-[12px] font-bold transition-all ${
                   mapFilled
-                    ? "border-[#B9C8AE] bg-[#EAF1E4] text-[#3F5A46]"
-                    : "border-[#899B83] bg-[#FFFFFF] text-[#526B58] hover:bg-[#EFF2EA]"
+                    ? "border-[var(--color-primary-border)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+                    : "border-[var(--color-primary-border)] bg-[var(--color-surface-elevated)] text-[var(--color-icon)] hover:bg-[var(--color-primary-soft)]"
                 }`}>
                 {mapFilled
                   ? <><CheckCircle2 className="h-3.5 w-3.5" /> تم تحديد مكانك من الخريطة — اضغط لتعديله</>
@@ -160,7 +160,7 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
               <textarea value={form[key] as string} rows={2}
                 onChange={(e) => change(key, e.target.value)}
                 placeholder={placeholder}
-                className={`w-full resize-none rounded-xl bg-[#F2F2ED] border ${errors[key] ? "border-red-500/70" : "border-[#2d2620]"} px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
+                className={`w-full resize-none rounded-xl bg-[var(--color-page-background)] border ${errors[key] ? "border-red-500/70" : "border-[var(--color-border)]"} px-3 py-2.5 text-sm text-white placeholder-[var(--color-text-secondary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]/30 transition-all`}
               />
             ) : (
               <input type={type || "text"}
@@ -168,7 +168,7 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
                 value={form[key] as string}
                 onChange={(e) => change(key, e.target.value)}
                 placeholder={placeholder}
-                className={`w-full rounded-xl bg-[#F2F2ED] border ${errors[key] ? "border-red-500/70" : "border-[#2d2620]"} px-3 py-2.5 text-sm text-white placeholder-[#5a534d] focus:border-[#ff7a00] focus:outline-none focus:ring-1 focus:ring-[#ff7a00]/30 transition-all`}
+                className={`w-full rounded-xl bg-[var(--color-page-background)] border ${errors[key] ? "border-red-500/70" : "border-[var(--color-border)]"} px-3 py-2.5 text-sm text-white placeholder-[var(--color-text-secondary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]/30 transition-all`}
               />
             )}
 
@@ -182,7 +182,7 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
         ))}
 
         {mapFilled && (
-          <p className="text-[11px] text-[#3F5A46] bg-[#EAF1E4] border border-[#C9D8BF] rounded-lg px-3 py-2 flex items-center gap-1.5">
+          <p className="text-[11px] text-[var(--color-primary)] bg-[var(--color-primary-soft)] border border-[var(--color-primary-border)] rounded-lg px-3 py-2 flex items-center gap-1.5">
             <MapPinned className="h-3.5 w-3.5 shrink-0" />
             تم ملء العنوان من مكانك على الخريطة — أكمل تفاصيل المبنى والدور لو محتاج.
           </p>
@@ -190,25 +190,25 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
       </div>
 
       {/* تذييل */}
-      <div className="px-4 sm:px-5 py-4 border-t border-[#231d17] bg-[#F2F2ED] space-y-3 shrink-0">
+      <div className="px-4 sm:px-5 py-4 border-t border-[var(--color-border)] bg-[var(--color-page-background)] space-y-3 shrink-0">
         {/* ملخص مبسط */}
         <div className="space-y-1.5 text-xs">
-          <div className="flex items-center justify-between text-[#a89f94]">
+          <div className="flex items-center justify-between text-[var(--color-text-muted)]">
             <span>المجموع الفرعي</span>
             <span className="font-bold text-white">{subtotal} ج.م</span>
           </div>
-          <div className="flex items-center justify-between text-[#a89f94]">
+          <div className="flex items-center justify-between text-[var(--color-text-muted)]">
             <span>التوصيل</span>
             <span className={`font-bold ${isFreeDelivery ? "text-[#4F8A57]" : "text-white"}`}>{deliveryLabel}</span>
           </div>
-          <div className="flex items-center justify-between pt-2 border-t border-[#26201a]">
-            <span className="text-[#a89f94]">الإجمالي النهائي</span>
-            <span className="text-base font-black text-[#ff7a00]">{subtotal + deliveryAmount} ج.م</span>
+          <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)]">
+            <span className="text-[var(--color-text-muted)]">الإجمالي النهائي</span>
+            <span className="text-base font-black text-[var(--color-primary)]">{subtotal + deliveryAmount} ج.م</span>
           </div>
         </div>
 
         <button type="submit" disabled={submitting}
-          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#e66e00] font-bold text-sm text-white shadow-lg shadow-black/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center gap-2">
+          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] font-bold text-sm text-white shadow-lg shadow-black/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center gap-2">
           {submitting
             ? <><Loader2 className="h-4 w-4 animate-spin" /><span>جاري المعالجة...</span></>
             : <><span>مراجعة الطلب</span><ChevronLeft className="h-4 w-4" /></>
