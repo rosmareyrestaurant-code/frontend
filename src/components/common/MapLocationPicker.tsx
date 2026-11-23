@@ -37,8 +37,14 @@ export default function MapLocationPicker({
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
   const initialRef = useRef(initial);
-  initialRef.current = initial;
 
+  // Keep the ref in sync with external data only, after render.
+  useEffect(() => {
+    initialRef.current = initial;
+  }, [initial]);
+
+  // All picker state starts fresh on mount. The parent remounts this
+  // component with a new key each time `open` goes false -> true.
   const [picked, setPicked] = useState<{ lat: number; lng: number } | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [resolving, setResolving] = useState(false);
@@ -46,10 +52,9 @@ export default function MapLocationPicker({
   const [resolveFailed, setResolveFailed] = useState(false);
   const resolveRef = useRef<Promise<string> | null>(null);
 
-  // فتح/غلق الموديل — إنشاء الخريطة وإزالتها
+  // Create/destroy the Leaflet map when opened/closed.
   useEffect(() => {
     if (!open) return;
-    setPicked(null);
     let cancelled = false;
 
     (async () => {
@@ -103,8 +108,10 @@ export default function MapLocationPicker({
         setPicked({ lat, lng });
       });
 
-      // تأخير بسيط عشان الخريطة تاخد مقاسها الحقيقي بعد ظهور الموديل
-      window.setTimeout(() => map.invalidateSize(), 150);
+      // Small delay so the map gets its real size after the modal appears.
+      window.setTimeout(() => {
+        if (!cancelled) map.invalidateSize();
+      }, 150);
     })();
 
     return () => {
@@ -115,40 +122,40 @@ export default function MapLocationPicker({
     };
   }, [open]);
 
-  // تحديد العنوان النصي أول ما يتحدد مكان — عشان يظهر قبل التأكيد
+  // Resolve the textual address whenever a location is picked.
   useEffect(() => {
-    if (!open || !picked) {
+    if (!open || !picked) return;
+    let cancelled = false;
+
+    // Kick off the async work after paint to avoid synchronous setState in effect body.
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      setResolving(true);
       setResolved(null);
       setResolveFailed(false);
-      setResolving(false);
-      resolveRef.current = null;
-      return;
-    }
-    let cancelled = false;
-    setResolving(true);
-    setResolved(null);
-    setResolveFailed(false);
 
-    const promise = reverseGeocode(picked.lat, picked.lng);
-    resolveRef.current = promise;
+      const promise = reverseGeocode(picked.lat, picked.lng);
+      resolveRef.current = promise;
 
-    promise
-      .then((text) => {
-        if (!cancelled) setResolved(text);
-      })
-      .catch(() => {
-        if (!cancelled) setResolveFailed(true);
-      })
-      .finally(() => {
-        if (!cancelled) setResolving(false);
-      });
+      promise
+        .then((text) => {
+          if (!cancelled) setResolved(text);
+        })
+        .catch(() => {
+          if (!cancelled) setResolveFailed(true);
+        })
+        .finally(() => {
+          if (!cancelled) setResolving(false);
+        });
+    }, 0);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [open, picked]);
 
-  // إغلاق بزر Escape
+  // Close on Escape.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -232,7 +239,10 @@ export default function MapLocationPicker({
               ) : (
                 <p className="flex items-start gap-2 text-[11.5px] font-bold leading-relaxed text-[#8a6a2f]">
                   <MapPinned className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  <span>تعذّر قراءة اسم المكان تلقائيًا — هنحط الإحداثيات وتقدر تكتب تفاصيل الشارع بعد كده.</span>
+                  <span>
+                    {(resolveFailed || !resolving) &&
+                      "تعذّر قراءة اسم المكان تلقائيًا — هنحط الإحداثيات وتقدر تكتب تفاصيل الشارع بعد كده."}
+                  </span>
                 </p>
               )}
             </div>

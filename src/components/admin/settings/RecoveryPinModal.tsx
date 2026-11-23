@@ -15,28 +15,25 @@ interface RecoveryPinModalProps {
 export default function RecoveryPinModal({
   open, newPassword, confirmPassword, onClose, onSuccess,
 }: RecoveryPinModalProps) {
+  // State starts fresh whenever the parent remounts this modal with a new key.
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Focus on mount (the modal is only rendered when open).
   useEffect(() => {
-    if (!open) return;
-    setPin("");
-    setError("");
-    setSaving(false);
     const t = setTimeout(() => inputRef.current?.focus(), 80);
     return () => clearTimeout(t);
-  }, [open]);
+  }, []);
 
   useEffect(() => {
-    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !saving) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, saving, onClose]);
+  }, [saving, onClose]);
 
   const submit = async () => {
     if (saving) return;
@@ -100,7 +97,10 @@ export default function RecoveryPinModal({
 
         <div className="space-y-4 px-5 py-5">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[var(--color-text-muted)]" htmlFor="recovery-pin">
+            <label
+              className="block text-xs font-bold text-[var(--color-text-muted)]"
+              htmlFor="recovery-pin"
+            >
               رمز الاستعادة
             </label>
             <input
@@ -109,7 +109,7 @@ export default function RecoveryPinModal({
               value={pin}
               onChange={(e) => {
                 setPin(e.target.value.replace(/\D/g, "").slice(0, 4));
-                if (error) setError("");
+                setError("");
               }}
               onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
               inputMode="numeric"
@@ -135,7 +135,9 @@ export default function RecoveryPinModal({
             disabled={saving || pin.length !== 4}
             className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[12.5px] font-bold text-[var(--color-text-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري التحديث...</> : "تأكيد وتحديث كلمة المرور"}
+            {saving
+              ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري التحديث...</>
+              : "تأكيد وتحديث كلمة المرور"}
           </button>
           <button
             type="button"

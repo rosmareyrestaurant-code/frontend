@@ -217,6 +217,7 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
       </div>
 
       <MapLocationPicker
+        key={mapOpen ? "map-open" : "map-closed"}
         open={mapOpen}
         initial={{ lat: form.lat, lng: form.lng }}
         onClose={() => setMapOpen(false)}

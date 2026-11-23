@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useDelivery } from "@/context/DeliveryContext";
 import { resolveTickerIcon } from "@/lib/ticker";
@@ -8,17 +8,44 @@ import type { PublicTickerSettings } from "@/lib/storefront";
 
 const TICKER_HIDDEN_KEY = "rozmaly:ticker-hidden";
 
+// External store for the customer's "hide ticker" preference. useSyncExternalStore
+// keeps the server snapshot stable (no hydration mismatch) and reads localStorage
+// on the client without calling setState inside an effect.
+const tickerListeners = new Set<() => void>();
+
+function subscribeTicker(listener: () => void) {
+  tickerListeners.add(listener);
+  return () => { tickerListeners.delete(listener); };
+}
+
+function getTickerSnapshot(): boolean {
+  try {
+    return window.localStorage.getItem(TICKER_HIDDEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function getServerTickerSnapshot(): boolean {
+  return false;
+}
+
+function setTickerHidden(hidden: boolean) {
+  try {
+    window.localStorage.setItem(TICKER_HIDDEN_KEY, hidden ? "1" : "0");
+  } catch {
+    /* ignore */
+  }
+  tickerListeners.forEach((listener) => listener());
+}
+
 export default function DeliveryTicker({ initial }: { initial: PublicTickerSettings }) {
   const { activeZones } = useDelivery();
-  const [hiddenByCustomer, setHiddenByCustomer] = useState(false);
-
-  useEffect(() => {
-    try {
-      setHiddenByCustomer(window.localStorage.getItem(TICKER_HIDDEN_KEY) === "1");
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const hiddenByCustomer = useSyncExternalStore(
+    subscribeTicker,
+    getTickerSnapshot,
+    getServerTickerSnapshot,
+  );
 
   if (!initial.enabled) return null;
 
@@ -34,8 +61,7 @@ export default function DeliveryTicker({ initial }: { initial: PublicTickerSetti
         <button
           type="button"
           onClick={() => {
-            try { window.localStorage.setItem(TICKER_HIDDEN_KEY, "0"); } catch { /* ignore */ }
-            setHiddenByCustomer(false);
+            setTickerHidden(false);
           }}
           aria-label="إظهار الشريط العلوي"
           className="delivery-ticker-actions flex h-6 w-6 items-center justify-center rounded-full text-[var(--color-on-primary)] transition-colors hover:bg-white/15"
@@ -80,8 +106,7 @@ export default function DeliveryTicker({ initial }: { initial: PublicTickerSetti
       <button
         type="button"
         onClick={() => {
-          try { window.localStorage.setItem(TICKER_HIDDEN_KEY, "1"); } catch { /* ignore */ }
-          setHiddenByCustomer(true);
+          setTickerHidden(true);
         }}
         aria-label="إخفاء الشريط العلوي"
         className="delivery-ticker-actions flex w-9 shrink-0 items-center justify-center border-s border-white/15 text-[var(--color-on-primary)] transition-colors hover:bg-white/15"

@@ -107,6 +107,11 @@ export default function OrdersPage() {
 
   // ملاحظة الكاشير على الطلب المفتوح — تُحفظ في تفاصيل الطلب
   const [cashierNoteDraft, setCashierNoteDraft] = useState("");
+  // نتبع آخر طلب/ملاحظة عشان نحدّث المسودة أثناء الرندر (بدون setState في effect)
+  const [noteSync, setNoteSync] = useState<{ id: string | null; note: string | null | undefined }>({
+    id: null,
+    note: undefined,
+  });
   const [savingCashierNote, setSavingCashierNote] = useState(false);
 
   // حالة الطباعة في الواجهة — طلب واحد بيتطبع في الوقت الواحد
@@ -178,9 +183,13 @@ export default function OrdersPage() {
     };
   }, [fetchOrders]);
 
-  useEffect(() => {
-    setCashierNoteDraft(selectedOrder?.cashierNote ?? "");
-  }, [selectedOrder?.id, selectedOrder?.cashierNote]);
+  // تحديث مسودة الملاحظة لما يتغير الطلب المفتوح أو ملاحظته (نمط React الرسمي)
+  const selectedOrderId = selectedOrder?.id ?? null;
+  const selectedNote = selectedOrder?.cashierNote;
+  if (noteSync.id !== selectedOrderId || noteSync.note !== selectedNote) {
+    setNoteSync({ id: selectedOrderId, note: selectedNote });
+    setCashierNoteDraft(selectedNote ?? "");
+  }
 
   const totalPages = Math.ceil(total / PER_PAGE);
 

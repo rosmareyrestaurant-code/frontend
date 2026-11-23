@@ -507,6 +507,7 @@ export default function SettingsPage() {
               </div>
 
               <RecoveryPinModal
+                key={pinOpen ? "recovery-pin-open" : "recovery-pin-closed"}
                 open={pinOpen}
                 newPassword={recForm.newPassword}
                 confirmPassword={recForm.confirm}

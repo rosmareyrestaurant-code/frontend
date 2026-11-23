@@ -60,22 +60,30 @@ function playOrderChime() {
   });
 }
 
+function readSoundPreference(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    return localStorage.getItem(SOUND_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+
 export function useNewOrders() {
   const [notifications, setNotifications] = useState<NewOrderNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  // Lazy initializer reads the persisted preference on the client. The value is
+  // only shown inside the notification dropdown (closed on first render), so
+  // there is no hydration mismatch.
+  const [soundEnabled, setSoundEnabled] = useState(readSoundPreference);
 
   const sinceRef = useRef<number | null>(null);
-  const soundEnabledRef = useRef(true);
+  const soundEnabledRef = useRef(soundEnabled);
   const inFlightRef = useRef(false);
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(SOUND_KEY) === "off") {
-        soundEnabledRef.current = false;
-        setSoundEnabled(false);
-      }
       const stored = Number(localStorage.getItem(LAST_CHECK_KEY));
       const now = Date.now();
       sinceRef.current =
