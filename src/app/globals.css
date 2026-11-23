@@ -272,7 +272,8 @@ button[class*="bg-gradient"]:hover, a[class*="bg-gradient"]:hover {
 
 /* استثناءات الهيدر والشريط العلوي */
 .delivery-ticker-track span,
-.delivery-ticker-track svg { color: var(--color-on-primary) !important; }
+.delivery-ticker-track svg,
+.delivery-ticker-actions svg { color: var(--color-on-primary) !important; }
 
 /* حالات الهوية الوظيفية والتباين النهائي */
 .bg-black, [class*="bg-black"] {

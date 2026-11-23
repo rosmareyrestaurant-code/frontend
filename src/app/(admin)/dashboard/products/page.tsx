@@ -468,7 +468,7 @@ export default function ProductsPage() {
           <ImageUpload value={form.image}
             onChange={img => setForm(p => ({ ...p, image: img }))}
             onPublicIdChange={pid => setForm(p => ({ ...p, imagePublicId: pid }))}
-            label="صورة المنتج" folder="rozmaly/products" />
+            label="صورة المنتج" hint="المقاس المفضل: 1000×600 بيكسل (نسبة 5:3) — JPG / PNG / WebP، أقل من 8 ميجا" folder="rozmaly/products" />
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-[var(--color-text-muted)]">الوصف</label>
             <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={2}

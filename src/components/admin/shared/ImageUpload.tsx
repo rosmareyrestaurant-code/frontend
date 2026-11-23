@@ -25,7 +25,7 @@ interface ImageUploadProps {
 export default function ImageUpload({
   value, onChange, onPublicIdChange,
   label = "الصورة",
-  hint = "اختار ملف صورة (JPG / PNG / WebP — أقل من 8 ميجا)",
+  hint = "المقاس المفضل: 1200×800 بيكسل (JPG / PNG / WebP — أقل من 8 ميجا)",
   previewClassName = "aspect-[4/3]",
   folder = "rozmaly/products",
   shape = "rect",

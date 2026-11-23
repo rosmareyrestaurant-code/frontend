@@ -13,7 +13,6 @@ import { toAdminOrder } from "@/lib/serialize";
 import { updateOrderStatusSchema } from "@/lib/validation";
 import { ORDER_STATUS_TRANSITIONS } from "@/types/admin";
 import type { OrderStatus } from "@/types/admin";
-import { awaitingPaymentReview } from "@/lib/payment-review";
 
 
 export const instant = false;
@@ -43,21 +42,6 @@ export async function PATCH(
       return badRequest(
         `لا يمكن تغيير الحالة من "${currentStatus}" إلى "${newStatus}"`,
         "INVALID_TRANSITION",
-      );
-    }
-
-    // لا يخرج الطلب الإلكتروني لمسار التجهيز/التسليم قبل تأكيد الدفع — حتى بالـ API مباشرة
-    if (
-      newStatus === "delivered" &&
-      awaitingPaymentReview({
-        paymentMethod: order.paymentMethod,
-        paymentStatus: order.paymentStatus,
-        status: currentStatus,
-      })
-    ) {
-      return badRequest(
-        "لا يمكن تسليم الطلب قبل تأكيد استلام المبلغ من التحويل",
-        "PAYMENT_NOT_VERIFIED",
       );
     }
 

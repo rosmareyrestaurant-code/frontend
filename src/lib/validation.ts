@@ -237,6 +237,7 @@ export const updateOrderSchema = z.object({
   customerAddress: z.string().trim().optional(),
   area: z.string().trim().optional(),
   notes: z.string().trim().optional(),
+  cashierNote: z.string().trim().max(500).optional(),
 });
 
 /* ─── طابور الطباعة ──────────────────────────────────────────────── */

@@ -127,6 +127,7 @@ interface OrderLean {
   paymentRejectedBy?: string;
   orderStatus: OrderStatus;
   notes?: string;
+  cashierNote?: string;
   printState?: "pending" | "processing" | "printed" | "failed";
   printAttempts?: number;
   printLastError?: string;
@@ -364,6 +365,7 @@ export function toAdminOrder(doc: OrderLean): AdminOrder {
       : undefined,
     status: doc.orderStatus,
     notes: doc.notes,
+    cashierNote: doc.cashierNote || undefined,
     printState: doc.printState,
     printAttempts: doc.printAttempts ?? 0,
     printLastError: doc.printLastError || undefined,

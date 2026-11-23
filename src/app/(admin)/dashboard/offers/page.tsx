@@ -200,7 +200,7 @@ export default function OffersAdminPage() {
           <ImageUpload value={form.image}
             onChange={img => setForm(p => ({ ...p, image: img }))}
             onPublicIdChange={pid => setForm(p => ({ ...p, imagePublicId: pid }))}
-            label="صورة العرض *" folder="rozmaly/offers" previewClassName="aspect-[16/9]" />
+            label="صورة العرض *" hint="المقاس المفضل: 1280×720 بيكسل (نسبة 16:9) — JPG / PNG / WebP، أقل من 8 ميجا" folder="rozmaly/offers" previewClassName="aspect-[16/9]" />
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 block text-xs font-bold text-[var(--color-text-muted)]">المدة (دقيقة)</label>

@@ -1,18 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useDelivery } from "@/context/DeliveryContext";
 import { resolveTickerIcon } from "@/lib/ticker";
 import type { PublicTickerSettings } from "@/lib/storefront";
 
-/**
- * شريط متحرك أعلى الهيدر: الجملة والأيقونة وترتيبها بيحددهم الأدمن من الداشبورد.
- * لونه بياخده تلقائياً من لون الأزرار الأساسي في هوية الموقع.
- * لو مفيش جملة محفوظة، بيرجع لنص مناطق التوصيل المجاني الافتراضي.
- */
+const TICKER_HIDDEN_KEY = "rozmaly:ticker-hidden";
+
 export default function DeliveryTicker({ initial }: { initial: PublicTickerSettings }) {
   const { activeZones } = useDelivery();
+  const [hiddenByCustomer, setHiddenByCustomer] = useState(false);
 
-  // لو الأدمن قافل الشريط، مفيش أي مساحة فاضية أعلى الهيدر
+  useEffect(() => {
+    try {
+      setHiddenByCustomer(window.localStorage.getItem(TICKER_HIDDEN_KEY) === "1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   if (!initial.enabled) return null;
 
   const customMessage = initial.message.trim();
@@ -21,13 +28,31 @@ export default function DeliveryTicker({ initial }: { initial: PublicTickerSetti
 
   if (!message) return null;
 
+  if (hiddenByCustomer) {
+    return (
+      <div dir="ltr" className="relative z-40 flex justify-end bg-[var(--color-primary)] px-3 py-1">
+        <button
+          type="button"
+          onClick={() => {
+            try { window.localStorage.setItem(TICKER_HIDDEN_KEY, "0"); } catch { /* ignore */ }
+            setHiddenByCustomer(false);
+          }}
+          aria-label="إظهار الشريط العلوي"
+          className="delivery-ticker-actions flex h-6 w-6 items-center justify-center rounded-full text-[var(--color-on-primary)] transition-colors hover:bg-white/15"
+        >
+          <Eye className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  }
+
   const { Icon, text } = resolveTickerIcon(initial.icon);
   const iconFirst = initial.iconPosition !== "end";
 
   return (
     <div
       dir="ltr"
-      className="relative z-40 overflow-hidden border-b border-[var(--color-primary-hover)] bg-[var(--color-primary)]"
+      className="relative z-40 flex items-stretch overflow-hidden border-b border-[var(--color-primary-hover)] bg-[var(--color-primary)]"
     >
       <div className="delivery-ticker-track flex w-max items-center py-2">
         {[0, 1].map((copy) => (
@@ -52,6 +77,17 @@ export default function DeliveryTicker({ initial }: { initial: PublicTickerSetti
           </div>
         ))}
       </div>
+      <button
+        type="button"
+        onClick={() => {
+          try { window.localStorage.setItem(TICKER_HIDDEN_KEY, "1"); } catch { /* ignore */ }
+          setHiddenByCustomer(true);
+        }}
+        aria-label="إخفاء الشريط العلوي"
+        className="delivery-ticker-actions flex w-9 shrink-0 items-center justify-center border-s border-white/15 text-[var(--color-on-primary)] transition-colors hover:bg-white/15"
+      >
+        <EyeOff className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 }

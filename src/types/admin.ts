@@ -110,6 +110,8 @@ export interface AdminOrder {
   paymentRejectedAt?: string;
   status: OrderStatus;
   notes?: string;
+  /** ملاحظة الكاشير: الدفع لم يصل / صورة التحويل غير واضحة ... إلخ */
+  cashierNote?: string;
   /** حالة الطباعة — غير موجودة في الطلبات القديمة قبل تشغيل الطابور */
   printState?: PrintState;
   printAttempts?: number;

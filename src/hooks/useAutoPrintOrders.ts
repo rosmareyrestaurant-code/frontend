@@ -4,6 +4,7 @@ import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import type { AdminOrder } from "@/types/admin";
 import { printOrderFromQueue } from "@/lib/print-queue-client";
+import { NEW_ORDERS_EVENT } from "@/hooks/useNewOrders";
 
 const AUTO_PRINT_KEY = "rozmaly_autoprint";
 const AUTO_PRINT_EVENT = "rozmaly:autoprint";
@@ -16,11 +17,11 @@ const FIRST_POLL_DELAY_MS = 3_000;
 const BATCH_LIMIT = 5;
 
 export function readAutoPrint(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") return true;
   try {
-    return window.localStorage.getItem(AUTO_PRINT_KEY) === "1";
+    return window.localStorage.getItem(AUTO_PRINT_KEY) !== "0";
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -47,7 +48,7 @@ function subscribe(onChange: () => void) {
 
 /** إعداد الطباعة التلقائية على الجهاز ده */
 export function useAutoPrintSetting() {
-  const enabled = useSyncExternalStore(subscribe, readAutoPrint, () => false);
+  const enabled = useSyncExternalStore(subscribe, readAutoPrint, () => true);
   const toggle = useCallback(() => setAutoPrint(!readAutoPrint()), []);
   return { enabled, toggle, setEnabled: setAutoPrint };
 }
@@ -122,12 +123,16 @@ export function useAutoPrintOrders() {
     const onVisibility = () => {
       if (document.visibilityState === "visible") void tick();
     };
+    // طلب جديد وصل للوحة التحكم — نطبعه فوراً بدل ما نستنى الدورة الجاية
+    const onNewOrders = () => { void tick(); };
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener(NEW_ORDERS_EVENT, onNewOrders);
 
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener(NEW_ORDERS_EVENT, onNewOrders);
     };
   }, [pathname, enabled]);
 }

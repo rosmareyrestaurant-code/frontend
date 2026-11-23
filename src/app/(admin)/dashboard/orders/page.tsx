@@ -4,16 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   Search, Phone, MapPin, Copy, ChevronDown, ShoppingBag, X, Loader2, Download, Printer,
-  CheckCircle2, XCircle, Clock3, ShieldCheck, ShieldAlert, AlertTriangle, RotateCcw,
-  Banknote, Globe2,
+  CheckCircle2, Clock3, AlertTriangle, RotateCcw, Banknote, Globe2,
 } from "lucide-react";
 import { printOrderFromQueue, PRINT_STATE_EVENT } from "@/lib/print-queue-client";
-import {
-  awaitingPaymentReview,
-  isOnlinePaymentMethod,
-  isPaymentVerified,
-} from "@/lib/payment-review";
-import { StatusBadge } from "@/components/admin/shared/StatusBadge";
+import { isOnlinePaymentMethod } from "@/lib/payment-review";
 import { Modal } from "@/components/admin/shared/Modal";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
@@ -39,15 +33,6 @@ function formatDate(iso: string) {
   });
 }
 
-/** الطلبات الجديدة خلال آخر 15 دقيقة — تمييز بصري للكاشير */
-const NEW_ORDER_WINDOW_MS = 15 * 60 * 1000;
-function isNewOrder(order: AdminOrder) {
-  return (
-    order.status === "pending" &&
-    Date.now() - new Date(order.createdAt).getTime() < NEW_ORDER_WINDOW_MS
-  );
-}
-
 /** نوع الدفع CASH/ONLINE — منفصل تماماً عن حالة الدفع */
 function PaymentTypeChip({ order }: { order: AdminOrder }) {
   if (isOnlinePaymentMethod(order.paymentMethod)) {
@@ -64,37 +49,7 @@ function PaymentTypeChip({ order }: { order: AdminOrder }) {
   );
 }
 
-/** حالة الدفع — مستقلة عن نوع الدفع وعن حالة الطباعة */
-function PaymentStatusChip({ order }: { order: AdminOrder }) {
-  if (!isOnlinePaymentMethod(order.paymentMethod)) {
-    return (
-      <span className="inline-flex items-center whitespace-nowrap rounded-full bg-[var(--color-border-subtle)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
-        نقدي
-      </span>
-    );
-  }
-  if (isPaymentVerified(order.paymentStatus)) {
-    return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[var(--color-primary-soft)] px-2.5 py-1 text-[10.5px] font-bold text-[#4F8A57]">
-        <CheckCircle2 className="h-3 w-3" /> مدفوع مؤكد
-      </span>
-    );
-  }
-  if (order.paymentStatus === "rejected") {
-    return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FAE4E0] px-2.5 py-1 text-[10.5px] font-bold text-[#C25B4F]">
-        <XCircle className="h-3 w-3" /> تحويل مرفوض
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FEF3D9] px-2.5 py-1 text-[10.5px] font-bold text-[#B98A2C]">
-      <Clock3 className="h-3 w-3" /> بانتظار التحقق
-    </span>
-  );
-}
-
-/** خانة الدفع في الجدول: النوع + الطريقة + الحالة + مرجع التحويل بدون فتح المودال */
+/** خانة الدفع في الجدول: نوع الدفع والمرجع فقط — بدون حالة تحقق */
 function PaymentCell({ order }: { order: AdminOrder }) {
   const online = isOnlinePaymentMethod(order.paymentMethod);
   return (
@@ -105,7 +60,6 @@ function PaymentCell({ order }: { order: AdminOrder }) {
           {PAYMENT_METHOD_LABELS[order.paymentMethod] ?? "كاش"}
         </span>
       </div>
-      <PaymentStatusChip order={order} />
       {online && (
         <p className="text-[10px] font-medium text-[var(--color-text-muted)]">
           مرجع:{" "}
@@ -121,43 +75,20 @@ function PaymentCell({ order }: { order: AdminOrder }) {
   );
 }
 
-/** شارة حالة الطباعة من الطابور — مستقلة عن حالة الدفع */
+/** حالة الطباعة: تمت الطباعة / غير مطبوعة فقط */
 function PrintBadge({ order }: { order: AdminOrder }) {
-  if (order.status === "cancelled" && order.printState !== "printed") {
+  if (order.printState === "printed") {
     return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[var(--color-border-subtle)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-muted)]">
-        <XCircle className="h-3 w-3" /> موقوف — الطلب ملغي
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[var(--color-primary-soft)] px-2.5 py-1 text-[10.5px] font-bold text-[#4F8A57]">
+        <CheckCircle2 className="h-3 w-3" /> تمت الطباعة
       </span>
     );
   }
-  switch (order.printState) {
-    case "pending":
-      return (
-        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FEF3D9] px-2.5 py-1 text-[10.5px] font-bold text-[#B98A2C]">
-          <Clock3 className="h-3 w-3" /> بانتظار الطباعة
-        </span>
-      );
-    case "processing":
-      return (
-        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#E7EEF6] px-2.5 py-1 text-[10.5px] font-bold text-[#4C6E91]">
-          <Loader2 className="h-3 w-3 animate-spin" /> جارٍ الطباعة
-        </span>
-      );
-    case "printed":
-      return (
-        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[var(--color-primary-soft)] px-2.5 py-1 text-[10.5px] font-bold text-[#4F8A57]">
-          <CheckCircle2 className="h-3 w-3" /> تمت الطباعة
-        </span>
-      );
-    case "failed":
-      return (
-        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FAE4E0] px-2.5 py-1 text-[10.5px] font-bold text-[#C25B4F]">
-          <AlertTriangle className="h-3 w-3" /> فشلت الطباعة
-        </span>
-      );
-    default:
-      return <span className="text-[11px] font-medium text-[var(--color-text-muted)]">—</span>;
-  }
+  return (
+    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FEF3D9] px-2.5 py-1 text-[10.5px] font-bold text-[#B98A2C]">
+      <Clock3 className="h-3 w-3" /> غير مطبوع
+    </span>
+  );
 }
 
 export default function OrdersPage() {
@@ -174,26 +105,14 @@ export default function OrdersPage() {
   const loadedOnce = useRef(false);
   const autoPrint = useAutoPrintSetting();
 
-  // مراجعة الدفع — للمدير فقط (الخادم يرفض الكاشير حتى لو حاول)
-  const [role, setRole] = useState("");
-  const [paymentAction, setPaymentAction] = useState<"verify" | "reject" | null>(null);
-  const [txnRef, setTxnRef] = useState("");
-  const [receivedAmount, setReceivedAmount] = useState("");
-  const [rejectReason, setRejectReason] = useState("");
-  const [paymentSaving, setPaymentSaving] = useState(false);
-  const [paymentError, setPaymentError] = useState("");
+  // ملاحظة الكاشير على الطلب المفتوح — تُحفظ في تفاصيل الطلب
+  const [cashierNoteDraft, setCashierNoteDraft] = useState("");
+  const [savingCashierNote, setSavingCashierNote] = useState(false);
 
   // حالة الطباعة في الواجهة — طلب واحد بيتطبع في الوقت الواحد
   const [printingId, setPrintingId] = useState<string | null>(null);
   const [printError, setPrintError] = useState("");
   const printRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    fetch("/api/admin/auth/me")
-      .then((r) => r.json())
-      .then((d) => { if (d?.success) setRole(d.data.role); })
-      .catch(() => {});
-  }, []);
 
   const fetchOrders = useCallback(async () => {
     if (USE_MOCK) {
@@ -259,6 +178,10 @@ export default function OrdersPage() {
     };
   }, [fetchOrders]);
 
+  useEffect(() => {
+    setCashierNoteDraft(selectedOrder?.cashierNote ?? "");
+  }, [selectedOrder?.id, selectedOrder?.cashierNote]);
+
   const totalPages = Math.ceil(total / PER_PAGE);
 
   const exportParams = new URLSearchParams();
@@ -306,8 +229,7 @@ export default function OrdersPage() {
 
   const closeOrderModal = () => {
     setSelectedOrder(null);
-    setPaymentAction(null);
-    setPaymentError("");
+    setCashierNoteDraft("");
     setPrintError("");
   };
 
@@ -347,51 +269,28 @@ export default function OrdersPage() {
     }
   };
 
-  const openVerifyPanel = (order: AdminOrder) => {
-    // نبدأ برقم المرجع اللي العميل كتبه (لو موجود) — المدير يقدر يعدّله
-    setTxnRef(order.transactionReference ?? "");
-    setReceivedAmount(String(order.total));
-    setPaymentError("");
-    setPaymentAction("verify");
-  };
-
-  const openRejectPanel = () => {
-    setRejectReason("");
-    setPaymentError("");
-    setPaymentAction("reject");
-  };
-
-  const amountMatches = selectedOrder
-    ? Math.round(Number(receivedAmount) * 100) === Math.round(selectedOrder.total * 100)
-    : false;
-
-  const submitPaymentAction = async () => {
-    if (!selectedOrder || !paymentAction) return;
-    setPaymentSaving(true);
-    setPaymentError("");
+  const saveCashierNote = async () => {
+    if (!selectedOrder) return;
+    setSavingCashierNote(true);
     try {
-      const body = paymentAction === "verify"
-        ? { action: "verify", transactionReference: txnRef.trim(), amount: Number(receivedAmount) }
-        : { action: "reject", reason: rejectReason.trim() };
-      const res = await fetch(`/api/admin/orders/${selectedOrder.id}/payment`, {
-        method: "POST",
+      const res = await fetch(`/api/admin/orders/${selectedOrder.id}/cashier-note`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ cashierNote: cashierNoteDraft.trim() }),
       });
       const d = await res.json();
       if (!d.success) {
-        setPaymentError(d.error?.message ?? "تعذّر تنفيذ العملية");
+        showToast(d.error?.message ?? "تعذّر حفظ الملاحظة", "error");
         return;
       }
       const updated = d.data as AdminOrder;
       setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
       setSelectedOrder(updated);
-      setPaymentAction(null);
-      showToast(d.message ?? "تم تحديث حالة الدفع", "success");
+      showToast("تم حفظ ملاحظة الكاشير", "success");
     } catch {
-      setPaymentError("تعذّر الاتصال بالخادم");
+      showToast("تعذّر الاتصال بالخادم", "error");
     } finally {
-      setPaymentSaving(false);
+      setSavingCashierNote(false);
     }
   };
 
@@ -451,11 +350,6 @@ export default function OrdersPage() {
             </a>
           </div>
         </div>
-        {autoPrint.enabled && (
-          <p className="px-5 pb-3 text-[10.5px] font-medium leading-relaxed text-[var(--color-text-muted)]">
-            الطباعة التلقائية شغالة على الجهاز ده — كل طلب جديد هيطلع على الطابعة الافتراضية (لو المتصفح سأل، اختار الطباعة مرة واحدة).
-          </p>
-        )}
         {loading ? (
           <div className="py-12 text-center text-[13px] text-[var(--color-text-muted)] animate-pulse">جاري التحميل...</div>
         ) : orders.length === 0 ? (
@@ -471,7 +365,6 @@ export default function OrdersPage() {
                     <th className="px-5 py-2.5 font-bold">الإجمالي</th>
                     <th className="px-5 py-2.5 font-bold">الدفع والمرجع</th>
                     <th className="px-5 py-2.5 font-bold">الطباعة</th>
-                    <th className="px-5 py-2.5 font-bold">حالة الطلب</th>
                     <th className="px-5 py-2.5 font-bold">التاريخ</th>
                     <th className="px-5 py-2.5 font-bold">تفاصيل</th>
                   </tr>
@@ -480,18 +373,9 @@ export default function OrdersPage() {
                   {orders.map((order) => (
                     <tr key={order.id} onClick={() => setSelectedOrder(order)}
                       tabIndex={0} role="button"
-                      className={`cursor-pointer text-[12px] transition-colors hover:bg-[var(--color-surface-soft)] focus:outline-none focus-visible:bg-[var(--color-surface-soft)] ${
-                        isNewOrder(order) ? "bg-[var(--color-surface)]" : ""
-                      }`}>
+                      className="cursor-pointer text-[12px] transition-colors hover:bg-[var(--color-surface-soft)] focus:outline-none focus-visible:bg-[var(--color-surface-soft)]">
                       <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-black text-[var(--color-text-primary)]" dir="ltr">#{order.orderNumber}</span>
-                          {isNewOrder(order) && (
-                            <span className="inline-flex whitespace-nowrap rounded-full bg-[#FCE8D8] px-2 py-0.5 text-[9.5px] font-black text-[#B9691F]">
-                              جديد
-                            </span>
-                          )}
-                        </div>
+                        <span className="font-black text-[var(--color-text-primary)]" dir="ltr">#{order.orderNumber}</span>
                       </td>
                       <td className="px-5 py-3.5">
                         <p className="font-semibold text-[var(--color-text-primary)]">{order.customerName}</p>
@@ -500,7 +384,6 @@ export default function OrdersPage() {
                       <td className="px-5 py-3.5 font-black text-[var(--color-text-primary)]">{order.total} ج.م</td>
                       <td className="px-5 py-3.5"><PaymentCell order={order} /></td>
                       <td className="px-5 py-3.5"><PrintBadge order={order} /></td>
-                      <td className="px-5 py-3.5"><StatusBadge status={order.status} /></td>
                       <td className="px-5 py-3.5 text-[11px] font-medium text-[var(--color-text-muted)]">{formatDate(order.createdAt)}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-1.5">
@@ -605,6 +488,25 @@ export default function OrdersPage() {
               )}
             </div>
 
+            {/* ملاحظة الكاشير */}
+            <div className="space-y-2 rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-4">
+              <label htmlFor="cashier-note" className="text-[11px] font-black tracking-wide text-[var(--color-primary)]">ملاحظة الكاشير</label>
+              <textarea id="cashier-note" rows={2} maxLength={500} value={cashierNoteDraft}
+                onChange={(e) => setCashierNoteDraft(e.target.value)}
+                placeholder="مثال: فلوس الطلب ما وصلتش — صورة التحويل غير واضحة"
+                className="w-full resize-none rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 py-2 text-[12px] font-semibold text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
+              {selectedOrder.cashierNote && (
+                <p className="rounded-[8px] border border-[#F0E5D2] bg-[#FCF3E7] px-3 py-2 text-[11px] font-semibold text-[#8A6414]">
+                  {selectedOrder.cashierNote}
+                </p>
+              )}
+              <button type="button" onClick={() => void saveCashierNote()}
+                disabled={savingCashierNote || cashierNoteDraft.trim() === (selectedOrder.cashierNote ?? "")}
+                className="rounded-full bg-[var(--color-primary)] px-4 py-2 text-[11px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50">
+                {savingCashierNote ? "جاري الحفظ..." : "حفظ الملاحظة"}
+              </button>
+            </div>
+
             {/* الوجبات */}
             <div className="space-y-2">
               <h3 className="text-[11px] font-black tracking-wide text-[var(--color-primary)]">الوجبات المطلوبة</h3>
@@ -649,266 +551,50 @@ export default function OrdersPage() {
               </div>
             </div>
 
-            {/* ─── مراجعة الدفع اليدوية (تحويل إلكتروني فقط) ─── */}
-            {isOnlinePaymentMethod(selectedOrder.paymentMethod) && (
-              <div className={`space-y-3 rounded-[14px] border p-4 ${
-                isPaymentVerified(selectedOrder.paymentStatus)
-                  ? "border-[var(--color-primary-soft)] bg-[var(--color-primary-soft)]"
-                  : selectedOrder.paymentStatus === "rejected"
-                    ? "border-[#F1D3CD] bg-[#FBF0ED]"
-                    : "border-[#F0E0BE] bg-[#FCF6E8]"
-              }`}>
-                <div className="flex items-center gap-1.5">
-                  <PaymentTypeChip order={selectedOrder} />
-                  <PaymentStatusChip order={selectedOrder} />
-                </div>
-                <div className="flex items-start gap-2.5">
-                  {isPaymentVerified(selectedOrder.paymentStatus) ? (
-                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#4F8A57]" />
-                  ) : selectedOrder.paymentStatus === "rejected" ? (
-                    <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-[#C25B4F]" />
-                  ) : (
-                    <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-[#B98A2C]" />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <h3 className={`text-[12.5px] font-black ${
-                      isPaymentVerified(selectedOrder.paymentStatus)
-                        ? "text-[#3F7548]"
-                        : selectedOrder.paymentStatus === "rejected"
-                          ? "text-[#B45243]"
-                          : "text-[#8A6414]"
-                    }`}>
-                      {isPaymentVerified(selectedOrder.paymentStatus)
-                        ? "تم تأكيد استلام المبلغ"
-                        : selectedOrder.paymentStatus === "rejected"
-                          ? "تم رفض التحويل"
-                          : "بانتظار التحقق"}
-                    </h3>
-                    <p className="mt-0.5 text-[11px] font-semibold leading-relaxed text-[var(--color-text-secondary)]">
-                      {isPaymentVerified(selectedOrder.paymentStatus)
-                        ? "الطلب مسموح له الآن بمسار التجهيز والتسليم."
-                        : selectedOrder.paymentStatus === "rejected"
-                          ? "الطلب غير مدفوع — تواصل مع العميل أو ألغِ الطلب، ومينفعش يتسلّم للمطبخ أو للعميل."
-                          : "الإيصال بيتطبع للمراجعة، لكن التحويل لسه غير مؤكد: لا تعتبره مدفوعاً ولا تسلّم الطلب للمطبخ قبل مراجعة حساب الاستقبال وتأكيد المدير."}
-                    </p>
-                    {!isPaymentVerified(selectedOrder.paymentStatus) && (
-                      <p className="mt-1.5 rounded-[8px] bg-white/60 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--color-primary)]">
-                        مرجع التحويل اللي كتبه العميل:{" "}
-                        <span className="font-black" dir="ltr">
-                          {selectedOrder.transactionReference || "غير مُدخل"}
-                        </span>
-                        {!selectedOrder.transactionReference && " — راجع صورة التحويل في الأسفل"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {isPaymentVerified(selectedOrder.paymentStatus) && (
-                  <div className="grid gap-1.5 text-[11px] font-semibold text-[var(--color-primary)] sm:grid-cols-2">
-                    <p>رقم العملية: <span className="font-black" dir="ltr">{selectedOrder.transactionReference || "—"}</span></p>
-                    <p>المبلغ المؤكد: <span className="font-black">{selectedOrder.verifiedAmount ?? selectedOrder.total} ج.م</span></p>
-                    {selectedOrder.paymentVerifiedByName && <p>أكّده: <span className="font-black">{selectedOrder.paymentVerifiedByName}</span></p>}
-                    {selectedOrder.paymentVerifiedAt && <p>وقت التأكيد: <span className="font-black">{formatDate(selectedOrder.paymentVerifiedAt)}</span></p>}
-                  </div>
-                )}
-
-                {selectedOrder.paymentStatus === "rejected" && selectedOrder.paymentRejectionReason && (
-                  <p className="rounded-[10px] border border-[#F1D3CD] bg-[#fff] px-3 py-2 text-[11px] font-semibold text-[#B45243]">
-                    سبب الرفض: {selectedOrder.paymentRejectionReason}
-                  </p>
-                )}
-
-                {role !== "admin" && !isPaymentVerified(selectedOrder.paymentStatus) && (
-                  <p className="text-[10.5px] font-semibold text-[var(--color-text-muted)]">
-                    مراجعة الدفع متاحة للمدير فقط — حساب الكاشير لا يقدر يؤكد أو يرفض التحويل.
-                  </p>
-                )}
-
-                {role === "admin" && !isPaymentVerified(selectedOrder.paymentStatus) && !paymentAction && (
-                  <div className="grid grid-cols-2 gap-2">
-                    <button type="button" onClick={() => openVerifyPanel(selectedOrder)}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[var(--color-primary)] px-3 py-2 text-[11px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)]">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> تأكيد استلام المبلغ
-                    </button>
-                    <button type="button" onClick={openRejectPanel}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#E7C6C0] bg-[#FBF0ED] px-3 py-2 text-[11px] font-bold text-[#B45243] transition-colors hover:bg-[#F7E3DE]">
-                      <XCircle className="h-3.5 w-3.5" /> رفض التحويل
-                    </button>
-                  </div>
-                )}
-
-                {role === "admin" && paymentAction === "verify" && (
-                  <div className="space-y-2.5 rounded-[12px] border border-[var(--color-primary-soft)] bg-[#fff] p-3">
-                    <p className="text-[11px] font-black text-[var(--color-text-primary)]">بيانات التحويل المستلم</p>
-                    <div>
-                      <label className="mb-1 block text-[10px] font-bold text-[var(--color-text-muted)]" htmlFor="txn-ref">
-                        رقم مرجع العملية (Transaction Reference)
-                      </label>
-                      <input id="txn-ref" value={txnRef} onChange={(e) => setTxnRef(e.target.value)}
-                        dir="ltr" placeholder="مثال: TXN-8890123"
-                        className="w-full rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 py-2 text-[12px] font-semibold text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-[10px] font-bold text-[var(--color-text-muted)]" htmlFor="received-amount">
-                        المبلغ المستلم من العميل (ج.م)
-                      </label>
-                      <input id="received-amount" type="number" step="0.01" inputMode="decimal" value={receivedAmount}
-                        onChange={(e) => setReceivedAmount(e.target.value)}
-                        className="w-full rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 py-2 text-[12px] font-semibold text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
-                      <p className={`mt-1 text-[10px] font-bold ${amountMatches ? "text-[#4F8A57]" : "text-[#B98A2C]"}`}>
-                        إجمالي الطلب: {selectedOrder.total} ج.م — {amountMatches ? "المبلغ مطابق ✓" : "لازم يطابق الإجمالي بالظبط"}
-                      </p>
-                    </div>
-                    {paymentError && <p className="text-[11px] font-bold text-[#C25B4F]">{paymentError}</p>}
-                    <div className="flex gap-2">
-                      <button type="button" onClick={submitPaymentAction}
-                        disabled={paymentSaving || !amountMatches || txnRef.trim().length < 3}
-                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[var(--color-primary)] px-3 py-2 text-[11px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50">
-                        {paymentSaving
-                          ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> جاري التأكيد...</>
-                          : <><CheckCircle2 className="h-3.5 w-3.5" /> تأكيد الاستلام</>}
-                      </button>
-                      <button type="button" onClick={() => { setPaymentAction(null); setPaymentError(""); }}
-                        disabled={paymentSaving}
-                        className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-secondary)] px-3 py-2 text-[11px] font-bold text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] disabled:opacity-50">
-                        تراجع
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {role === "admin" && paymentAction === "reject" && (
-                  <div className="space-y-2.5 rounded-[12px] border border-[#F1D3CD] bg-[#fff] p-3">
-                    <label className="block text-[11px] font-black text-[var(--color-text-primary)]" htmlFor="reject-reason">
-                      سبب رفض التحويل
-                    </label>
-                    <textarea id="reject-reason" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
-                      rows={2} placeholder="مثال: لم يصل المبلغ / رقم العملية غير صحيح / المبلغ مختلف"
-                      className="w-full resize-none rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 py-2 text-[12px] font-semibold text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
-                    {paymentError && <p className="text-[11px] font-bold text-[#C25B4F]">{paymentError}</p>}
-                    <div className="flex gap-2">
-                      <button type="button" onClick={submitPaymentAction}
-                        disabled={paymentSaving || rejectReason.trim().length < 3}
-                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#B45243] px-3 py-2 text-[11px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[#9E4639] disabled:cursor-not-allowed disabled:opacity-50">
-                        {paymentSaving
-                          ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> جاري الرفض...</>
-                          : <><XCircle className="h-3.5 w-3.5" /> تأكيد الرفض</>}
-                      </button>
-                      <button type="button" onClick={() => { setPaymentAction(null); setPaymentError(""); }}
-                        disabled={paymentSaving}
-                        className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-secondary)] px-3 py-2 text-[11px] font-bold text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] disabled:opacity-50">
-                        تراجع
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ─── حالة الطباعة والتحكم اليدوي ─── */}
+            {/* ─── حالة الطباعة ─── */}
             <div className="space-y-3 rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-4">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-[11px] font-black tracking-wide text-[var(--color-primary)]">حالة الطباعة</h3>
                 <PrintBadge order={selectedOrder} />
               </div>
 
-              {isOnlinePaymentMethod(selectedOrder.paymentMethod) &&
-                !isPaymentVerified(selectedOrder.paymentStatus) && (
-                  <p className="text-[11px] font-semibold leading-relaxed text-[#B98A2C]">
-                    التحويل لسه غير مؤكد — الإيصال هيتطبع بحالة ONLINE وبانتظار التحقق.
-                    متسلّموش الورقة للمطبخ قبل مراجعة حساب الاستقبال وتأكيد استلام المبلغ.
-                  </p>
-                )}
-
-              {selectedOrder.status === "cancelled" && (
-                <p className="text-[11px] font-bold leading-relaxed text-[#B45243]">
-                  الطلب ملغي — الطباعة التلقائية متوقفة، ومينفعش يتطبع أو يتسلّم.
-                </p>
-              )}
-
               {selectedOrder.printState === "processing" && (
                 <p className="flex items-center gap-1.5 text-[11px] font-semibold text-[#4C6E91]">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  جارٍ الطباعة الآن — لو على جهاز تاني استنى لحد ما تخلص.
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> جارٍ الطباعة
                 </p>
-              )}
-
-              {selectedOrder.printState === "printed" && (
-                <div className="space-y-1 text-[11px] font-semibold text-[#4F8A57]">
-                  <p className="flex items-center gap-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    تمت الطباعة
-                    {selectedOrder.printedAt ? ` — ${formatDate(selectedOrder.printedAt)}` : ""}
-                  </p>
-                  <p className="text-[10.5px] text-[var(--color-text-secondary)]">
-                    عدد المحاولات: {selectedOrder.printAttempts ?? 0} — لن تتم إعادة الطباعة تلقائياً.
-                  </p>
-                </div>
               )}
 
               {selectedOrder.printState === "failed" && (
-                <div className="space-y-1 rounded-[10px] border border-[#F1D3CD] bg-[#FBF0ED] px-3 py-2">
-                  <p className="flex items-center gap-1.5 text-[11px] font-black text-[#B45243]">
-                    <AlertTriangle className="h-3.5 w-3.5" /> فشلت آخر محاولة طباعة
-                  </p>
-                  <p className="text-[10.5px] font-semibold text-[#B45243]">
-                    {selectedOrder.printLastError || "خطأ غير معروف"}
-                  </p>
-                  <p className="text-[10px] font-medium text-[#8A6414]">
-                    المحاولة هتتعاد تلقائياً بعد ~20 ثانية، أو اضغط «إعادة المحاولة» دلوقتي.
-                  </p>
-                </div>
+                <p className="rounded-[10px] border border-[#F1D3CD] bg-[#FBF0ED] px-3 py-2 text-[11px] font-bold text-[#B45243]">
+                  <AlertTriangle className="me-1 inline h-3.5 w-3.5" />
+                  {selectedOrder.printLastError || "خطأ غير معروف"}
+                </p>
               )}
 
               {printError && selectedOrder.printState !== "failed" && (
                 <p className="text-[11px] font-bold text-[#C25B4F]">{printError}</p>
               )}
 
-              {!selectedOrder.printState && (
-                <p className="text-[10.5px] font-medium text-[var(--color-text-muted)]">
-                  طلب قديم قبل تشغيل طابور الطباعة — الطباعة اليدوية متاحة زي الأول.
-                </p>
-              )}
-
-              {selectedOrder.printState !== "printed" ? (
-                <button
-                  type="button"
-                  disabled={
-                    selectedOrder.status === "cancelled" ||
-                    printingId === selectedOrder.id ||
-                    selectedOrder.printState === "processing"
-                  }
-                  onClick={() => void runPrint(selectedOrder, true)}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2.5 text-[12px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {printingId === selectedOrder.id ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> جاري الطباعة...</>
-                  ) : selectedOrder.printState === "failed" ? (
-                    <><RotateCcw className="h-4 w-4" /> إعادة المحاولة</>
-                  ) : (
-                    <><Printer className="h-4 w-4" /> طباعة الإيصال 80mm</>
-                  )}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled={selectedOrder.status === "cancelled" || printingId === selectedOrder.id}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        "الإيصال مطبوع قبل كده — إعادة الطباعة ممكن تطلع إيصال مكرر. تكمل؟",
-                      )
-                    ) {
-                      void runPrint(selectedOrder, true);
-                    }
-                  }}
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-[#E7C6C0] bg-[#FBF0ED] px-4 py-2.5 text-[12px] font-bold text-[#B45243] transition-colors hover:bg-[#F7E3DE] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {printingId === selectedOrder.id
-                    ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري الطباعة...</>
-                    : <><RotateCcw className="h-4 w-4" /> إعادة طباعة يدوية (ممكن يتكرر)</>}
-                </button>
-              )}
+              <button
+                type="button"
+                disabled={
+                  selectedOrder.status === "cancelled" ||
+                  printingId === selectedOrder.id ||
+                  selectedOrder.printState === "processing"
+                }
+                onClick={() => void runPrint(selectedOrder, true)}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2.5 text-[12px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {printingId === selectedOrder.id ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> جاري الطباعة...</>
+                ) : selectedOrder.printState === "failed" ? (
+                  <><RotateCcw className="h-4 w-4" /> إعادة المحاولة</>
+                ) : selectedOrder.printState === "printed" ? (
+                  <><RotateCcw className="h-4 w-4" /> إعادة طباعة</>
+                ) : (
+                  <><Printer className="h-4 w-4" /> طباعة الإيصال</>
+                )}
+              </button>
             </div>
 
             {/* إثبات التحويل */}
@@ -933,43 +619,26 @@ export default function OrdersPage() {
               <h3 className="text-[11px] font-black tracking-wide text-[var(--color-primary)]">تغيير حالة الطلب</h3>
               <div className="grid grid-cols-3 gap-2">
                 {ALL_STATUSES.map((s) => {
-                  const lockedByPayment = s === "delivered" && awaitingPaymentReview(selectedOrder);
                   const isCancel = s === "cancelled";
                   const isActive = selectedOrder.status === s;
                   return (
                     <button key={s} onClick={() => changeStatus(selectedOrder.id, s)}
-                      disabled={isActive || lockedByPayment}
-                      title={
-                        lockedByPayment
-                          ? "أكد استلام المبلغ أولاً"
-                          : isCancel
-                            ? "إلغاء الطلب — هيطلب تأكيد قبل التنفيذ"
-                            : undefined
-                      }
+                      disabled={isActive}
+                      title={isCancel ? "إلغاء الطلب — هيطلب تأكيد قبل التنفيذ" : undefined}
                       className={`rounded-full border px-3 py-2 text-[11px] font-bold transition-all disabled:cursor-not-allowed ${
                         isActive
                           ? isCancel
                             ? "border-[#B45243] bg-[#B45243] text-[var(--color-on-primary)]"
                             : "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)]"
-                          : lockedByPayment
-                            ? "border-[var(--color-border)] bg-[var(--color-surface-secondary)] text-[var(--color-text-muted)] opacity-60"
-                            : isCancel
-                              ? "border-[#E7C6C0] bg-[#FBF0ED] text-[#B45243] hover:bg-[#F7E3DE]"
-                              : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary-border)] hover:text-[var(--color-text-primary)]"
+                          : isCancel
+                            ? "border-[#E7C6C0] bg-[#FBF0ED] text-[#B45243] hover:bg-[#F7E3DE]"
+                            : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary-border)] hover:text-[var(--color-text-primary)]"
                       }`}>
                       {isCancel ? "إلغاء الطلب" : ORDER_STATUS_LABELS[s]}
                     </button>
                   );
                 })}
               </div>
-              <p className="text-[10.5px] font-semibold text-[var(--color-text-muted)]">
-                «تمت الطباعة» حالة مستقلة — مش معناها إن الطلب اتسلّم للعميل.
-              </p>
-              {awaitingPaymentReview(selectedOrder) && (
-                <p className="text-[10.5px] font-semibold text-[#B98A2C]">
-                  «تم التسليم» مقفول لحد ما يتم تأكيد استلام المبلغ من التحويل.
-                </p>
-              )}
             </div>
           </div>
         )}

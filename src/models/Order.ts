@@ -60,6 +60,7 @@ const orderSchema = new Schema(
       index: true,
     },
     notes: { type: String, default: "" },
+    cashierNote: { type: String, default: "" },
     // ─── طابور الطباعة (لا علاقة له بحالة الدفع) ───
     printState: {
       type: String,

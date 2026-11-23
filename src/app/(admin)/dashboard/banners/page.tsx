@@ -208,7 +208,7 @@ export default function BannersPage() {
           <ImageUpload value={form.image}
             onChange={img => setForm(p => ({ ...p, image: img }))}
             onPublicIdChange={pid => setForm(p => ({ ...p, imagePublicId: pid }))}
-            label="صورة البانر *" folder="rozmaly/banners" previewClassName="aspect-[16/9]" />
+            label="صورة البانر *" hint="سلايدر الهيرو: 1800×600 بيكسل (نسبة 3:1) — بانرات الصفحة: 1280×720 بيكسل (16:9). JPG / PNG / WebP، أقل من 8 ميجا" folder="rozmaly/banners" previewClassName="aspect-[16/9]" />
           <div className="grid grid-cols-2 gap-3">
             {[{ label: "نص الزر", key: "ctaText", ph: "اطلب الآن" }, { label: "الرابط", key: "ctaLink", ph: "#burger", dir: "ltr" as const }].map(({ label, key, ph, dir }) => (
               <div key={key}>

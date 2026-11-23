@@ -18,13 +18,13 @@ import { DEFAULT_STORE_SETTINGS } from "@/data/admin/settings";
 const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
 type Tab = "basic" | "ticker" | "hours" | "social" | "general" | "account";
-const TABS: { id: Tab; label: string; desc: string; icon: React.ElementType }[] = [
-  { id: "basic",   label: "المعلومات الأساسية", desc: "الاسم والتواصل والشعار", icon: Store    },
-  { id: "ticker",  label: "الشريط العلوي",      desc: "الجملة والأيقونة",        icon: Megaphone },
-  { id: "hours",   label: "أوقات العمل",        desc: "أيام وساعات الفتح",       icon: Clock    },
-  { id: "social",  label: "روابط التواصل",      desc: "صفحاتك على السوشيال",     icon: Share2   },
-  { id: "general", label: "إعدادات عامة",       desc: "التوصيل والدفع والحالة",  icon: Settings },
-  { id: "account", label: "حساب الأدمن",        desc: "البريد وكلمة المرور",     icon: ShieldCheck },
+const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
+  { id: "basic",   label: "المعلومات الأساسية", icon: Store    },
+  { id: "ticker",  label: "الشريط العلوي",      icon: Megaphone },
+  { id: "hours",   label: "أوقات العمل",        icon: Clock    },
+  { id: "social",  label: "روابط التواصل",      icon: Share2   },
+  { id: "general", label: "إعدادات عامة",       icon: Settings },
+  { id: "account", label: "حساب الأدمن",        icon: ShieldCheck },
 ];
 
 const DEFAULTS: StoreSettings = {
@@ -73,7 +73,7 @@ function PasswordField({ label, value, onChange, placeholder = "•••••�
   );
 }
 
-function SectionHeader({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description?: string }) {
+function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
   return (
     <div className="mb-5 flex items-start gap-3 border-b border-[var(--color-border-subtle)] pb-4">
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
@@ -81,7 +81,6 @@ function SectionHeader({ icon: Icon, title, description }: { icon: React.Element
       </span>
       <div className="min-w-0">
         <h3 className="text-[14px] font-black text-[var(--color-text-primary)]">{title}</h3>
-        {description && <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-[var(--color-text-muted)]">{description}</p>}
       </div>
     </div>
   );
@@ -99,7 +98,7 @@ function TickerPreview({ message, icon }: { message: string; icon: string }) {
           <span className="shrink-0 text-sm leading-none" aria-hidden="true">{text}</span>
         ) : null}
         <span className={`truncate text-[11px] font-bold sm:text-xs ${shown ? "text-[var(--color-on-primary)]" : "text-[var(--color-on-primary)]/75"}`}>
-          {shown || "اكتب الجملة فوق وهتظهر هنا زي ما هي على الموقع"}
+          {shown}
         </span>
       </div>
     </div>
@@ -240,9 +239,6 @@ export default function SettingsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-[16px] font-black text-[var(--color-text-primary)]">إعدادات المتجر</h2>
-          <p className="mt-1 text-[11px] font-medium text-[var(--color-text-muted)]">
-            كل بيانات المتجر في مكان واحد — احفظ التعديلات قبل ما تسيب الصفحة.
-          </p>
         </div>
         <div className="flex items-center gap-2.5">
           {dirty && (
@@ -263,7 +259,7 @@ export default function SettingsPage() {
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[224px_minmax(0,1fr)]">
         <nav className="min-w-0 lg:sticky lg:top-[88px]">
           <div className="flex w-full gap-1.5 overflow-x-auto pb-1 scrollbar-none lg:flex-col lg:gap-1 lg:overflow-visible lg:rounded-[16px] lg:border lg:border-[var(--color-border)] lg:bg-[var(--color-surface)] lg:p-2">
-            {TABS.map(({ id, label, desc, icon: Icon }) => {
+            {TABS.map(({ id, label, icon: Icon }) => {
               const active = activeTab === id;
               return (
                 <button key={id} onClick={() => setActiveTab(id)}
@@ -277,10 +273,7 @@ export default function SettingsPage() {
                   }`}>
                     <Icon className="h-3.5 w-3.5" />
                   </span>
-                  <span className="flex flex-col items-start gap-0.5">
-                    <span>{label}</span>
-                    <span className={`hidden text-[9.5px] font-semibold lg:block ${active ? "text-[var(--color-on-primary)]" : "text-[var(--color-text-muted)]"}`}>{desc}</span>
-                  </span>
+                  <span>{label}</span>
                 </button>
               );
             })}
@@ -290,7 +283,7 @@ export default function SettingsPage() {
         <section className="min-w-0 rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6">
           {activeTab === "basic" && (
             <div>
-              <SectionHeader icon={Store} title="المعلومات الأساسية" description="اسم المتجر وبيانات التواصل والشعار اللي بيظهروا للعميل." />
+              <SectionHeader icon={Store} title="المعلومات الأساسية" />
               <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_240px]">
                 <div className="space-y-4">
                   <InputField label="اسم المتجر" value={settings.storeName} onChange={v => update("storeName", v)} />
@@ -309,7 +302,7 @@ export default function SettingsPage() {
                   <ImageUpload value={settings.logoUrl}
                     onChange={url => update("logoUrl", url)}
                     onPublicIdChange={pid => setSettings(prev => ({ ...prev, logoPublicId: pid } as typeof prev))}
-                    label="شعار المتجر" hint="JPG / PNG / WebP — أقل من 8 ميجا" folder="rozmaly/branding" previewClassName="aspect-square" />
+                    label="شعار المتجر" hint="المقاس المفضل: 512×512 بيكسل (مربع) — JPG / PNG / WebP، أقل من 8 ميجا" folder="rozmaly/branding" previewClassName="aspect-square" />
                 </div>
               </div>
             </div>
@@ -317,7 +310,7 @@ export default function SettingsPage() {
 
           {activeTab === "ticker" && (
             <div>
-              <SectionHeader icon={Megaphone} title="الشريط العلوي" description="الجملة اللي بتتحرك أعلى الموقع، واختار الأيقونة اللي تظهر جنبها — أو اكتب إيموجي من الكيبورد." />
+              <SectionHeader icon={Megaphone} title="الشريط العلوي" />
               <div className="max-w-2xl space-y-5">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -328,9 +321,6 @@ export default function SettingsPage() {
                     onChange={e => update("tickerMessage", e.target.value)}
                     placeholder="مثال: خصم 20% على كل العروض النهاردة 🎉"
                     className={fieldClass} />
-                  <p className="text-[10.5px] font-medium leading-relaxed text-[var(--color-text-muted)]">
-                    لو سبتها فاضية، الشريط هيعرض جملة مناطق التوصيل المجاني تلقائياً.
-                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -369,7 +359,6 @@ export default function SettingsPage() {
                 <div className="space-y-2 border-t border-[var(--color-border-subtle)] pt-4">
                   <p className="text-[11.5px] font-black text-[var(--color-text-secondary)]">معاينة حية للشريط</p>
                   <TickerPreview message={settings.tickerMessage ?? ""} icon={tickerIcon} />
-                  <p className="text-[10px] font-medium text-[var(--color-text-muted)]">كده الشريط هيظهر أعلى الموقع بالظبط — التغيير بيتطبق بعد الحفظ.</p>
                 </div>
               </div>
             </div>
@@ -377,7 +366,7 @@ export default function SettingsPage() {
 
           {activeTab === "hours" && (
             <div>
-              <SectionHeader icon={Clock} title="أوقات العمل" description="حدد الأيام اللي المتجر بيفتح فيها ومواعيد الفتح والقفل." />
+              <SectionHeader icon={Clock} title="أوقات العمل" />
               <div className="space-y-2">
                 {settings.workingHours.map((day, idx) => (
                   <div key={day.day} className="flex flex-wrap items-center gap-3 rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-3">
@@ -407,7 +396,7 @@ export default function SettingsPage() {
 
           {activeTab === "social" && (
             <div>
-              <SectionHeader icon={Share2} title="روابط التواصل الاجتماعي" description="الروابط اللي بتظهر في فوتر الموقع للعملاء." />
+              <SectionHeader icon={Share2} title="روابط التواصل الاجتماعي" />
               <div className="grid max-w-2xl gap-4 sm:grid-cols-2">
                 {(["facebook","instagram","tiktok","whatsapp"] as (keyof StoreSettings["socialLinks"])[]).map(key => (
                   <InputField key={key} label={key.charAt(0).toUpperCase() + key.slice(1)} value={settings.socialLinks[key]}
@@ -419,7 +408,7 @@ export default function SettingsPage() {
 
           {activeTab === "general" && (
             <div>
-              <SectionHeader icon={Settings} title="الإعدادات العامة" description="رسوم التوصيل، بيانات الدفع، وحالة فتح المتجر." />
+              <SectionHeader icon={Settings} title="الإعدادات العامة" />
               <div className="space-y-5">
                 <div>
                   <p className="mb-3 flex items-center gap-1.5 text-[11.5px] font-black text-[var(--color-text-secondary)]">
@@ -458,7 +447,7 @@ export default function SettingsPage() {
 
           {activeTab === "account" && (
             <div>
-              <SectionHeader icon={ShieldCheck} title="حساب الأدمن" description="بيانات تسجيل الدخول محفوظة في قاعدة البيانات — أي تغيير هنا يسري فوراً." />
+              <SectionHeader icon={ShieldCheck} title="حساب الأدمن" />
               <div className="grid gap-4 xl:grid-cols-2">
                 <div className="space-y-3 rounded-[16px] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
                   <CardTitle icon={Mail} text="البريد الإلكتروني" />

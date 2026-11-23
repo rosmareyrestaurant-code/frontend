@@ -278,7 +278,7 @@ export default function CategoriesPage() {
           <ImageUpload value={form.image}
             onChange={img => setForm(p => ({ ...p, image: img }))}
             onPublicIdChange={pid => setForm(p => ({ ...p, imagePublicId: pid }))}
-            label="صورة التصنيف" folder="rozmaly/categories" />
+            label="صورة التصنيف" hint="المقاس المفضل: 1300×500 بيكسل (نسبة 2.6:1) — JPG / PNG / WebP، أقل من 8 ميجا" folder="rozmaly/categories" />
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-[var(--color-text-muted)]">ترتيب الظهور</label>
