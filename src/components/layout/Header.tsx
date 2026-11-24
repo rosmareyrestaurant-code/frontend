@@ -425,7 +425,7 @@ export default function Header() {
                   <span className="relative aspect-[1200/630] w-full overflow-hidden rounded-xl border border-[var(--color-primary-border)] bg-[var(--color-surface-elevated)]">
                     <Image
                       src={SOCIAL_PREVIEW_IMAGE_URL}
-                      alt="طعام Rosemary وطيار توصيل"
+                      alt="طيار توصيل ووجبات Rosemary من الساندوتشات والبيتزا والمكرونة والبطاطس والمشروبات"
                       fill
                       sizes="(max-width: 1024px) 90vw, 420px"
                       className="object-cover"
