@@ -14,6 +14,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { signInAdmin } from "@/hooks/useAdminAuth";
+import Logo from "@/components/common/Logo";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -75,15 +76,7 @@ export default function AdminLoginPage() {
         {/* الشعار */}
         <div className="flex flex-col items-center gap-2">
           <Link href="/" aria-label="روزماري - الصفحة الرئيسية">
-            <Image
-              src="/images/logo-rosemary-green.png"
-              alt="Rozmaly"
-              width={200}
-              height={104}
-              loading="eager"
-              style={{ width: "auto" }}
-              className="h-16 object-contain sm:h-20"
-            />
+            <Logo imageClassName="h-16 object-contain sm:h-20" />
           </Link>
           <div className="flex w-full max-w-[260px] items-center gap-3">
             <span className="h-px flex-1 bg-[var(--color-border)]" />

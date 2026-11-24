@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -10,6 +9,7 @@ import {
   UserCog, Palette,
 } from "lucide-react";
 import { beginAdminLogout } from "@/hooks/useAdminAuth";
+import Logo from "@/components/common/Logo";
 
 const NAV_ITEMS = [
   { label: "الرئيسية",          href: "/dashboard",            icon: LayoutDashboard, adminOnly: true },
@@ -75,13 +75,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         >
           <X className="h-4 w-4" />
         </button>
-        <Image
-          src="/images/logo-rosemary-cream.png"
-          alt="روزماري"
-          width={180}
-          height={93}
-          className="h-16 w-auto object-contain"
-        />
+        <Logo tone="light" imageClassName="h-16 w-auto object-contain" />
         <p className="mt-1 text-[11px] font-semibold text-[var(--color-on-primary)]">لوحة التحكم</p>
       </div>
 

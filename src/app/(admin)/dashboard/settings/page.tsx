@@ -222,6 +222,7 @@ export default function SettingsPage() {
       if (d.success) {
         setSavedSettings(settings);
         try { localStorage.setItem("rozmaly:settings-saved", String(Date.now())); } catch {}
+        window.dispatchEvent(new Event("rozmaly:settings-saved"));
         showToast("تم حفظ الإعدادات بنجاح", "success");
       }
       else showToast(d.error?.message ?? "فشل الحفظ", "error");

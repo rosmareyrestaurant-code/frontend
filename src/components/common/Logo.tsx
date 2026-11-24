@@ -23,9 +23,17 @@ async function fetchLogoUrl(): Promise<string | null> {
 
 interface LogoProps {
   className?: string;
+  imageClassName?: string;
+  tone?: "default" | "light";
 }
 
-export default function Logo({ className = "" }: LogoProps) {
+const DEFAULT_IMAGE_CLASS = "h-10 object-contain drop-shadow-[0_2px_8px_rgba(82,107,88,0.28)] sm:h-12 lg:h-14";
+
+export default function Logo({
+  className = "",
+  imageClassName = DEFAULT_IMAGE_CLASS,
+  tone = "default",
+}: LogoProps) {
   const [src, setSrc] = useState(cachedLogo ?? DEFAULT_LOGO);
 
   useEffect(() => {
@@ -49,17 +57,21 @@ export default function Logo({ className = "" }: LogoProps) {
     const onStorage = (e: StorageEvent) => {
       if (e.key === SETTINGS_SAVED_KEY) void load();
     };
+    // حدث داخل نفس التاب بعد حفظ الإعدادات (storage event مش بيحصل في نفس التاب)
+    const onSettingsSaved = () => void load();
     // رجوع الزائر للتاب بيجيب أحدث شعار
     const onVisible = () => {
       if (document.visibilityState === "visible") void load();
     };
 
     window.addEventListener("storage", onStorage);
+    window.addEventListener(SETTINGS_SAVED_KEY, onSettingsSaved);
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       if (retryTimer) window.clearTimeout(retryTimer);
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener(SETTINGS_SAVED_KEY, onSettingsSaved);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
@@ -78,7 +90,7 @@ export default function Logo({ className = "" }: LogoProps) {
         priority
         style={{ width: "auto" }}
         unoptimized={src.startsWith("data:")}
-        className="h-10 object-contain drop-shadow-[0_2px_8px_rgba(82,107,88,0.28)] sm:h-12 lg:h-14"
+        className={`${imageClassName}${tone === "light" ? " brightness-0 invert" : ""}`}
       />
     </span>
   );
