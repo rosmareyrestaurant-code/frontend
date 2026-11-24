@@ -60,16 +60,12 @@ export default function MenuClient({ products, categories = [] }: { products: Pr
     }
     const ordered = categories
       .filter((category) => (counts.get(category.slug) ?? 0) > 0)
-      .map((category) => ({
-        id: category.slug,
-        label: category.name,
-        count: counts.get(category.slug) ?? 0,
-      }));
+      .map((category) => ({ id: category.slug, label: category.name }));
     const known = new Set(ordered.map((tab) => tab.id));
     const extras = Array.from(counts.keys())
       .filter((id) => !known.has(id))
-      .map((id) => ({ id, label: CATEGORY_LABELS[id] ?? id, count: counts.get(id) ?? 0 }));
-    return [{ id: "all", label: "كل الأكلات", count: products.length }, ...ordered, ...extras];
+      .map((id) => ({ id, label: CATEGORY_LABELS[id] ?? id }));
+    return [{ id: "all", label: "كل الأكلات" }, ...ordered, ...extras];
   }, [products, categories]);
 
   const filteredProducts = useMemo(() => {
@@ -131,9 +127,6 @@ export default function MenuClient({ products, categories = [] }: { products: Pr
                   active ? "bg-[var(--color-primary)] text-white scale-105" : "bg-[var(--color-page-background)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-white hover:border-[var(--color-primary)]/40"
                 }`}>
                 <span>{tab.label}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${active ? "bg-black/25 text-white" : "bg-[var(--color-page-background)] text-[var(--color-text-muted)]"}`}>
-                  {tab.count}
-                </span>
               </button>
             );
           })}

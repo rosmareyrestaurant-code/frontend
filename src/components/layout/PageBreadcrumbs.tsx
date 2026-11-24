@@ -132,8 +132,10 @@ export default function PageBreadcrumbs({ className = "" }: { className?: string
     writeStoredHistory(history);
   }, [pathname]);
 
+  // الصفحة الرئيسية ما محتاجة مسار تنقل — بس بنسجلها عشان تظهر كـ «صفحة سابقة» بعدين.
+  if (pathname === "/") return null;
+
   const previous = [...route.history].reverse().find((href) => pathOf(href) !== pathname) ?? null;
-  const isHome = pathname === "/";
 
   const linkClassName = "rounded-md px-1 py-0.5 transition-colors hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]";
   const separator = (
@@ -145,48 +147,25 @@ export default function PageBreadcrumbs({ className = "" }: { className?: string
       aria-label="مسار التنقل"
       className={`flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-[var(--color-text-secondary)] ${className}`}
     >
-      {isHome ? (
+      <Link href="/" aria-label="الرئيسية" className={`${linkClassName} inline-flex items-center gap-1`}>
+        <Home className="h-3.5 w-3.5" />
+        <span>الرئيسية</span>
+      </Link>
+      {previous && pathOf(previous) !== "/" && (
         <>
-          {previous && (
-            <>
-              <Link href={previous} className={`${linkClassName} max-w-[45vw] truncate`}>
-                {labelFor(previous)}
-              </Link>
-              {separator}
-            </>
-          )}
-          <Link
-            href="/"
-            aria-current="page"
-            className="inline-flex items-center gap-1 rounded-md bg-[var(--color-primary-soft)] px-2 py-0.5 text-[var(--color-primary)]"
-          >
-            <Home className="h-3.5 w-3.5" />
-            <span>الرئيسية</span>
-          </Link>
-        </>
-      ) : (
-        <>
-          <Link href="/" aria-label="الرئيسية" className={`${linkClassName} inline-flex items-center gap-1`}>
-            <Home className="h-3.5 w-3.5" />
-            <span>الرئيسية</span>
-          </Link>
-          {previous && pathOf(previous) !== "/" && (
-            <>
-              {separator}
-              <Link href={previous} className={`${linkClassName} max-w-[45vw] truncate`}>
-                {labelFor(previous)}
-              </Link>
-            </>
-          )}
           {separator}
-          <span
-            aria-current="page"
-            className="max-w-[55vw] truncate rounded-md bg-[var(--color-primary-soft)] px-2 py-0.5 text-[var(--color-primary)]"
-          >
-            {labelFor(pathname)}
-          </span>
+          <Link href={previous} className={`${linkClassName} max-w-[45vw] truncate`}>
+            {labelFor(previous)}
+          </Link>
         </>
       )}
+      {separator}
+      <span
+        aria-current="page"
+        className="max-w-[55vw] truncate rounded-md bg-[var(--color-primary-soft)] px-2 py-0.5 text-[var(--color-primary)]"
+      >
+        {labelFor(pathname)}
+      </span>
     </nav>
   );
 }
