@@ -424,7 +424,7 @@ export default function MyOrdersPage() {
                   <DetailRow label="قيمة المنتجات" value={`${activeOrder.subtotal} ج.م`} />
                   <DetailRow
                     label="رسوم التوصيل"
-                    value={activeOrder.deliveryFee > 0 ? `${activeOrder.deliveryFee} ج.م` : "مجاني"}
+                    value={activeOrder.deliveryFee > 0 ? `${activeOrder.deliveryFee} ج.م` : "يحدد لاحقاً"}
                   />
                   {activeOrder.discount > 0 && (
                     <DetailRow label="الخصم" value={`-${activeOrder.discount} ج.م`} />
@@ -435,10 +435,6 @@ export default function MyOrdersPage() {
                   </div>
                 </div>
               </div>
-
-              <p className="pb-1 text-center text-[10.5px] font-medium leading-relaxed text-[var(--color-text-muted)]">
-                الصفحة للعرض فقط — لو محتاج تعدّل أو تلغي الطلب تواصل مع المطعم.
-              </p>
             </div>
           </div>
         </div>

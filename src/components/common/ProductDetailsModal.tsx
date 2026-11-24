@@ -389,7 +389,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                 type="button"
                 onClick={handleAddToCart}
                 disabled={isAdded}
-                className={`flex-1 py-3.5 rounded-xl font-bold text-sm text-white shadow-lg shadow-black/50 transition-all flex items-center justify-center gap-2 ${
+                className={`flex-1 py-3.5 rounded-xl font-bold text-sm text-[var(--color-on-primary)] shadow-lg shadow-black/50 transition-all flex items-center justify-center gap-2 ${
                   isAdded
                     ? "bg-emerald-600 scale-[0.99]"
                     : "bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] hover:scale-[1.01] active:scale-95"

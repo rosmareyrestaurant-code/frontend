@@ -162,9 +162,9 @@ function OrderConfirmationInner() {
     <div className="min-h-screen bg-[var(--color-page-background)] py-8 sm:py-12" dir="rtl">
       <div className="mx-auto max-w-2xl px-4 sm:px-6 space-y-5">
 
-        {/* شريط الحالة — خلفية خضراء ثابتة ونصوص بيضاء في كل الحالات */}
-        <div className={`flex items-start gap-3 rounded-2xl border p-4 bg-[var(--color-icon)] ${
-          isCancelled ? "border-[#7B4C48]" : "border-[var(--color-primary-border)]"
+        {/* شريط الحالة — لون الهوية من الداش بورد ونصوص بيضاء في كل الحالات */}
+        <div className={`flex items-start gap-3 rounded-2xl border p-4 bg-[var(--color-primary)] ${
+          isCancelled ? "border-[var(--color-danger)]" : "border-[var(--color-primary-border)]"
         }`}>
           {isDelivered
             ? <CheckCircle2 className="h-7 w-7 text-[var(--color-text-on-primary)] shrink-0" />
@@ -223,7 +223,7 @@ function OrderConfirmationInner() {
             <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
               <span>التوصيل</span>
               <span className="font-bold text-[var(--color-icon)]">
-                {order.deliveryFee > 0 ? `${order.deliveryFee} ج.م` : "مجاني"}
+                {order.deliveryFee > 0 ? `${order.deliveryFee} ج.م` : "يحدد لاحقاً"}
               </span>
             </div>
             {order.discount > 0 && (
