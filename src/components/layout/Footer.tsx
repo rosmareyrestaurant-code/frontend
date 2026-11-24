@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bike, ChefHat, Leaf, Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import Logo from "@/components/common/Logo";
 import { VodafoneCashIcon, InstaPayIcon, CashPayIcon } from "@/components/common/PaymentBrandIcons";
 import { SITE_CONTACT, WHATSAPP_URL } from "@/data/siteConfig";
@@ -97,7 +97,7 @@ export default function Footer() {
   return (
     <footer id="contact" className="w-full border-t border-[var(--color-border)] bg-[var(--color-page-background)] pb-24 pt-10 text-center text-[var(--color-text-primary)] sm:pt-14 lg:pb-8">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 pb-10 md:grid-cols-2 lg:grid-cols-[1.5fr_0.9fr_1.4fr_1.4fr] lg:gap-10 lg:pb-12 lg:text-start">
+        <div className="grid grid-cols-1 gap-10 pb-10 md:grid-cols-2 lg:grid-cols-[1.5fr_0.9fr_1.4fr] lg:gap-10 lg:pb-12 lg:text-start">
 
           {/* البراند + واتساب */}
           <div className="flex flex-col items-center lg:items-start">
@@ -164,31 +164,6 @@ export default function Footer() {
               ))}
             </ul>
           </nav>
-
-          {/* ليه روزماري؟ */}
-          <div>
-            <h4 className="mb-4 flex items-center justify-center gap-2 text-sm font-extrabold text-[var(--color-primary)] lg:justify-start">
-              <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[var(--color-primary-border)]" />
-              ليه روزماري؟
-            </h4>
-            <ul className="space-y-4">
-              {[
-                { icon: Leaf, title: "مكونات طازجة", sub: "نستخدم أجود المكونات يومياً" },
-                { icon: ChefHat, title: "تحضير عند الطلب", sub: "كل وجبة بتتحضّر طازجة لك" },
-                { icon: Bike, title: "توصيل سريع", sub: "توصيل ساخن في أقرب وقت" },
-              ].map(({ icon: Icon, title, sub }) => (
-                <li key={title} className="flex items-start justify-center gap-3 lg:justify-start">
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] ring-1 ring-[var(--color-primary-hover)]">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div className="text-start">
-                    <p className="text-[13px] font-bold text-[var(--color-text-primary)]">{title}</p>
-                    <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-text-secondary)]">{sub}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
 
           {/* تواصل معنا */}
           <div>

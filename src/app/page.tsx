@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import HeroSlider from "@/components/home/HeroSlider";
+import WhyRosemarySection from "@/components/home/WhyRosemarySection";
 import PopularSection from "@/components/home/PopularSection";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import PromoBanners from "@/components/home/PromoBanners";
@@ -59,6 +60,7 @@ export default async function HomePage() {
   return (
     <main className="flex w-full flex-col pb-4 sm:pb-8">
       <HeroSlider slides={slides} />
+      <WhyRosemarySection />
       <CategoriesSection categories={homeCategories} />
       <PopularSection products={popular} />
       {sections.map(({ id, title, products: sectionProducts }, index) => (
