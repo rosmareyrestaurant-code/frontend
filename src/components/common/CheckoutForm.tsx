@@ -36,7 +36,7 @@ const FIELDS: {
 ];
 
 export default function CheckoutForm({ onBack, onNext, initialValues }: CheckoutFormProps) {
-  const { subtotal } = useShop();
+  const { subtotal, coupon, couponDiscount } = useShop();
   const { isFree: isFreeDelivery, amount: deliveryAmount, label: deliveryLabel } = useDeliveryQuote();
   const { activeZones, selectArea } = useDelivery();
 
@@ -197,13 +197,19 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
             <span>المجموع الفرعي</span>
             <span className="font-bold text-white">{subtotal} ج.م</span>
           </div>
+          {coupon && (
+            <div className="flex items-center justify-between text-[var(--color-text-muted)]">
+              <span>الخصم ({coupon.code})</span>
+              <span className="font-bold text-[var(--color-success)]">-{couponDiscount} ج.م</span>
+            </div>
+          )}
           <div className="flex items-center justify-between text-[var(--color-text-muted)]">
             <span>التوصيل</span>
-            <span className={`font-bold ${isFreeDelivery ? "text-[#4F8A57]" : "text-white"}`}>{deliveryLabel}</span>
+            <span className={`font-bold ${isFreeDelivery ? "text-[var(--color-success)]" : "text-white"}`}>{deliveryLabel}</span>
           </div>
           <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)]">
             <span className="text-[var(--color-text-muted)]">الإجمالي النهائي</span>
-            <span className="text-base font-black text-[var(--color-primary)]">{subtotal + deliveryAmount} ج.م</span>
+            <span className="text-base font-black text-[var(--color-primary)]">{Math.max(0, subtotal - couponDiscount) + deliveryAmount} ج.م</span>
           </div>
         </div>
 

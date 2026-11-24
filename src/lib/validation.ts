@@ -161,6 +161,35 @@ export const deliveryZoneSchema = z.object({
 });
 export const updateDeliveryZoneSchema = z.object(baseDeliveryZoneFields).partial();
 
+/* ─── كوبونات الخصم ──────────────────────────────────────────────── */
+/** الكود الإنجليزي موحّد بحروف كبيرة في قاعدة البيانات وفي الطلبات */
+const couponCodeSchema = z
+  .string()
+  .trim()
+  .min(2, "كود الخصم قصير جداً")
+  .max(30, "كود الخصم طويل جداً")
+  .regex(/^[A-Za-z0-9_-]+$/, "الكود يجب أن يكون حروفاً لاتينية أو أرقاماً")
+  .transform((value) => value.toUpperCase());
+
+const baseCouponFields = {
+  code: couponCodeSchema,
+  discountPercent: z
+    .number()
+    .int("نسبة الخصم يجب أن تكون رقماً صحيحاً")
+    .min(1, "نسبة الخصم يجب أن تكون 1 على الأقل")
+    .max(100, "نسبة الخصم لا يمكن أن تتجاوز 100"),
+  description: z.string().trim().max(200).optional(),
+  isActive: z.boolean(),
+};
+
+export const createCouponSchema = z.object({
+  ...baseCouponFields,
+  description: z.string().trim().max(200).optional().default(""),
+  isActive: z.boolean().default(true),
+});
+export const updateCouponSchema = z.object(baseCouponFields).partial();
+export const validateCouponSchema = z.object({ code: couponCodeSchema });
+
 /* ─── العميل والطلب ──────────────────────────────────────────────── */
 export const customerInfoSchema = z.object({
   name: z.string().trim().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
@@ -199,6 +228,8 @@ export const createOrderSchema = z.object({
     .max(80, "رقم مرجع التحويل طويل جداً")
     .optional(),
   clientOrderId: z.string().trim().min(8, "معرّف الطلب غير صالح").max(80, "معرّف الطلب غير صالح").optional(),
+  /** كود الخصم اللي أدخله العميل — السيرفر يتحقق منه ولا يثق في النسبة القادمة من المتصفح */
+  couponCode: z.string().trim().max(30).optional(),
 });
 
 /* ─── إدارة الطلبات ──────────────────────────────────────────────── */

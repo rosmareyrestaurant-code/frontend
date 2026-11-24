@@ -5,7 +5,7 @@
  * - بنية بيانات السلة: مراجع فقط (productId/quantity/size/addons/notes) — الأسعار من السيرفر.
  */
 import { STORAGE_KEYS } from "./constants";
-import type { CartItemInput, Order } from "@/types";
+import type { AppliedCoupon, CartItemInput, Order } from "@/types";
 
 const isClient = () => typeof window !== "undefined";
 
@@ -64,6 +64,36 @@ export function readFavoriteIds(): string[] {
 
 export function writeFavoriteIds(ids: string[]): void {
   writeJSON(STORAGE_KEYS.favorites, { v: STORAGE_KEYS.version, ids });
+}
+
+/* ─── كوبون الخصم المُطبّق على السلة ─────────────────────────────── */
+export function readCoupon(): AppliedCoupon | null {
+  const data = readJSON<{ v: number; coupon: AppliedCoupon | null } | null>(
+    STORAGE_KEYS.coupon,
+    null,
+  );
+  if (!data || data.v !== STORAGE_KEYS.version) return null;
+  const coupon = data.coupon;
+  if (
+    !coupon ||
+    typeof coupon.code !== "string" ||
+    !Number.isFinite(coupon.discountPercent)
+  )
+    return null;
+  return coupon;
+}
+
+export function writeCoupon(coupon: AppliedCoupon | null): void {
+  writeJSON(STORAGE_KEYS.coupon, { v: STORAGE_KEYS.version, coupon });
+}
+
+export function clearCouponStorage(): void {
+  if (!isClient()) return;
+  try {
+    window.sessionStorage.removeItem(STORAGE_KEYS.coupon);
+  } catch {
+    /* ignore */
+  }
 }
 
 /* ─── آخر طلب (لعرض صفحة التأكيد بعد التحديث) ────────────────────── */

@@ -4,6 +4,7 @@ import { ProductModel } from "@/models/Product";
 import { OrderModel } from "@/models/Order";
 import { StoreSettingsModel } from "@/models/StoreSettings";
 import { DeliveryZoneModel } from "@/models/DeliveryZone";
+import { CouponModel } from "@/models/Coupon";
 import {
   success,
   badRequest,
@@ -16,6 +17,7 @@ import {
   generateOrderNumber,
   generateAccessToken,
   PricingProduct,
+  PricingCoupon,
 } from "@/lib/pricing";
 import { rateLimitOrThrow, clientIp } from "@/lib/rate-limit";
 
@@ -32,6 +34,10 @@ type LeanOrder = {
   total?: number;
   deliveryFee?: number;
   subtotal?: number;
+  discount?: number;
+  couponCode?: string;
+  couponPercent?: number;
+  couponDiscount?: number;
 };
 
 /** نفس شكل الاستجابة سواء الطلب ات-create دلوقتي أو كان موجود من محاولة سابقة */
@@ -44,6 +50,10 @@ function orderResponse(order: LeanOrder, message: string, status: number) {
       total: order.total ?? 0,
       deliveryFee: order.deliveryFee ?? 0,
       subtotal: order.subtotal ?? 0,
+      discount: order.discount ?? 0,
+      couponCode: order.couponCode,
+      couponPercent: order.couponPercent ?? 0,
+      couponDiscount: order.couponDiscount ?? 0,
     },
     message,
     status,
@@ -123,8 +133,11 @@ export async function POST(req: NextRequest) {
       paymentProofPublicId,
       transactionReference,
       clientOrderId,
+      couponCode,
     } = parsed.data;
     clientOrderIdForDedup = clientOrderId;
+    // السيرفر هو اللي يوحّد الكود — أي قيمة من المتصفح تُعامل كمعاينة فقط
+    const requestedCouponCode = couponCode?.trim().toUpperCase() || undefined;
 
     // التحويل الإلكتروني لازم يكون معاه صورة إثبات
     if (paymentMethod !== "cash" && !paymentProofUrl) {
@@ -172,6 +185,27 @@ export async function POST(req: NextRequest) {
       // جلب مناطق التوصيل للتحقق من التوصيل المجاني
       const zones = await DeliveryZoneModel.find({ isActive: true }).lean();
 
+      // التحقق من الكوبون في قاعدة البيانات — النسبة لا تُؤخذ من المتصفح
+      let coupon: PricingCoupon | undefined;
+      if (requestedCouponCode) {
+        const couponDoc = await CouponModel.findOne({
+          code: requestedCouponCode,
+          isActive: true,
+        }).lean();
+        if (!couponDoc)
+          throw new AppError(
+            "COUPON_INVALID",
+            "كود الخصم غير صالح أو غير مُفعّل",
+            400,
+          );
+        coupon = {
+          code: requestedCouponCode,
+          discountPercent: Number(
+            (couponDoc as { discountPercent?: number }).discountPercent ?? 0,
+          ),
+        };
+      }
+
       // حساب الأسعار على السيرفر
       const pricing = computeOrderPricing(
         cartItems,
@@ -179,6 +213,7 @@ export async function POST(req: NextRequest) {
         settings,
         zones as Parameters<typeof computeOrderPricing>[3],
         customer,
+        coupon,
       );
 
       // إنشاء الطلب
@@ -196,6 +231,9 @@ export async function POST(req: NextRequest) {
         subtotal: pricing.subtotal,
         deliveryFee: pricing.deliveryFee,
         discount: pricing.discount,
+        couponCode: pricing.couponCode,
+        couponPercent: pricing.couponPercent,
+        couponDiscount: pricing.couponDiscount,
         total: pricing.total,
         paymentMethod,
         paymentProofUrl: paymentMethod === "cash" ? "" : paymentProofUrl ?? "",

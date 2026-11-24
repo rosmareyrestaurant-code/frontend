@@ -200,7 +200,8 @@ export function buildReceiptHtml(order: AdminOrder): string {
   <div class="sep"></div>
   <div class="row"><span class="label">المجموع الفرعي</span><span>${order.subtotal} ج.م</span></div>
   <div class="row"><span class="label">التوصيل</span><span>${(order.deliveryFee ?? 0) > 0 ? `${order.deliveryFee} ج.م` : "مجاني"}</span></div>
-  ${(order.discount ?? 0) > 0 ? `<div class="row"><span class="label">الخصم</span><span>-${order.discount} ج.م</span></div>` : ""}
+  ${(order.discount ?? 0) > 0 ? `<div class="row"><span class="label">خصم المنتجات</span><span>-${order.discount} ج.م</span></div>` : ""}
+  ${(order.couponDiscount ?? 0) > 0 ? `<div class="row"><span class="label">خصم الكوبون${order.couponCode ? ` (${escapeHtml(order.couponCode)})` : ""}</span><span>-${order.couponDiscount} ج.م</span></div>` : ""}
   <div class="row total"><span>الإجمالي</span><span>${order.total} ج.م</span></div>
   ${paymentSection(order)}
   ${order.notes ? `<div class="sep"></div><div class="small">ملاحظات: ${escapeHtml(order.notes)}</div>` : ""}

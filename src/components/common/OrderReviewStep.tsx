@@ -30,7 +30,7 @@ interface OrderReviewStepProps {
 export default function OrderReviewStep({
   customer, onEditInfo, onConfirmed, onCancelAll,
 }: OrderReviewStepProps) {
-  const { cart, subtotal, placeOrderAsync } = useShop();
+  const { cart, subtotal, coupon, couponDiscount, placeOrderAsync } = useShop();
   const { activeZones } = useDelivery();
   const { fee: storeDeliveryFee } = useDeliveryQuote();
   const { showMessage } = useStoreToast();
@@ -154,13 +154,19 @@ export default function OrderReviewStep({
             <span>المجموع</span>
             <span className="font-bold text-white">{subtotal} ج.م</span>
           </div>
+          {coupon && (
+            <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
+              <span>الخصم ({coupon.code})</span>
+              <span className="font-bold text-[var(--color-success)]">-{couponDiscount} ج.م</span>
+            </div>
+          )}
           <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
             <span>التوصيل</span>
-            <span className={`font-bold ${isFreeArea ? "text-[#4F8A57]" : "text-white"}`}>{deliveryLabel}</span>
+            <span className={`font-bold ${isFreeArea ? "text-[var(--color-success)]" : "text-white"}`}>{deliveryLabel}</span>
           </div>
           <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[var(--color-border)]">
             <span>الإجمالي النهائي</span>
-            <span className="text-[var(--color-primary)] text-base">{subtotal + deliveryAmount} ج.م</span>
+            <span className="text-[var(--color-primary)] text-base">{Math.max(0, subtotal - couponDiscount) + deliveryAmount} ج.م</span>
           </div>
         </div>
 

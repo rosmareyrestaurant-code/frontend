@@ -28,6 +28,10 @@ const orderSchema = new Schema(
     subtotal: { type: Number, default: 0 },
     deliveryFee: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
+    /** كوبون الخصم الذي تحقق منه السيرفر وقت إنشاء الطلب */
+    couponCode: { type: String, default: "" },
+    couponPercent: { type: Number, default: 0 },
+    couponDiscount: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
     paymentMethod: {
       type: String,

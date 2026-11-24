@@ -427,7 +427,13 @@ export default function MyOrdersPage() {
                     value={activeOrder.deliveryFee > 0 ? `${activeOrder.deliveryFee} ج.م` : "يحدد لاحقاً"}
                   />
                   {activeOrder.discount > 0 && (
-                    <DetailRow label="الخصم" value={`-${activeOrder.discount} ج.م`} />
+                    <DetailRow label="خصم المنتجات" value={`-${activeOrder.discount} ج.م`} />
+                  )}
+                  {(activeOrder.couponDiscount ?? 0) > 0 && (
+                    <DetailRow
+                      label={`خصم الكوبون${activeOrder.couponCode ? ` (${activeOrder.couponCode})` : ""}`}
+                      value={`-${activeOrder.couponDiscount} ج.م`}
+                    />
                   )}
                   <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-2 text-[13px]">
                     <span className="font-black text-[var(--color-text-primary)]">الإجمالي النهائي</span>

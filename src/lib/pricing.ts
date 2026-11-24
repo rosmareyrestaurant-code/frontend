@@ -42,10 +42,19 @@ export interface PricingSettings {
   minimumOrder: number;
 }
 
+export interface PricingCoupon {
+  code: string;
+  discountPercent: number;
+}
+
 export interface PricingResult {
   items: PricedItem[];
   subtotal: number;
+  /** خصم الأسعار الأصلية للمنتجات (معلوماتي — لا يُطرح مرتين) */
   discount: number;
+  couponCode?: string;
+  couponPercent: number;
+  couponDiscount: number;
   deliveryFee: number;
   total: number;
 }
@@ -62,6 +71,7 @@ export function computeOrderPricing(
   settings: PricingSettings,
   zones: DeliveryZone[],
   customer: { areaId?: string; areaName?: string },
+  coupon?: PricingCoupon,
 ): PricingResult {
   const items: PricedItem[] = [];
   let subtotal = 0;
@@ -145,8 +155,25 @@ export function computeOrderPricing(
   );
   if (freeArea) deliveryFee = 0;
 
-  const total = subtotal + deliveryFee;
-  return { items, subtotal, discount, deliveryFee, total };
+  // كوبون الخصم يُطبّق على قيمة المنتجات فقط (قبل رسوم التوصيل).
+  // النسبة موثوقة لأنها جاية من قاعدة البيانات بعد التحقق من الكود.
+  const couponPercent = coupon?.discountPercent ?? 0;
+  const couponDiscount =
+    coupon && couponPercent > 0
+      ? Math.min(subtotal, Math.round((subtotal * couponPercent) / 100))
+      : 0;
+
+  const total = Math.max(0, subtotal - couponDiscount) + deliveryFee;
+  return {
+    items,
+    subtotal,
+    discount,
+    couponCode: coupon?.code,
+    couponPercent,
+    couponDiscount,
+    deliveryFee,
+    total,
+  };
 }
 
 /** توليد رقم طلب فريد: RZ-YYYYMMDD-XXXX */

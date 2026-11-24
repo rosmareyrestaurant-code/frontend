@@ -547,6 +547,17 @@ export default function OrdersPage() {
                   <span>رسوم التوصيل</span><span className="font-bold text-[var(--color-text-primary)]">{selectedOrder.deliveryFee} ج.م</span>
                 </div>
               )}
+              {(selectedOrder.discount ?? 0) > 0 && (
+                <div className="flex justify-between text-[12px] font-semibold text-[var(--color-text-muted)]">
+                  <span>خصم المنتجات</span><span className="font-bold text-[var(--color-text-primary)]">-{selectedOrder.discount} ج.م</span>
+                </div>
+              )}
+              {(selectedOrder.couponDiscount ?? 0) > 0 && (
+                <div className="flex justify-between text-[12px] font-semibold text-[var(--color-text-muted)]">
+                  <span>خصم الكوبون {selectedOrder.couponCode ? `(${selectedOrder.couponCode})` : ""}</span>
+                  <span className="font-bold text-[var(--color-success)]">-{selectedOrder.couponDiscount} ج.م</span>
+                </div>
+              )}
               <div className="flex justify-between border-t border-[var(--color-border)] pt-2">
                 <span className="text-[13px] font-black text-[var(--color-text-primary)]">الإجمالي</span>
                 <span className="text-[17px] font-black text-[var(--color-text-primary)]">{selectedOrder.total} ج.م</span>

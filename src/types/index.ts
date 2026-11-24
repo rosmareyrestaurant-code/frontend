@@ -137,6 +137,12 @@ export interface OrderItemSnapshot {
   notes?: string;
 }
 
+/** كوبون مُتحقق منه ومحفوظ في جلسة العميل للمعاينة فقط */
+export interface AppliedCoupon {
+  code: string;
+  discountPercent: number;
+}
+
 /** الطلب كما يراه العميل من الـ Public API (بيانات محدودة) */
 export interface PublicOrder {
   id: string;
@@ -146,6 +152,9 @@ export interface PublicOrder {
   subtotal: number;
   deliveryFee: number;
   discount: number;
+  couponCode?: string;
+  couponPercent?: number;
+  couponDiscount?: number;
   total: number;
   paymentMethod: PaymentMethod;
   paymentProofUrl?: string;
@@ -164,6 +173,10 @@ export interface Order {
   items: CartItem[];
   customer: CustomerInfo;
   subtotal: number;
+  discount?: number;
+  couponCode?: string;
+  couponPercent?: number;
+  couponDiscount?: number;
   total: number;
   status: "pending" | "delivered" | "cancelled";
   createdAt: string;

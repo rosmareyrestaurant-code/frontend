@@ -9,6 +9,7 @@ export { BannerModel as Banner } from "./Banner";
 export { OfferModel as Offer } from "./Offer";
 export { StoreSettingsModel as StoreSettings } from "./StoreSettings";
 export { DeliveryZoneModel as DeliveryZone } from "./DeliveryZone";
+export { CouponModel as Coupon } from "./Coupon";
 
 // أيضًا تصدير بنفس اسم auth.ts المستخدم
 export { AdminModel as AdminModel } from "./Admin";

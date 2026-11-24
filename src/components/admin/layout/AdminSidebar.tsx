@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Package, Grid3x3,
   Megaphone, Flame, Users, Settings, LogOut, X, ExternalLink, MapPin,
-  UserCog, Palette,
+  UserCog, Palette, TicketPercent,
 } from "lucide-react";
 import { beginAdminLogout } from "@/hooks/useAdminAuth";
 import Logo from "@/components/common/Logo";
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { label: "التصنيفات",          href: "/dashboard/categories", icon: Grid3x3, adminOnly: true },
   { label: "البنرات",            href: "/dashboard/banners",    icon: Megaphone, adminOnly: true },
   { label: "العروض الترويجية",   href: "/dashboard/offers",     icon: Flame, adminOnly: true },
+  { label: "كوبونات الخصم",      href: "/dashboard/coupons",    icon: TicketPercent, adminOnly: true },
   { label: "العملاء",            href: "/dashboard/customers",  icon: Users, adminOnly: true },
   { label: "مناطق التوصيل",      href: "/dashboard/delivery-zones", icon: MapPin, adminOnly: true },
   { label: "حساب الكاشير",       href: "/dashboard/cashier",    icon: UserCog, adminOnly: true },

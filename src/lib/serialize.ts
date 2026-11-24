@@ -16,6 +16,7 @@ import type {
   AdminBanner,
   BannerPosition,
   AdminOffer,
+  AdminCoupon,
   AdminOrder,
   AdminCustomer,
   StoreSettings,
@@ -90,6 +91,15 @@ interface OfferLean {
   createdAt?: string;
 }
 
+interface CouponLean {
+  _id: { toString(): string };
+  code: string;
+  discountPercent: number;
+  description?: string;
+  isActive: boolean;
+  createdAt?: string | Date;
+}
+
 interface OrderLean {
   _id: { toString(): string };
   orderNumber: string;
@@ -112,6 +122,9 @@ interface OrderLean {
   subtotal: number;
   deliveryFee: number;
   discount: number;
+  couponCode?: string;
+  couponPercent?: number;
+  couponDiscount?: number;
   total: number;
   paymentMethod: "cash" | "vodafone_cash" | "instapay";
   paymentProofUrl?: string;
@@ -325,6 +338,18 @@ export function toAdminOffer(doc: OfferLean): AdminOffer {
   };
 }
 
+/* ─── كوبونات الخصم ──────────────────────────────────────────────── */
+export function toAdminCoupon(doc: CouponLean): AdminCoupon {
+  return {
+    id: id(doc._id),
+    code: doc.code,
+    discountPercent: doc.discountPercent,
+    description: doc.description || undefined,
+    isActive: doc.isActive,
+    createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : undefined,
+  };
+}
+
 /* ─── الطلبات ────────────────────────────────────────────────────── */
 export function toAdminOrder(doc: OrderLean): AdminOrder {
   return {
@@ -348,6 +373,9 @@ export function toAdminOrder(doc: OrderLean): AdminOrder {
     subtotal: doc.subtotal,
     deliveryFee: doc.deliveryFee,
     discount: doc.discount,
+    couponCode: doc.couponCode || undefined,
+    couponPercent: doc.couponPercent ?? 0,
+    couponDiscount: doc.couponDiscount ?? 0,
     total: doc.total,
     paymentMethod: doc.paymentMethod,
     paymentProofUrl: doc.paymentProofUrl || undefined,
@@ -402,6 +430,9 @@ export function toPublicOrder(doc: OrderLean): PublicOrder {
     subtotal: doc.subtotal,
     deliveryFee: doc.deliveryFee,
     discount: doc.discount,
+    couponCode: doc.couponCode || undefined,
+    couponPercent: doc.couponPercent ?? 0,
+    couponDiscount: doc.couponDiscount ?? 0,
     total: doc.total,
     paymentMethod: doc.paymentMethod,
     paymentProofUrl: doc.paymentProofUrl || undefined,

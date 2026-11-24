@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { X, Heart, Plus, Minus, ShoppingBag, Check } from "lucide-react";
+import { X, Heart, Plus, Minus, ShoppingBag, Check, TicketPercent, Loader2 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 import { Product, ProductSize } from "@/types";
 // التعديلات بقت جاية من الـ API نفسه
@@ -16,8 +16,11 @@ interface ProductModalInnerProps {
 
 function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerProps) {
   const product = baseProduct;
-  const { addToCart, toggleFavorite, isFavorite } = useShop();
-  const { showStoreToast } = useStoreToast();
+  const {
+    addToCart, toggleFavorite, isFavorite,
+    coupon, applyCoupon, clearCoupon,
+  } = useShop();
+  const { showStoreToast, showMessage } = useStoreToast();
 
   const defaultSize: ProductSize | null =
     product.sizes?.find((s) => s.isDefault) ?? product.sizes?.[0] ?? null;
@@ -43,6 +46,10 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
 
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
+  const [couponInput, setCouponInput] = useState(coupon?.code ?? "");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMessage, setCouponMessage] = useState("");
+  const [couponOk, setCouponOk] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,7 +91,39 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
 
   const lineTotal = effectivePrice * quantity;
 
-  const handleAddToCart = () => {
+  const handleApplyCoupon = async () => {
+    const typed = couponInput.trim().toUpperCase();
+    if (!typed) {
+      clearCoupon();
+      setCouponMessage("تمت إزالة كود الخصم");
+      setCouponOk(true);
+      showMessage("تمت إزالة كود الخصم", "success");
+      return;
+    }
+
+    setCouponLoading(true);
+    const result = await applyCoupon(typed);
+    setCouponLoading(false);
+    setCouponOk(result.ok);
+    setCouponMessage(result.message);
+    showMessage(result.message, result.ok ? "success" : "error");
+  };
+
+  const handleAddToCart = async () => {
+    // لو العميل كتب كود ولم يضغط «تطبيق»، نطبّقه قبل الإضافة للسلة
+    const typed = couponInput.trim().toUpperCase();
+    if (typed && typed !== coupon?.code) {
+      setCouponLoading(true);
+      const result = await applyCoupon(typed);
+      setCouponLoading(false);
+      setCouponOk(result.ok);
+      setCouponMessage(result.message);
+      if (!result.ok) {
+        showMessage(result.message, "error");
+        return;
+      }
+    }
+
     // لو في حجم محدد، نعمل نسخة من المنتج بالسعر والاسم الصح
     const productToAdd = selectedSize
       ? {
@@ -379,6 +418,61 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                 </span>
                 <span>{notes.length}/150</span>
               </div>
+            </div>
+
+            {/* كود الخصم — يُطبّق على السلة كلها ويظهر في الطلب */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="product-coupon"
+                className="text-xs sm:text-sm font-bold text-[var(--color-text-primary)] flex items-center justify-between"
+              >
+                <span className="flex items-center gap-1.5">
+                  <TicketPercent className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+                  كود الخصم
+                </span>
+                <span className="text-[10px] text-[var(--color-text-muted)] font-normal">(اختياري)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="product-coupon"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  dir="ltr"
+                  maxLength={30}
+                  placeholder="مثال: ROS10"
+                  className="min-w-0 flex-1 rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)] px-3 py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider text-white placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading}
+                  className="shrink-0 rounded-xl border border-[var(--color-primary-border)] bg-[var(--color-primary)] px-4 py-2.5 text-xs font-bold text-[var(--color-on-primary)] transition-opacity hover:opacity-90 disabled:opacity-60"
+                >
+                  {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "تطبيق"}
+                </button>
+              </div>
+              {coupon && (
+                <div className="flex items-center justify-between rounded-lg border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-success)]">
+                  <span>كود {coupon.code} مُطبّق — خصم {coupon.discountPercent}%</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearCoupon();
+                      setCouponInput("");
+                      setCouponMessage("تمت إزالة كود الخصم");
+                      setCouponOk(true);
+                    }}
+                    className="text-[10px] underline underline-offset-2 hover:opacity-80"
+                  >
+                    إزالة
+                  </button>
+                </div>
+              )}
+              {couponMessage && (
+                <p className={`text-[10px] font-semibold ${couponOk ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}>
+                  {couponMessage}
+                </p>
+              )}
             </div>
           </div>
 

@@ -39,7 +39,10 @@ function fromLocalOrder(order: Order): PublicOrder {
     })),
     subtotal: order.subtotal,
     deliveryFee: 0,
-    discount: 0,
+    discount: order.discount ?? 0,
+    couponCode: order.couponCode,
+    couponPercent: order.couponPercent ?? 0,
+    couponDiscount: order.couponDiscount ?? 0,
     total: order.total,
     paymentMethod: "cash",
     paymentStatus: "pending",
@@ -228,8 +231,14 @@ function OrderConfirmationInner() {
             </div>
             {order.discount > 0 && (
               <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
-                <span>الخصم</span>
+                <span>خصم المنتجات</span>
                 <span className="font-bold text-[var(--color-icon)]">-{order.discount} ج.م</span>
+              </div>
+            )}
+            {(order.couponDiscount ?? 0) > 0 && (
+              <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
+                <span>خصم الكوبون {order.couponCode ? `(${order.couponCode})` : ""}</span>
+                <span className="font-bold text-[var(--color-success)]">-{order.couponDiscount} ج.م</span>
               </div>
             )}
             <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[var(--color-border)]">

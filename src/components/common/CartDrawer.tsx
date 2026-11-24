@@ -30,7 +30,7 @@ export default function CartDrawer() {
   const {
     cart, isCartOpen, setIsCartOpen,
     updateQuantity, removeFromCart, clearCart,
-    subtotal,
+    subtotal, coupon, couponDiscount, clearCoupon,
   } = useShop();
   const { isFree: isFreeDelivery, amount: deliveryAmount, label: deliveryLabel } = useDeliveryQuote();
 
@@ -294,13 +294,28 @@ export default function CartDrawer() {
                           <span>المجموع الفرعي</span>
                           <span className="font-bold text-white">{subtotal} ج.م</span>
                         </div>
+                        {coupon && (
+                          <div className="flex justify-between text-[var(--color-text-muted)]">
+                            <span className="flex items-center gap-1.5">
+                              الخصم ({coupon.code})
+                              <button
+                                type="button"
+                                onClick={clearCoupon}
+                                className="text-[10px] font-bold text-[var(--color-danger)] underline underline-offset-2 hover:opacity-80"
+                              >
+                                إزالة
+                              </button>
+                            </span>
+                            <span className="font-bold text-[var(--color-success)]">-{couponDiscount} ج.م</span>
+                          </div>
+                        )}
                         <div className="flex justify-between text-[var(--color-text-muted)]">
                           <span>التوصيل</span>
-                          <span className={`font-bold ${isFreeDelivery ? "text-[#4F8A57]" : "text-white"}`}>{deliveryLabel}</span>
+                          <span className={`font-bold ${isFreeDelivery ? "text-[var(--color-success)]" : "text-white"}`}>{deliveryLabel}</span>
                         </div>
                         <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[var(--color-border)]">
                           <span>الإجمالي النهائي</span>
-                          <span className="text-[var(--color-primary)] text-lg">{subtotal + deliveryAmount} ج.م</span>
+                          <span className="text-[var(--color-primary)] text-lg">{Math.max(0, subtotal - couponDiscount) + deliveryAmount} ج.م</span>
                         </div>
                       </div>
 

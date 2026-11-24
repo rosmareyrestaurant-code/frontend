@@ -50,6 +50,7 @@ export const IMAGE_UPLOAD = {
 export const STORAGE_KEYS = {
   cart: "rozmaly_cart",
   favorites: "rozmaly_favorites",
+  coupon: "rozmaly_coupon",
   lastOrder: "rozmaly_last_order",
   version: 1,
 } as const;

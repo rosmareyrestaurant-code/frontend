@@ -92,6 +92,9 @@ export interface AdminOrder {
   subtotal: number;
   deliveryFee?: number;
   discount?: number;
+  couponCode?: string;
+  couponPercent?: number;
+  couponDiscount?: number;
   total: number;
   paymentMethod: PaymentMethod;
   /** رابط صورة التحويل (فودافون كاش / إنستاباي) */
@@ -205,6 +208,16 @@ export interface AdminOffer {
   originalPrice: number;
   durationMinutes: number;
   sortOrder: number;
+  isActive: boolean;
+  createdAt?: string;
+}
+
+// ─── كوبون خصم الأدمن ──────────────────────────────────────────────
+export interface AdminCoupon {
+  id: string;
+  code: string;
+  discountPercent: number;
+  description?: string;
   isActive: boolean;
   createdAt?: string;
 }
