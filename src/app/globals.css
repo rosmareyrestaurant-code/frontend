@@ -69,6 +69,38 @@
   --foreground: var(--color-text-primary);
 }
 
+/* حالات الطلبات: نفس الألوان الدلالية مع خلفيات مشتقة من لون السطح */
+.ui-chip-primary {
+  border-color: var(--color-primary-border);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.ui-chip-success {
+  border-color: color-mix(in srgb, var(--color-success) 28%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-success) 10%, var(--color-surface));
+  color: var(--color-success);
+}
+.ui-chip-warning {
+  border-color: color-mix(in srgb, var(--color-warning) 30%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-warning) 12%, var(--color-surface));
+  color: var(--color-warning);
+}
+.ui-chip-danger {
+  border-color: color-mix(in srgb, var(--color-danger) 28%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+  color: var(--color-danger);
+}
+.ui-chip-neutral {
+  border-color: var(--color-border);
+  background-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
+.ui-error-card {
+  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-danger) 8%, var(--color-surface));
+  color: var(--color-danger);
+}
+
 html {
   direction: rtl;
   scroll-behavior: smooth;

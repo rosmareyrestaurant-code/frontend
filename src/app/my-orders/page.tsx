@@ -38,13 +38,13 @@ function isVerified(order: PublicOrder) {
 function PaymentTypeChip({ order }: { order: PublicOrder }) {
   if (isOnline(order)) {
     return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[#EBD2B6] bg-[#FBEFE1] px-2.5 py-1 text-[10.5px] font-black tracking-wide text-[#9A5B1E]">
+      <span className="ui-chip-primary inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10.5px] font-black tracking-wide">
         <Globe2 className="h-3 w-3" /> ONLINE
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[var(--color-primary-soft)] bg-[var(--color-primary-soft)] px-2.5 py-1 text-[10.5px] font-black tracking-wide text-[var(--color-primary)]">
+    <span className="ui-chip-primary inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10.5px] font-black tracking-wide">
       <Banknote className="h-3 w-3" /> CASH
     </span>
   );
@@ -53,27 +53,27 @@ function PaymentTypeChip({ order }: { order: PublicOrder }) {
 function PaymentStatusChip({ order }: { order: PublicOrder }) {
   if (!isOnline(order)) {
     return (
-      <span className="inline-flex items-center whitespace-nowrap rounded-full bg-[var(--color-border-subtle)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-text-secondary)]">
+      <span className="ui-chip-neutral inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-[10.5px] font-bold">
         نقدي عند الاستلام
       </span>
     );
   }
   if (isVerified(order)) {
     return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[var(--color-primary-soft)] px-2.5 py-1 text-[10.5px] font-bold text-[#4F8A57]">
+      <span className="ui-chip-success inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10.5px] font-bold">
         <CheckCircle2 className="h-3 w-3" /> مدفوع مؤكد
       </span>
     );
   }
   if (order.paymentStatus === "rejected") {
     return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FAE4E0] px-2.5 py-1 text-[10.5px] font-bold text-[#B45243]">
+      <span className="ui-chip-danger inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10.5px] font-bold">
         <XCircle className="h-3 w-3" /> تحويل مرفوض
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FEF3D9] px-2.5 py-1 text-[10.5px] font-bold text-[#8A6414]">
+    <span className="ui-chip-warning inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10.5px] font-bold">
       <Clock3 className="h-3 w-3" /> بانتظار التحقق
     </span>
   );
@@ -82,14 +82,14 @@ function PaymentStatusChip({ order }: { order: PublicOrder }) {
 function OrderStatusChip({ order }: { order: PublicOrder }) {
   if (order.orderStatus === "cancelled") {
     return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FAE4E0] px-2.5 py-1 text-[10.5px] font-bold text-[#B45243]">
+      <span className="ui-chip-danger inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10.5px] font-bold">
         <XCircle className="h-3 w-3" /> ملغي
       </span>
     );
   }
   if (order.orderStatus === "delivered") {
     return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[var(--color-primary-soft)] px-2.5 py-1 text-[10.5px] font-bold text-[#4F8A57]">
+      <span className="ui-chip-success inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10.5px] font-bold">
         <CheckCircle2 className="h-3 w-3" /> تم التسليم
       </span>
     );
@@ -199,9 +199,6 @@ export default function MyOrdersPage() {
           </div>
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">طلباتي السابقة</h1>
-            <p className="mt-1 text-[12px] sm:text-[13px] font-semibold leading-relaxed text-[var(--color-text-secondary)]">
-              بتظهر هنا الطلبات اللي اتعملت من المتصفح ده — للعرض فقط.
-            </p>
           </div>
         </div>
 
@@ -211,13 +208,13 @@ export default function MyOrdersPage() {
             <p className="text-[12px] font-semibold text-[var(--color-text-secondary)]">بنحمّل طلباتك...</p>
           </div>
         ) : error ? (
-          <div className="mt-8 rounded-2xl border border-[#E7C6C0] bg-[#FBF0ED] p-6 text-center">
-            <XCircle className="mx-auto h-8 w-8 text-[#B45243]" />
-            <p className="mt-3 text-[13px] font-bold text-[#B45243]">{error}</p>
+          <div className="ui-error-card mt-8 rounded-2xl border p-6 text-center">
+            <XCircle className="mx-auto h-8 w-8" />
+            <p className="mt-3 text-[13px] font-bold">{error}</p>
             <button
               type="button"
               onClick={() => setReloadKey((k) => k + 1)}
-              className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-primary-soft)] bg-[var(--color-surface-elevated)] px-4 py-2 text-[12px] font-bold text-[var(--color-icon)] transition-colors hover:bg-[var(--color-primary-soft)]"
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-primary-border)] bg-[var(--color-surface-elevated)] px-4 py-2 text-[12px] font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary-soft)]"
             >
               <RefreshCw className="h-3.5 w-3.5" /> إعادة المحاولة
             </button>
@@ -233,7 +230,7 @@ export default function MyOrdersPage() {
             </p>
             <Link
               href="/menu"
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--color-icon)] px-5 py-2.5 text-[12px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)]"
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[12px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)]"
             >
               <ShoppingBag className="h-4 w-4" /> تصفح المنيو
             </Link>

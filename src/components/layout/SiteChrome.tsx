@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Header";
 import DeliveryTicker from "@/components/layout/DeliveryTicker";
+import PageBreadcrumbs from "@/components/layout/PageBreadcrumbs";
 import Footer from "@/components/layout/Footer";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { ShopProvider } from "@/context/ShopContext";
@@ -34,6 +35,11 @@ export default function SiteChrome({
       <StoreToastProvider>
         <DeliveryTicker initial={ticker} />
         <Header />
+        <div className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
+          <div className="mx-auto max-w-[1400px] px-4 py-2 sm:px-6 lg:px-8">
+            <PageBreadcrumbs />
+          </div>
+        </div>
         <div className="flex-1 pb-16 lg:pb-0">{children}</div>
         <Footer />
         <MobileBottomNav />

@@ -14,6 +14,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { signInAdmin } from "@/hooks/useAdminAuth";
+import PageBreadcrumbs from "@/components/layout/PageBreadcrumbs";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -72,6 +73,8 @@ export default function AdminLoginPage() {
       />
 
       <div className="relative z-10 flex min-h-screen flex-col px-4 pb-8 pt-6 sm:px-8 sm:pt-8 lg:px-16">
+        <PageBreadcrumbs className="mb-6 justify-center" />
+
         {/* الشعار */}
         <div className="flex flex-col items-center gap-2">
           <Link href="/" aria-label="روزماري - الصفحة الرئيسية">
