@@ -12,7 +12,6 @@ import { useShop } from "@/context/ShopContext";
 import { Product } from "@/types";
 import { normalizeArabic } from "@/lib/arabic";
 import { formatPriceRange, getProductPriceRange } from "@/lib/price-range";
-import { SOCIAL_PREVIEW_IMAGE_URL } from "@/data/siteConfig";
 
 const CATEGORY_NAMES: Record<string, string> = {
   pizza: "بيتزا",
@@ -405,7 +404,7 @@ export default function Header() {
 
       {/* قائمة الموبايل المنسدلة (Mobile Menu) — روابط التنقل فقط بعد نقل البحث للهيدر */}
       {isMobileMenuOpen && (
-        <div className="max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain border-t border-[var(--color-primary-border)] bg-[var(--color-page-background)] px-4 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] lg:hidden sm:pb-5 animate-in fade-in-50 slide-in-from-top-2 duration-200">
+        <div className="border-t border-[var(--color-primary-border)] bg-[var(--color-page-background)] px-4 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] lg:hidden sm:pb-5 animate-in fade-in-50 slide-in-from-top-2 duration-200">
           <div className="flex flex-col space-y-1.5">
             {navLinks.map((link) => (
               <Link
@@ -413,25 +412,12 @@ export default function Header() {
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
-                  link.href === "/my-orders" ? "flex flex-col gap-2.5" : ""
-                } ${
                   link.active
                     ? "bg-[var(--color-icon)]/10 text-[var(--color-text-secondary)] border border-[var(--color-icon)]/30"
                     : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-secondary)]"
                 }`}
               >
-                <span>{link.label}</span>
-                {link.href === "/my-orders" && (
-                  <span className="relative aspect-[1200/630] w-full overflow-hidden rounded-xl border border-[var(--color-primary-border)] bg-[var(--color-surface-elevated)]">
-                    <Image
-                      src={SOCIAL_PREVIEW_IMAGE_URL}
-                      alt="طيار توصيل ووجبات Rosemary من الساندوتشات والبيتزا والمكرونة والبطاطس والمشروبات"
-                      fill
-                      sizes="(max-width: 1024px) 90vw, 420px"
-                      className="object-cover"
-                    />
-                  </span>
-                )}
+                {link.label}
               </Link>
             ))}
             {/* صورة المنيو — بديل عن أيقونة الديسكتوب بعد حذفها من البار السفلي */}

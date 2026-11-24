@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, UtensilsCrossed, Tag, Heart, ShoppingBag, ClipboardList } from "lucide-react";
+import { Home, UtensilsCrossed, Tag, Heart, ShoppingBag } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
 
 const navItems = [
@@ -10,7 +10,6 @@ const navItems = [
   { icon: UtensilsCrossed, label: "الأكلات",  href: "/menu", action: null },
   { icon: Tag,             label: "العروض",   href: "/offers", action: null },
   { icon: Heart,           label: "المفضلة", href: null,     action: "favorites" as const },
-  { icon: ClipboardList,   label: "طلباتي",   href: "/my-orders", action: null },
   { icon: ShoppingBag,     label: "السلة",    href: null,     action: "cart" as const },
 ];
 
