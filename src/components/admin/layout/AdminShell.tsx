@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminTopbar } from "./AdminTopbar";
-import PageBreadcrumbs from "@/components/layout/PageBreadcrumbs";
 import { useAutoPrintOrders } from "@/hooks/useAutoPrintOrders";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -16,7 +15,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         <AdminTopbar onMenuToggle={() => setSidebarOpen((v) => !v)} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:px-7">
-          <PageBreadcrumbs className="mb-4" />
           {children}
         </main>
       </div>
