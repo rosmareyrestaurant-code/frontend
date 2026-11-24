@@ -27,5 +27,8 @@ function resolveSiteUrl(): string {
 
 export const SITE_URL = resolveSiteUrl();
 
+export const SOCIAL_PREVIEW_IMAGE_URL =
+  "https://res.cloudinary.com/sn3m0yui/image/upload/v1795527004/rosemary-social-preview.jpg";
+
 export const RESTAURANT_NAME = "روزماري";
 

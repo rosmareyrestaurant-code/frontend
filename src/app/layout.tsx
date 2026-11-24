@@ -4,7 +4,7 @@ import "./globals.css";
 import SiteChrome from "@/components/layout/SiteChrome";
 import { DeliveryProvider } from "@/context/DeliveryContext";
 import { Toaster } from "sonner";
-import { SITE_CONTACT, SITE_URL } from "@/data/siteConfig";
+import { SITE_CONTACT, SOCIAL_PREVIEW_IMAGE_URL } from "@/data/siteConfig";
 import { getPublicTicker, getThemeCss } from "@/lib/storefront";
 
 const cairo = Cairo({
@@ -14,13 +14,17 @@ const cairo = Cairo({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
+const PUBLIC_SITE_URL = "https://rozemary.net";
+const SITE_TITLE = "Rosemary | اطلب أونلاين";
 const SITE_DESCRIPTION =
-  "اطلب أشهى برجر وبيتزا ودجاج مقرمش وباستا أونلاين من روزماري — توصيل سريع داخل القاهرة، والدفع كاش أو فودافون كاش أو إنستاباي.";
+  "اطلب أشهى الساندوتشات والبيتزا والمكرونة والوجبات من Rosemary بسهولة، واستمتع بأفضل طعم وتوصيل سريع.";
+const SOCIAL_PREVIEW_ALT =
+  "أشهى الساندوتشات والبيتزا والمكرونة والبطاطس والمشروبات من Rosemary";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(PUBLIC_SITE_URL),
   title: {
-    default: "Rosemary | مطعم روزماري - أكل أطيب بكل سهولة",
+    default: SITE_TITLE,
     template: "%s | Rosemary",
   },
   description: SITE_DESCRIPTION,
@@ -33,15 +37,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ar_EG",
-    url: "/",
+    url: PUBLIC_SITE_URL,
     siteName: "Rosemary",
-    title: "Rosemary | مطعم روزماري — اطلب أونلاين",
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: SOCIAL_PREVIEW_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: SOCIAL_PREVIEW_ALT,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rosemary | مطعم روزماري — اطلب أونلاين",
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: [{ url: SOCIAL_PREVIEW_IMAGE_URL, alt: SOCIAL_PREVIEW_ALT }],
   },
   appleWebApp: {
     capable: true,
@@ -55,14 +68,14 @@ const restaurantJsonLd = {
   "@type": "Restaurant",
   name: "روزماري (Rosemary)",
   alternateName: "Rosemary",
-  url: SITE_URL,
-  image: `${SITE_URL}/images/hero/hero-burger-green.jpg`,
-  logo: `${SITE_URL}/images/logo-rosemary-green.png`,
+  url: PUBLIC_SITE_URL,
+  image: `${PUBLIC_SITE_URL}/images/hero/hero-burger-green.jpg`,
+  logo: `${PUBLIC_SITE_URL}/images/logo-rosemary-green.png`,
   telephone: `+20${SITE_CONTACT.phone.replace(/^0/, "")}`,
   email: SITE_CONTACT.email,
   servesCuisine: ["برجر", "بيتزا", "دجاج مقرمش", "باستا"],
   priceRange: "$$",
-  menu: `${SITE_URL}/menu`,
+  menu: `${PUBLIC_SITE_URL}/menu`,
   acceptsReservations: false,
   address: {
     "@type": "PostalAddress",
