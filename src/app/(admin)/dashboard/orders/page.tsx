@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { printOrderFromQueue, PRINT_STATE_EVENT } from "@/lib/print-queue-client";
 import {
-  awaitingPaymentReview,
   getPaymentDecision,
   isOnlinePaymentMethod,
 } from "@/lib/payment-review";
@@ -217,51 +216,6 @@ export default function OrdersPage() {
   if (debouncedSearch) exportParams.set("q", debouncedSearch);
   if (statusFilter !== "all") exportParams.set("status", statusFilter);
   const exportHref = `/api/admin/orders/export${exportParams.toString() ? `?${exportParams}` : ""}`;
-
-  const changeStatus = async (orderId: string, status: OrderStatus) => {
-    if (
-      status === "cancelled" &&
-      !window.confirm(
-        "إلغاء الطلب نهائياً؟ الطلب الملغي مش هيتطبع تلقائياً ومش هيتسلّم للمطبخ.",
-      )
-    ) {
-      return;
-    }
-
-    const target =
-      selectedOrder?.id === orderId
-        ? selectedOrder
-        : orders.find((o) => o.id === orderId);
-    if (status === "delivered" && target && awaitingPaymentReview(target)) {
-      showToast("مراجعة الدفع أولاً", "warning");
-      return;
-    }
-
-    if (USE_MOCK) {
-      setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status } : o));
-      if (selectedOrder?.id === orderId) setSelectedOrder((prev) => prev ? { ...prev, status } : null);
-      showToast(`تم تحديث الحالة: ${ORDER_STATUS_LABELS[status]}`, "success");
-      return;
-    }
-    try {
-      const res = await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      const d = await res.json();
-      if (d.success) {
-        const updated = d.data as AdminOrder;
-        setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
-        if (selectedOrder?.id === orderId) setSelectedOrder(updated);
-        showToast(`تم تحديث الحالة: ${ORDER_STATUS_LABELS[status]}`, "success");
-      } else {
-        showToast(d.error?.message ?? "فشل تحديث الحالة", "error");
-      }
-    } catch {
-      showToast("خطأ في الاتصال", "error");
-    }
-  };
 
   const copyText = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => showToast(`تم نسخ ${label}`, "success"));
@@ -566,25 +520,6 @@ export default function OrdersPage() {
               )}
             </div>
 
-            {/* ملاحظة الكاشير */}
-            <div className="space-y-2 rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-4">
-              <label htmlFor="cashier-note" className="text-[11px] font-black tracking-wide text-[var(--color-primary)]">ملاحظة الكاشير</label>
-              <textarea id="cashier-note" rows={2} maxLength={500} value={cashierNoteDraft}
-                onChange={(e) => setCashierNoteDraft(e.target.value)}
-                placeholder="مثال: فلوس الطلب ما وصلتش — صورة التحويل غير واضحة"
-                className="w-full resize-none rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 py-2 text-[12px] font-semibold text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
-              {selectedOrder.cashierNote && (
-                <p className="rounded-[8px] border border-[#F0E5D2] bg-[#FCF3E7] px-3 py-2 text-[11px] font-semibold text-[#8A6414]">
-                  {selectedOrder.cashierNote}
-                </p>
-              )}
-              <button type="button" onClick={() => void saveCashierNote()}
-                disabled={savingCashierNote || cashierNoteDraft.trim() === (selectedOrder.cashierNote ?? "")}
-                className="rounded-full bg-[var(--color-primary)] px-4 py-2 text-[11px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50">
-                {savingCashierNote ? "جاري الحفظ..." : "حفظ الملاحظة"}
-              </button>
-            </div>
-
             {/* الوجبات */}
             <div className="space-y-2">
               <h3 className="text-[11px] font-black tracking-wide text-[var(--color-primary)]">الوجبات المطلوبة</h3>
@@ -695,6 +630,28 @@ export default function OrdersPage() {
                     لم يتم الدفع
                   </button>
                 </div>
+
+                {selectedPaymentDecision === "unpaid" && (
+                  <div className="space-y-2 border-t border-[var(--color-border)] pt-2">
+                    <textarea
+                      id="cashier-note"
+                      rows={2}
+                      maxLength={500}
+                      value={cashierNoteDraft}
+                      onChange={(e) => setCashierNoteDraft(e.target.value)}
+                      placeholder="اكتب سبب رفض الدفع..."
+                      className="w-full resize-none rounded-[10px] border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 py-2 text-[12px] font-semibold text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void saveCashierNote()}
+                      disabled={savingCashierNote || cashierNoteDraft.trim() === (selectedOrder.cashierNote ?? "")}
+                      className="rounded-full bg-[var(--color-primary)] px-4 py-2 text-[11px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {savingCashierNote ? "جاري الحفظ..." : "حفظ الملاحظة"}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -761,40 +718,6 @@ export default function OrdersPage() {
               </div>
             )}
 
-            {/* تغيير الحالة */}
-            <div className="space-y-2">
-              <h3 className="text-[11px] font-black tracking-wide text-[var(--color-primary)]">تغيير حالة الطلب</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {ALL_STATUSES.map((s) => {
-                  const isCancel = s === "cancelled";
-                  const isActive = selectedOrder.status === s;
-                  const deliveryBlocked =
-                    s === "delivered" && awaitingPaymentReview(selectedOrder);
-                  return (
-                    <button key={s} onClick={() => changeStatus(selectedOrder.id, s)}
-                      disabled={isActive || deliveryBlocked || reviewingPayment}
-                      title={
-                        deliveryBlocked
-                          ? "مراجعة الدفع أولاً"
-                          : isCancel
-                            ? "إلغاء الطلب — هيطلب تأكيد قبل التنفيذ"
-                            : undefined
-                      }
-                      className={`rounded-full border px-3 py-2 text-[11px] font-bold transition-all disabled:cursor-not-allowed ${
-                        isActive
-                          ? isCancel
-                            ? "border-[#B45243] bg-[#B45243] text-[var(--color-on-primary)]"
-                            : "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)]"
-                          : isCancel
-                            ? "border-[#E7C6C0] bg-[#FBF0ED] text-[#B45243] hover:bg-[#F7E3DE]"
-                            : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary-border)] hover:text-[var(--color-text-primary)]"
-                      }`}>
-                      {isCancel ? "إلغاء الطلب" : ORDER_STATUS_LABELS[s]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         )}
       </Modal>
