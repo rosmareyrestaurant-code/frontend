@@ -1,21 +1,9 @@
 import type { AdminOrder } from "@/types/admin";
-import { RESTAURANT_NAME, SITE_CONTACT } from "@/data/siteConfig";
+import { RESTAURANT_NAME } from "@/data/siteConfig";
 import {
   isOnlinePaymentMethod,
-  isPaymentVerified,
+  isPaymentConfirmed,
 } from "@/lib/payment-review";
-
-const PAYMENT_LABELS: Record<string, string> = {
-  cash: "كاش عند الاستلام",
-  vodafone_cash: "فودافون كاش",
-  instapay: "إنستاباي",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: "قيد الانتظار",
-  delivered: "تم التسليم",
-  cancelled: "ملغي",
-};
 
 function escapeHtml(value: string): string {
   return value
@@ -37,55 +25,27 @@ function formatDate(iso: string): string {
   }
 }
 
-/**
- * قسم الدفع على الورقة: تمييز ONLINE/CASH، رقم المرجع كما هو موجود فقط،
- * وحالة الدفع الحقيقية — الطباعة نفسها لا تعني أن المبلغ وصل.
- */
+/** وسيلة الأونلاين تظهر باسمها المحفوظ — لا تُختزل إلى «أونلاين» فقط */
+function paymentMethodText(order: AdminOrder): string {
+  if (!isOnlinePaymentMethod(order.paymentMethod)) return "كاش";
+  const onlineLabels: Record<string, string> = {
+    vodafone_cash: "Vodafone Cash",
+    instapay: "InstaPay",
+  };
+  const label = onlineLabels[order.paymentMethod] ?? order.paymentMethod;
+  return `أونلاين - <span dir="ltr">${escapeHtml(label)}</span>`;
+}
+
 function paymentSection(order: AdminOrder): string {
-  const methodLabel = PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod;
-
-  if (!isOnlinePaymentMethod(order.paymentMethod)) {
-    return `
-  <div class="sep"></div>
-  <div class="banner cash">CASH</div>
-  <div class="banner-sub">الدفع عند الاستلام</div>
-  <div class="row"><span class="label">المبلغ المطلوب</span><span class="total">${order.total} ج.م</span></div>
-  <div class="row"><span class="label">طريقة الدفع</span><span>كاش عند الاستلام</span></div>`;
-  }
-
+  const online = isOnlinePaymentMethod(order.paymentMethod);
   const ref = (order.transactionReference || "").trim();
-  const verified = isPaymentVerified(order.paymentStatus);
-  const rejected = order.paymentStatus === "rejected";
-  const statusText = verified
-    ? "مدفوع مؤكد"
-    : rejected
-      ? "تحويل مرفوض — غير مدفوع"
-      : "بانتظار التحقق — غير مدفوع";
-  const statusClass = verified ? "paid" : rejected ? "bad" : "pending";
-
-  const refBlock = ref
-    ? `<div class="refbox">
-        <div class="reflabel">مرجع التحويل — Transaction Reference</div>
-        <div class="refvalue" dir="ltr">${escapeHtml(ref)}</div>
-      </div>`
-    : `<div class="refbox">
-        <div class="reflabel">مرجع التحويل — Transaction Reference</div>
-        <div class="refmissing">غير مُدخل — راجع صورة التحويل</div>
-      </div>`;
-
-  const warning = verified
-    ? `<div class="okbox">تم تأكيد استلام المبلغ — الطلب مسموح له بمسار التجهيز.</div>`
-    : `<div class="warn">لا يتم تسليم الطلب للمطبخ قبل التأكد من وصول المبلغ.</div>`;
+  const confirmed = isPaymentConfirmed(order);
 
   return `
   <div class="sep"></div>
-  <div class="banner online">ONLINE</div>
-  <div class="banner-sub">تحويل إلكتروني — ${escapeHtml(methodLabel)}</div>
-  <div class="row"><span class="label">المبلغ المطلوب</span><span class="total">${order.total} ج.م</span></div>
-  <div class="row"><span class="label">طريقة الدفع</span><span>${escapeHtml(methodLabel)}</span></div>
-  <div class="row"><span class="label">حالة الدفع</span><span class="${statusClass}">${statusText}</span></div>
-  ${refBlock}
-  ${warning}`;
+  <div class="row"><span class="label">طريقة الدفع</span><span class="pay">${paymentMethodText(order)}</span></div>
+  ${online ? `<div class="row"><span class="label">مراجعة الدفع</span><span class="pay">${confirmed ? "تم التأكيد" : "لم يتم التأكيد"}</span></div>` : ""}
+  ${online && ref ? `<div class="row"><span class="label">رقم العملية</span><span class="refvalue">${escapeHtml(ref)}</span></div>` : ""}`;
 }
 
 export function buildReceiptHtml(order: AdminOrder): string {
@@ -96,12 +56,17 @@ export function buildReceiptHtml(order: AdminOrder): string {
       if (item.selectedAddons?.length) {
         extras.push(item.selectedAddons.map((a) => a.name).join(" + "));
       }
-      const notes = item.notes ? `<div class="small">ملاحظة: ${escapeHtml(item.notes)}</div>` : "";
-      const suffix = extras.length ? ` <span class="small">(${escapeHtml(extras.join(" - "))})</span>` : "";
+      const suffix = extras.length
+        ? `<div class="small">(${escapeHtml(extras.join(" - "))})</div>`
+        : "";
+      const notes = item.notes
+        ? `<div class="small">${escapeHtml(item.notes)}</div>`
+        : "";
       const total = item.itemTotal ?? item.price * item.quantity;
       return `<tr>
         <td class="qty">${item.quantity}</td>
-        <td class="name">${escapeHtml(item.productName)}${suffix}${notes}<div class="small">${item.price} × ${item.quantity}</div></td>
+        <td class="name">${escapeHtml(item.productName)}${suffix}${notes}</td>
+        <td class="price">${item.price}</td>
         <td class="amount">${total}</td>
       </tr>`;
     })
@@ -126,87 +91,41 @@ export function buildReceiptHtml(order: AdminOrder): string {
     print-color-adjust: exact;
   }
   .center { text-align: center; }
-  .brand { font-size: 17px; font-weight: 800; letter-spacing: 0.3px; }
-  .sub { font-size: 9.5px; color: #444; }
+  .brand { font-size: 17px; font-weight: 800; }
   .sep { border-top: 1px dashed #999; margin: 2.5mm 0; }
-  .row { display: flex; justify-content: space-between; gap: 4mm; }
-  .row > span:last-child { font-weight: 700; }
-  .label { color: #555; }
+  .row { display: flex; justify-content: space-between; gap: 3mm; }
+  .row > span:last-child { font-weight: 700; text-align: left; word-break: break-word; }
+  .label { color: #555; white-space: nowrap; }
   .small { font-size: 9.5px; color: #444; }
-  table { width: 100%; border-collapse: collapse; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   th { font-size: 9.5px; color: #555; text-align: right; padding-bottom: 1mm; border-bottom: 1px solid #bbb; }
   td { padding: 1.4mm 0; vertical-align: top; border-bottom: 1px dotted #ddd; }
   td.qty { width: 8mm; font-weight: 700; }
-  td.amount { width: 18mm; text-align: left; font-weight: 700; white-space: nowrap; }
-  .name { padding-inline-start: 1mm; }
+  td.name { width: auto; padding-inline-start: 1mm; }
+  td.price { width: 14mm; text-align: left; }
+  td.amount { width: 16mm; text-align: left; font-weight: 700; white-space: nowrap; }
   .total { font-size: 14px; font-weight: 800; }
-  .banner {
-    margin-top: 1mm;
-    padding: 2mm 1mm;
-    text-align: center;
-    font-size: 24px;
-    font-weight: 900;
-    letter-spacing: 3px;
-    border: 1.6px solid #000;
-  }
-  .banner.online { background: #000; color: #fff; }
-  .banner.cash { background: #fff; color: #000; border-width: 4px; border-style: double; }
-  .banner-sub { text-align: center; font-size: 10.5px; font-weight: 800; margin-top: 1mm; }
-  .pending, .paid, .bad { font-weight: 900; }
-  .refbox { margin-top: 2mm; border: 1.4px solid #000; padding: 2mm 1.5mm; text-align: center; }
-  .reflabel { font-size: 8.5px; color: #333; }
-  .refvalue { font-size: 18px; font-weight: 900; letter-spacing: 0.5px; margin-top: 0.8mm; word-break: break-all; }
-  .refmissing { font-size: 10.5px; font-weight: 800; margin-top: 0.8mm; }
-  .warn {
-    margin-top: 2mm;
-    padding: 2mm 1.5mm;
-    border: 1.6px dashed #000;
-    text-align: center;
-    font-size: 11.5px;
-    font-weight: 900;
-  }
-  .okbox {
-    margin-top: 2mm;
-    padding: 1.5mm;
-    border: 1px solid #000;
-    text-align: center;
-    font-size: 10.5px;
-    font-weight: 800;
-  }
-  .footer { margin-top: 3mm; font-size: 9.5px; text-align: center; color: #333; }
+  .pay { font-weight: 700; word-break: break-word; }
+  .refvalue { direction: ltr; text-align: left; font-weight: 700; word-break: break-all; }
   @media print { body { width: 76mm; } }
 </style>
 </head>
 <body>
-  <div class="center">
-    <div class="brand">${escapeHtml(RESTAURANT_NAME)} — Rosemary</div>
-    <div class="sub">${escapeHtml(SITE_CONTACT.address)}</div>
-    <div class="sub" dir="ltr">${escapeHtml(SITE_CONTACT.phone)}</div>
-  </div>
+  <div class="center"><div class="brand">${escapeHtml(RESTAURANT_NAME)}</div></div>
   <div class="sep"></div>
-  <div class="row"><span class="label">رقم الطلب</span><span>#${escapeHtml(order.orderNumber ?? order.id)}</span></div>
+  <div class="row"><span class="label">رقم الطلب</span><span dir="ltr">#${escapeHtml(order.orderNumber ?? order.id)}</span></div>
   <div class="row"><span class="label">التاريخ</span><span>${escapeHtml(formatDate(order.createdAt))}</span></div>
-  <div class="row"><span class="label">حالة الطلب</span><span>${escapeHtml(STATUS_LABELS[order.status] ?? order.status)}</span></div>
   <div class="sep"></div>
   <div class="row"><span class="label">العميل</span><span>${escapeHtml(order.customerName)}</span></div>
   <div class="row"><span class="label">الهاتف</span><span dir="ltr">${escapeHtml(order.customerPhone)}</span></div>
-  <div class="small">${escapeHtml(order.customerAddress)}</div>
-  ${order.area ? `<div class="small">المنطقة: ${escapeHtml(order.area)}</div>` : ""}
   <div class="sep"></div>
   <table>
-    <thead><tr><th>كمية</th><th>الصنف</th><th style="text-align:left">الإجمالي</th></tr></thead>
+    <thead><tr><th>كمية</th><th>الصنف</th><th style="text-align:left">السعر</th><th style="text-align:left">المجموع</th></tr></thead>
     <tbody>${itemRows}</tbody>
   </table>
   <div class="sep"></div>
-  <div class="row"><span class="label">المجموع الفرعي</span><span>${order.subtotal} ج.م</span></div>
-  <div class="row"><span class="label">التوصيل</span><span>${(order.deliveryFee ?? 0) > 0 ? `${order.deliveryFee} ج.م` : "مجاني"}</span></div>
-  ${(order.discount ?? 0) > 0 ? `<div class="row"><span class="label">خصم المنتجات</span><span>-${order.discount} ج.م</span></div>` : ""}
-  ${(order.couponDiscount ?? 0) > 0 ? `<div class="row"><span class="label">خصم الكوبون${order.couponCode ? ` (${escapeHtml(order.couponCode)})` : ""}</span><span>-${order.couponDiscount} ج.م</span></div>` : ""}
-  <div class="row total"><span>الإجمالي</span><span>${order.total} ج.م</span></div>
+  <div class="row"><span class="label">الإجمالي</span><span class="total">${order.total} ج.م</span></div>
   ${paymentSection(order)}
-  ${order.notes ? `<div class="sep"></div><div class="small">ملاحظات: ${escapeHtml(order.notes)}</div>` : ""}
-  <div class="sep"></div>
-  <div class="footer">شكراً لطلبك — ${escapeHtml(RESTAURANT_NAME)}<br/>تم الطبع: ${escapeHtml(formatDate(new Date().toISOString()))}</div>
 </body>
 </html>`;
 }
@@ -242,9 +161,8 @@ function preparePrintFrame(
 }
 
 /**
- * طباعة من غير نافذة منبثقة: بيكتب الإيصال في iframe مخفي ويطبع منه.
- * مع تشغيل Chrome بميزة kiosk printing بتطلع الطباعة على الطابعة الافتراضية
- * مباشرة من غير أي نافذة أو تأكيد.
+ * طباعة من iframe مخفي. الصمت التام يعتمد على تشغيل Chrome على جهاز الكاشير
+ * بالخيار --kiosk-printing؛ الموقع نفسه لا يفرّض إعداد المتصفح.
  */
 export function printReceiptInFrame(order: AdminOrder): boolean {
   const frame = preparePrintFrame(order);
@@ -268,8 +186,8 @@ export function printReceiptInFrame(order: AdminOrder): boolean {
 
 /**
  * نسخة بترجع نتيجة مؤكدة من المتصفح: بتستنى afterprint (أو فشل/مهلة 45 ثانية).
- * ملاحظة: afterprint معناه إن المتصفح خلّص أمر الطباعة — مش دليل مادي إن الورق
- * خرج فعلاً (الطابعة ممكن تكون offline وChrome يحفظ الشغل في طابور الويندوز).
+ * afterprint معناه إن المتصفح خلّص أمر الطباعة — مش دليل مادي إن الورق طلع،
+ * لأن الطابعة ممكن تكون offline وChrome يحفظ الشغل في طابور الويندوز.
  */
 export function printReceiptInFrameConfirmed(
   order: AdminOrder,

@@ -7,7 +7,11 @@ import {
   CheckCircle2, Clock3, AlertTriangle, RotateCcw, Banknote, Globe2,
 } from "lucide-react";
 import { printOrderFromQueue, PRINT_STATE_EVENT } from "@/lib/print-queue-client";
-import { isOnlinePaymentMethod } from "@/lib/payment-review";
+import {
+  awaitingPaymentReview,
+  getPaymentDecision,
+  isOnlinePaymentMethod,
+} from "@/lib/payment-review";
 import { Modal } from "@/components/admin/shared/Modal";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
@@ -25,6 +29,12 @@ const USE_MOCK = false; // الموك معطّل — الواجهة متصلة �
 
 const ALL_STATUSES: OrderStatus[] = ["pending", "delivered", "cancelled"];
 const PER_PAGE = 6;
+
+const PAYMENT_DECISION_LABELS = {
+  pending: "بانتظار المراجعة",
+  paid: "تم الدفع",
+  unpaid: "لم يتم الدفع",
+} as const;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("ar-EG", {
@@ -113,6 +123,7 @@ export default function OrdersPage() {
     note: undefined,
   });
   const [savingCashierNote, setSavingCashierNote] = useState(false);
+  const [reviewingPayment, setReviewingPayment] = useState(false);
 
   // حالة الطباعة في الواجهة — طلب واحد بيتطبع في الوقت الواحد
   const [printingId, setPrintingId] = useState<string | null>(null);
@@ -186,6 +197,15 @@ export default function OrdersPage() {
   // تحديث مسودة الملاحظة لما يتغير الطلب المفتوح أو ملاحظته (نمط React الرسمي)
   const selectedOrderId = selectedOrder?.id ?? null;
   const selectedNote = selectedOrder?.cashierNote;
+  const selectedPaymentDecision = selectedOrder
+    ? getPaymentDecision(selectedOrder)
+    : "pending";
+  const selectedReviewerName =
+    selectedOrder?.paymentVerification?.reviewedByName ||
+    selectedOrder?.paymentVerifiedByName;
+  const selectedReviewTime =
+    selectedOrder?.paymentVerification?.reviewedAt ||
+    selectedOrder?.paymentVerifiedAt;
   if (noteSync.id !== selectedOrderId || noteSync.note !== selectedNote) {
     setNoteSync({ id: selectedOrderId, note: selectedNote });
     setCashierNoteDraft(selectedNote ?? "");
@@ -207,6 +227,16 @@ export default function OrdersPage() {
     ) {
       return;
     }
+
+    const target =
+      selectedOrder?.id === orderId
+        ? selectedOrder
+        : orders.find((o) => o.id === orderId);
+    if (status === "delivered" && target && awaitingPaymentReview(target)) {
+      showToast("مراجعة الدفع أولاً", "warning");
+      return;
+    }
+
     if (USE_MOCK) {
       setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status } : o));
       if (selectedOrder?.id === orderId) setSelectedOrder((prev) => prev ? { ...prev, status } : null);
@@ -221,8 +251,9 @@ export default function OrdersPage() {
       });
       const d = await res.json();
       if (d.success) {
-        setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status } : o));
-        if (selectedOrder?.id === orderId) setSelectedOrder((prev) => prev ? { ...prev, status } : null);
+        const updated = d.data as AdminOrder;
+        setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+        if (selectedOrder?.id === orderId) setSelectedOrder(updated);
         showToast(`تم تحديث الحالة: ${ORDER_STATUS_LABELS[status]}`, "success");
       } else {
         showToast(d.error?.message ?? "فشل تحديث الحالة", "error");
@@ -300,6 +331,44 @@ export default function OrdersPage() {
       showToast("تعذّر الاتصال بالخادم", "error");
     } finally {
       setSavingCashierNote(false);
+    }
+  };
+
+  const reviewPayment = async (decision: "paid" | "unpaid") => {
+    if (!selectedOrder || reviewingPayment) return;
+
+    const current = getPaymentDecision(selectedOrder);
+    if (current === decision) return;
+
+    const override = current !== "pending";
+    if (override && !window.confirm("تغيير القرار المحفوظ؟")) return;
+
+    setReviewingPayment(true);
+    try {
+      const res = await fetch(
+        `/api/admin/orders/${selectedOrder.id}/payment-review`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ decision, override }),
+        },
+      );
+      const d = await res.json();
+      if (!d.success) {
+        showToast(d.error?.message ?? "تعذّر حفظ القرار", "error");
+        return;
+      }
+      const updated = d.data as AdminOrder;
+      setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+      setSelectedOrder(updated);
+      showToast(
+        decision === "paid" ? "تم تأكيد الدفع" : "تم تسجيل القرار",
+        "success",
+      );
+    } catch {
+      showToast("تعذّر الاتصال بالخادم", "error");
+    } finally {
+      setReviewingPayment(false);
     }
   };
 
@@ -571,6 +640,64 @@ export default function OrdersPage() {
               </div>
             </div>
 
+            {/* مراجعة دفع الأونلاين */}
+            {isOnlinePaymentMethod(selectedOrder.paymentMethod) && (
+              <div className="space-y-3 rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-[11px] font-black tracking-wide text-[var(--color-primary)]">مراجعة الدفع</h3>
+                  <span className={`rounded-full px-2.5 py-1 text-[10.5px] font-bold ${
+                    selectedPaymentDecision === "paid"
+                      ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+                      : selectedPaymentDecision === "unpaid"
+                        ? "bg-[#FBF0ED] text-[#B45243]"
+                        : "bg-[#FEF3D9] text-[#B98A2C]"
+                  }`}>
+                    {PAYMENT_DECISION_LABELS[selectedPaymentDecision]}
+                  </span>
+                </div>
+
+                <div className="grid gap-2 text-[11px] sm:grid-cols-2">
+                  <div>
+                    <p className="font-semibold text-[var(--color-text-muted)]">رقم العملية</p>
+                    <p dir="ltr" className="font-black text-[var(--color-text-primary)]">
+                      {selectedOrder.transactionReference || "—"}
+                    </p>
+                  </div>
+                  {(selectedReviewerName || selectedReviewTime) && (
+                    <div className="flex items-center justify-between gap-2 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 sm:col-span-2">
+                      <span className="font-semibold text-[var(--color-text-muted)]">
+                        {selectedReviewerName || "تمت المراجعة"}
+                      </span>
+                      {selectedReviewTime && (
+                        <span className="font-bold text-[var(--color-text-primary)]">
+                          {formatDate(selectedReviewTime)}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void reviewPayment("paid")}
+                    disabled={reviewingPayment || selectedPaymentDecision === "paid"}
+                    className="rounded-full bg-[var(--color-primary)] px-3 py-2 text-[11px] font-bold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    تم الدفع
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void reviewPayment("unpaid")}
+                    disabled={reviewingPayment || selectedPaymentDecision === "unpaid"}
+                    className="rounded-full border border-[#E7C6C0] bg-[#FBF0ED] px-3 py-2 text-[11px] font-bold text-[#B45243] transition-colors hover:bg-[#F7E3DE] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    لم يتم الدفع
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* ─── حالة الطباعة ─── */}
             <div className="space-y-3 rounded-[14px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)] p-4">
               <div className="flex items-center justify-between gap-2">
@@ -641,10 +768,18 @@ export default function OrdersPage() {
                 {ALL_STATUSES.map((s) => {
                   const isCancel = s === "cancelled";
                   const isActive = selectedOrder.status === s;
+                  const deliveryBlocked =
+                    s === "delivered" && awaitingPaymentReview(selectedOrder);
                   return (
                     <button key={s} onClick={() => changeStatus(selectedOrder.id, s)}
-                      disabled={isActive}
-                      title={isCancel ? "إلغاء الطلب — هيطلب تأكيد قبل التنفيذ" : undefined}
+                      disabled={isActive || deliveryBlocked || reviewingPayment}
+                      title={
+                        deliveryBlocked
+                          ? "مراجعة الدفع أولاً"
+                          : isCancel
+                            ? "إلغاء الطلب — هيطلب تأكيد قبل التنفيذ"
+                            : undefined
+                      }
                       className={`rounded-full border px-3 py-2 text-[11px] font-bold transition-all disabled:cursor-not-allowed ${
                         isActive
                           ? isCancel

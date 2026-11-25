@@ -9,6 +9,7 @@ import {
   AppError,
 } from "@/lib/api-response";
 import { requireStaff } from "@/lib/auth";
+import { awaitingPaymentReview } from "@/lib/payment-review";
 import { toAdminOrder } from "@/lib/serialize";
 import { updateOrderStatusSchema } from "@/lib/validation";
 import { ORDER_STATUS_TRANSITIONS } from "@/types/admin";
@@ -43,6 +44,25 @@ export async function PATCH(
         `لا يمكن تغيير الحالة من "${currentStatus}" إلى "${newStatus}"`,
         "INVALID_TRANSITION",
       );
+    }
+
+    if (
+      newStatus === "delivered" &&
+      awaitingPaymentReview({
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+        status: currentStatus,
+        paymentVerification: order.paymentVerification
+          ? {
+              decision: order.paymentVerification.decision,
+              reviewedBy: order.paymentVerification.reviewedBy,
+              reviewedByName: order.paymentVerification.reviewedByName,
+              reviewedAt: order.paymentVerification.reviewedAt,
+            }
+          : undefined,
+      })
+    ) {
+      return badRequest("مراجعة الدفع أولاً", "PAYMENT_REVIEW_REQUIRED");
     }
 
     order.orderStatus = newStatus;

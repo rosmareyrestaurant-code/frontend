@@ -21,6 +21,7 @@ import type {
   AdminCustomer,
   StoreSettings,
   OrderStatus,
+  PaymentReviewDecision,
 } from "@/types/admin";
 import type { DeliveryZone } from "@/types/delivery";
 import type { PublicOrder, OrderItemSnapshot, CustomerInfo } from "@/types";
@@ -129,7 +130,19 @@ interface OrderLean {
   paymentMethod: "cash" | "vodafone_cash" | "instapay";
   paymentProofUrl?: string;
   paymentProofPublicId?: string;
-  paymentStatus: "pending" | "verified" | "paid" | "rejected";
+  paymentStatus: "pending" | "verified" | "paid" | "unpaid" | "rejected";
+  paymentVerification?: {
+    decision?: string | null;
+    reviewedBy?: string | null;
+    reviewedByName?: string | null;
+    reviewedAt?: Date | string | null;
+    history?: {
+      decision?: string | null;
+      reviewedBy?: string | null;
+      reviewedByName?: string | null;
+      reviewedAt?: Date | string | null;
+    }[];
+  } | null;
   transactionReference?: string;
   verifiedAmount?: number;
   paymentVerifiedAt?: Date | string;
@@ -381,6 +394,25 @@ export function toAdminOrder(doc: OrderLean): AdminOrder {
     paymentProofUrl: doc.paymentProofUrl || undefined,
     paymentProofPublicId: doc.paymentProofPublicId || undefined,
     paymentStatus: doc.paymentStatus,
+    paymentVerification: doc.paymentVerification
+      ? {
+          decision: (doc.paymentVerification.decision ??
+            "pending") as PaymentReviewDecision,
+          reviewedBy: doc.paymentVerification.reviewedBy || undefined,
+          reviewedByName: doc.paymentVerification.reviewedByName || undefined,
+          reviewedAt: doc.paymentVerification.reviewedAt
+            ? new Date(doc.paymentVerification.reviewedAt).toISOString()
+            : undefined,
+          history: (doc.paymentVerification.history ?? []).map((entry) => ({
+            decision: (entry.decision ?? "paid") as "paid" | "unpaid",
+            reviewedBy: entry.reviewedBy || undefined,
+            reviewedByName: entry.reviewedByName || undefined,
+            reviewedAt: entry.reviewedAt
+              ? new Date(entry.reviewedAt).toISOString()
+              : new Date().toISOString(),
+          })),
+        }
+      : undefined,
     transactionReference: doc.transactionReference || undefined,
     verifiedAmount: doc.verifiedAmount,
     paymentVerifiedAt: doc.paymentVerifiedAt

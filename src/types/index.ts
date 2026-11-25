@@ -158,7 +158,7 @@ export interface PublicOrder {
   total: number;
   paymentMethod: PaymentMethod;
   paymentProofUrl?: string;
-  paymentStatus: "pending" | "verified" | "paid" | "rejected";
+  paymentStatus: "pending" | "verified" | "paid" | "unpaid" | "rejected";
   transactionReference?: string;
   orderStatus: OrderStatus;
   createdAt: string;

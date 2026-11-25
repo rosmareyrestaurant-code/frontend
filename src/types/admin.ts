@@ -41,15 +41,34 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
 };
 
 // ─── حالة الدفع (مراجعة يدوية من المدير للتحويلات) ─────────────────
-/** pending: بانتظار المراجعة — verified: المدير أكد استلام المبلغ — rejected: رُفض التحويل */
-export type PaymentStatus = "pending" | "verified" | "paid" | "rejected";
+/** pending: بانتظار المراجعة — verified/paid: أكد الدفع — unpaid: لم يتم الدفع — rejected: رُفض التحويل */
+export type PaymentStatus = "pending" | "verified" | "paid" | "unpaid" | "rejected";
 
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   pending: "بانتظار التحقق",
   verified: "مدفوع مؤكد",
   paid: "مدفوع مؤكد",
+  unpaid: "لم يتم الدفع",
   rejected: "تحويل مرفوض",
 };
+
+/** قرار مراجعة الدفع — قيم مستقلة عن حالات الطلب */
+export type PaymentReviewDecision = "pending" | "paid" | "unpaid";
+
+export interface PaymentReviewEntry {
+  decision: Exclude<PaymentReviewDecision, "pending">;
+  reviewedBy?: string;
+  reviewedByName?: string;
+  reviewedAt: string;
+}
+
+export interface PaymentVerification {
+  decision: PaymentReviewDecision;
+  reviewedBy?: string;
+  reviewedByName?: string;
+  reviewedAt?: string;
+  history?: PaymentReviewEntry[];
+}
 
 // ─── حالة الطباعة (طابور الطباعة التلقائية) ───────────────────────
 export type PrintState = "pending" | "processing" | "printed" | "failed";
@@ -101,6 +120,7 @@ export interface AdminOrder {
   paymentProofUrl?: string;
   paymentProofPublicId?: string;
   paymentStatus?: PaymentStatus;
+  paymentVerification?: PaymentVerification;
   /** رقم مرجع عملية التحويل — فريد على مستوى الطلبات */
   transactionReference?: string;
   /** المبلغ اللي المدير أكد استلامه (لازم يساوي إجمالي الطلب) */

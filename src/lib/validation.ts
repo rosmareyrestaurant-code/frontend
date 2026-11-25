@@ -261,6 +261,13 @@ export const orderPaymentActionSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
+/** قرار مراجعة الدفع من تفاصيل الطلب — الموظف والوقت يُحدَّدان على السيرفر */
+export const paymentReviewSchema = z.object({
+  decision: z.enum(["paid", "unpaid"]),
+  /** مطلوب فقط عند تغيير قرار محفوظ سابقاً */
+  override: z.boolean().optional().default(false),
+});
+
 /** تعديل بيانات العميل فقط (للأدمن) */
 export const updateOrderSchema = z.object({
   customerName: z.string().trim().optional(),

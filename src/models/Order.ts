@@ -44,7 +44,7 @@ const orderSchema = new Schema(
     clientOrderId: { type: String },
     paymentStatus: {
       type: String,
-      enum: ["pending", "verified", "paid", "rejected"],
+      enum: ["pending", "verified", "paid", "unpaid", "rejected"],
       default: "pending",
       index: true,
     },
@@ -57,6 +57,32 @@ const orderSchema = new Schema(
     paymentRejectionReason: { type: String, default: "" },
     paymentRejectedAt: { type: Date },
     paymentRejectedBy: { type: String, default: "" },
+    // قرار مراجعة الدفع — مستقل عن حالة الطلب وعن طابور الطباعة
+    paymentVerification: {
+      decision: {
+        type: String,
+        enum: ["pending", "paid", "unpaid"],
+        default: "pending",
+      },
+      reviewedBy: { type: String, default: "" },
+      reviewedByName: { type: String, default: "" },
+      reviewedAt: { type: Date, default: null },
+      history: {
+        type: [
+          {
+            decision: {
+              type: String,
+              enum: ["paid", "unpaid"],
+              required: true,
+            },
+            reviewedBy: { type: String, default: "" },
+            reviewedByName: { type: String, default: "" },
+            reviewedAt: { type: Date, default: Date.now },
+          },
+        ],
+        default: [],
+      },
+    },
     orderStatus: {
       type: String,
       enum: ORDER_STATUSES,

@@ -18,9 +18,10 @@ export async function GET(req: NextRequest) {
     await requireStaff();
     await connectToDatabase();
 
-    const rawLimit = Number(req.nextUrl.searchParams.get("limit"));
-    const limit = Number.isFinite(rawLimit)
-      ? Math.min(10, Math.max(1, Math.floor(rawLimit)))
+    const raw = req.nextUrl.searchParams.get("limit");
+    const parsedLimit = raw === null ? 5 : Number(raw);
+    const limit = Number.isFinite(parsedLimit)
+      ? Math.min(10, Math.max(1, Math.floor(parsedLimit)))
       : 5;
 
     const orders = await OrderModel.find(duePrintFilter())
