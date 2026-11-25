@@ -10,7 +10,6 @@ import {
   ChevronDown,
   Megaphone,
   AlertTriangle,
-  CheckCircle2,
   Loader2,
 } from "lucide-react";
 import { ColorField } from "@/components/admin/theme/ColorField";
@@ -20,7 +19,6 @@ import { useToast } from "@/components/admin/shared/Toast";
 import { TICKER_ICON_OPTIONS, findTickerIcon } from "@/lib/ticker";
 import {
   DEFAULT_THEME,
-  contrastRatio,
   resolveTheme,
   themeContrastWarnings,
   type ThemeColors,
@@ -445,52 +443,6 @@ export default function ThemePage() {
               </span>
             </div>
             <ThemePreview tokens={tokens} ticker={ticker} />
-          </section>
-
-          <section className="rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-            <h2 className="text-[12.5px] font-black text-[var(--color-text-primary)]">فحص التباين</h2>
-            <div className="mt-2.5 space-y-2">
-              {[
-                {
-                  label: "نص الأزرار فوق لون الأزرار",
-                  ratio: contrastRatio(tokens.primary, tokens.onPrimary),
-                  min: 4.5,
-                },
-                {
-                  label: "النص الأساسي فوق خلفية الموقع",
-                  ratio: contrastRatio(tokens.textPrimary, tokens.background),
-                  min: 4.5,
-                },
-                {
-                  label: "الأيقونات فوق خلفية الموقع",
-                  ratio: contrastRatio(tokens.icon, tokens.background),
-                  min: 3,
-                },
-              ].map((row) => {
-                const pass = row.ratio >= row.min;
-                return (
-                  <div
-                    key={row.label}
-                    className="flex items-center justify-between gap-2 rounded-[10px] bg-[var(--color-surface-soft)] px-3 py-2"
-                  >
-                    <span className="text-[10.5px] font-semibold text-[var(--color-text-secondary)]">{row.label}</span>
-                    <span className="flex shrink-0 items-center gap-1.5">
-                      <span dir="ltr" className="text-[10.5px] font-black text-[var(--color-text-primary)]">
-                        {row.ratio.toFixed(2)}:1
-                      </span>
-                      {pass ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-[#4F8A57]" />
-                      ) : (
-                        <AlertTriangle className="h-3.5 w-3.5 text-[#B98A2C]" />
-                      )}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="mt-2 text-[9.5px] leading-relaxed text-[var(--color-text-muted)]">
-              الحد الأدنى الموصى به: 4.5:1 للنصوص العادية، و3:1 للأيقونات والحدود.
-            </p>
           </section>
         </div>
       </div>
