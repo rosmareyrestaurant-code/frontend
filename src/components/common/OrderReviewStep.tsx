@@ -7,6 +7,7 @@ import {
   User, Phone, MapPin, StickyNote, Loader2, Pencil, Truck,
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
+import { cartItemPreview } from "@/lib/cart-pricing";
 import { useDelivery } from "@/context/DeliveryContext";
 import { useDeliveryQuote } from "@/hooks/useDeliveryQuote";
 import { useStoreToast } from "@/components/common/StoreToast";
@@ -30,7 +31,7 @@ interface OrderReviewStepProps {
 export default function OrderReviewStep({
   customer, onEditInfo, onConfirmed, onCancelAll,
 }: OrderReviewStepProps) {
-  const { cart, subtotal, coupon, couponDiscount, placeOrderAsync } = useShop();
+  const { cart, subtotal, couponDiscount, placeOrderAsync } = useShop();
   const { activeZones } = useDelivery();
   const { fee: storeDeliveryFee } = useDeliveryQuote();
   const { showMessage } = useStoreToast();
@@ -49,7 +50,6 @@ export default function OrderReviewStep({
   const [paymentMethod, setPaymentMethod]     = useState<PaymentMethod>("cash");
   const [proofUrl, setProofUrl]               = useState("");
   const [proofPublicId, setProofPublicId]     = useState("");
-  const [transactionReference, setTransactionReference] = useState("");
   const [paymentConfig, setPaymentConfig]     = useState<PaymentConfig>({
     vodafoneCashNumber: SITE_CONTACT.phone,
     instapayAccount: SITE_CONTACT.phone,
@@ -84,7 +84,6 @@ export default function OrderReviewStep({
         method: paymentMethod,
         proofUrl: proofUrl || undefined,
         proofPublicId: proofPublicId || undefined,
-        transactionReference: transactionReference.trim() || undefined,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "فشل إرسال الطلب";
@@ -120,8 +119,10 @@ export default function OrderReviewStep({
             الوجبات المطلوبة
           </p>
           <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] overflow-hidden divide-y divide-[var(--color-border)]">
-            {cart.map((item) => (
-              <div key={`${item.product.id}-${item.notes ?? ""}`}
+            {cart.map((item) => {
+              const preview = cartItemPreview(item);
+              return (
+              <div key={`${item.product.id}-${item.notes ?? ""}-${item.coupon?.code ?? ""}`}
                 className="flex items-center gap-3 px-3 py-3">
                 <div className="relative h-13 w-13 shrink-0 overflow-hidden rounded-xl bg-[var(--color-page-background)] border border-[var(--color-border)]">
                   <Image src={item.product.image} alt={item.product.name}
@@ -139,12 +140,18 @@ export default function OrderReviewStep({
                   <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
                     {item.quantity} × {item.product.price} ج.م
                   </p>
+                  {preview.discount > 0 && (
+                    <p className="text-[10px] font-bold text-[var(--color-success)] mt-0.5">
+                      {item.coupon?.code} — خصم {preview.discount} ج.م
+                    </p>
+                  )}
                 </div>
                 <span className="text-xs sm:text-sm font-black text-[var(--color-primary)] shrink-0">
-                  {item.product.price * item.quantity} ج.م
+                  {preview.payable} ج.م
                 </span>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -154,9 +161,9 @@ export default function OrderReviewStep({
             <span>المجموع</span>
             <span className="font-bold text-white">{subtotal} ج.م</span>
           </div>
-          {coupon && (
+          {couponDiscount > 0 && (
             <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
-              <span>الخصم ({coupon.code})</span>
+              <span>الخصم</span>
               <span className="font-bold text-[var(--color-success)]">-{couponDiscount} ج.م</span>
             </div>
           )}
@@ -201,11 +208,9 @@ export default function OrderReviewStep({
         {/* ─── طريقة الدفع ─── */}
         <PaymentMethodPicker
           method={paymentMethod}
-          onMethodChange={(m) => { setPaymentMethod(m); if (m === "cash") { setProofUrl(""); setProofPublicId(""); setTransactionReference(""); } }}
+          onMethodChange={(m) => { setPaymentMethod(m); if (m === "cash") { setProofUrl(""); setProofPublicId(""); } }}
           proofUrl={proofUrl}
           onProofChange={(url, pid) => { setProofUrl(url); setProofPublicId(pid); }}
-          transactionReference={transactionReference}
-          onTransactionReferenceChange={setTransactionReference}
           config={paymentConfig}
           showMessage={showMessage}
         />

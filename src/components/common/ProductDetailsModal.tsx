@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { X, Heart, Plus, Minus, ShoppingBag, Check, TicketPercent, Loader2 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
-import { Product, ProductSize } from "@/types";
+import { AppliedCoupon, Product, ProductSize } from "@/types";
 // التعديلات بقت جاية من الـ API نفسه
 // import { useCatalogProduct } from "@/hooks/useCatalog";
 import { useStoreToast } from "@/components/common/StoreToast";
@@ -16,10 +16,7 @@ interface ProductModalInnerProps {
 
 function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerProps) {
   const product = baseProduct;
-  const {
-    addToCart, toggleFavorite, isFavorite,
-    coupon, applyCoupon, clearCoupon,
-  } = useShop();
+  const { addToCart, toggleFavorite, isFavorite, validateCoupon } = useShop();
   const { showStoreToast, showMessage } = useStoreToast();
 
   const defaultSize: ProductSize | null =
@@ -46,7 +43,8 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
 
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
-  const [couponInput, setCouponInput] = useState(coupon?.code ?? "");
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponMessage, setCouponMessage] = useState("");
   const [couponOk, setCouponOk] = useState(false);
@@ -90,11 +88,15 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
     : product.originalPrice;
 
   const lineTotal = effectivePrice * quantity;
+  const lineDiscount = appliedCoupon
+    ? Math.min(lineTotal, Math.round((lineTotal * appliedCoupon.discountPercent) / 100))
+    : 0;
+  const payableLineTotal = lineTotal - lineDiscount;
 
   const handleApplyCoupon = async () => {
     const typed = couponInput.trim().toUpperCase();
     if (!typed) {
-      clearCoupon();
+      setAppliedCoupon(null);
       setCouponMessage("تمت إزالة كود الخصم");
       setCouponOk(true);
       showMessage("تمت إزالة كود الخصم", "success");
@@ -102,26 +104,34 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
     }
 
     setCouponLoading(true);
-    const result = await applyCoupon(typed);
+    const result = await validateCoupon(typed);
     setCouponLoading(false);
     setCouponOk(result.ok);
     setCouponMessage(result.message);
+    if (result.ok && result.coupon) setAppliedCoupon(result.coupon);
+    else setAppliedCoupon(null);
     showMessage(result.message, result.ok ? "success" : "error");
   };
 
   const handleAddToCart = async () => {
-    // لو العميل كتب كود ولم يضغط «تطبيق»، نطبّقه قبل الإضافة للسلة
+    // لو العميل كتب كود ولم يضغط «تطبيق»، نتحقق منه قبل الإضافة للسلة
     const typed = couponInput.trim().toUpperCase();
-    if (typed && typed !== coupon?.code) {
+    let couponToApply: AppliedCoupon | null = appliedCoupon;
+    if (!typed) {
+      couponToApply = null;
+    } else if (!appliedCoupon || typed !== appliedCoupon.code) {
       setCouponLoading(true);
-      const result = await applyCoupon(typed);
+      const result = await validateCoupon(typed);
       setCouponLoading(false);
       setCouponOk(result.ok);
       setCouponMessage(result.message);
-      if (!result.ok) {
+      if (!result.ok || !result.coupon) {
+        setAppliedCoupon(null);
         showMessage(result.message, "error");
         return;
       }
+      couponToApply = result.coupon;
+      setAppliedCoupon(result.coupon);
     }
 
     // لو في حجم محدد، نعمل نسخة من المنتج بالسعر والاسم الصح
@@ -134,7 +144,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
         }
       : product;
 
-    addToCart(productToAdd, quantity, notes, selectedSize?.id);
+    addToCart(productToAdd, quantity, notes, selectedSize?.id, couponToApply ?? undefined);
     setIsAdded(true);
     showStoreToast("cart", productToAdd.name);
     setTimeout(() => {
@@ -420,7 +430,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
               </div>
             </div>
 
-            {/* كود الخصم — يُطبّق على السلة كلها ويظهر في الطلب */}
+            {/* كود الخصم — يُطبّق على هذا المنتج فقط */}
             <div className="space-y-1.5">
               <label
                 htmlFor="product-coupon"
@@ -428,7 +438,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
               >
                 <span className="flex items-center gap-1.5">
                   <TicketPercent className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-                  كود الخصم
+                  كود خصم المنتج
                 </span>
                 <span className="text-[10px] text-[var(--color-text-muted)] font-normal">(اختياري)</span>
               </label>
@@ -436,7 +446,11 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                 <input
                   id="product-coupon"
                   value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    setCouponInput(e.target.value.toUpperCase());
+                    setAppliedCoupon(null);
+                    setCouponMessage("");
+                  }}
                   dir="ltr"
                   maxLength={30}
                   placeholder="مثال: ROS10"
@@ -451,21 +465,10 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                   {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "تطبيق"}
                 </button>
               </div>
-              {coupon && (
-                <div className="flex items-center justify-between rounded-lg border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-success)]">
-                  <span>كود {coupon.code} مُطبّق — خصم {coupon.discountPercent}%</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      clearCoupon();
-                      setCouponInput("");
-                      setCouponMessage("تمت إزالة كود الخصم");
-                      setCouponOk(true);
-                    }}
-                    className="text-[10px] underline underline-offset-2 hover:opacity-80"
-                  >
-                    إزالة
-                  </button>
+              <p className="text-[10px] text-[var(--color-text-muted)]">الخصم هيطبّق على المنتج ده فقط.</p>
+              {appliedCoupon && (
+                <div className="rounded-lg border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-success)]">
+                  كود {appliedCoupon.code} — خصم {appliedCoupon.discountPercent}%
                 </div>
               )}
               {couponMessage && (
@@ -500,7 +503,7 @@ function ProductModalInner({ product: baseProduct, onClose }: ProductModalInnerP
                   <>
                     <ShoppingBag className="h-4 w-4" />
                     <span>
-                      {product.category === "offers" ? "اطلب العرض الآن" : "أضف إلى السلة"} • {lineTotal} ج.م
+                      {product.category === "offers" ? "اطلب العرض الآن" : "أضف إلى السلة"} • {payableLineTotal} ج.م
                     </span>
                   </>
                 )}

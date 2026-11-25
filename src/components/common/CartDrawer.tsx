@@ -7,6 +7,7 @@ import {
   X, Plus, Minus, Trash2, ShoppingBag, ArrowLeft, ChevronLeft, Check, CheckCircle2, Truck, Banknote,
 } from "lucide-react";
 import { useShop } from "@/context/ShopContext";
+import { cartItemPreview } from "@/lib/cart-pricing";
 import { useDeliveryQuote } from "@/hooks/useDeliveryQuote";
 import { useEffect, useRef, useState } from "react";
 import { CustomerInfo } from "@/types";
@@ -30,7 +31,7 @@ export default function CartDrawer() {
   const {
     cart, isCartOpen, setIsCartOpen,
     updateQuantity, removeFromCart, clearCart,
-    subtotal, coupon, couponDiscount, clearCoupon,
+    subtotal, couponDiscount,
   } = useShop();
   const { isFree: isFreeDelivery, amount: deliveryAmount, label: deliveryLabel } = useDeliveryQuote();
 
@@ -240,8 +241,10 @@ export default function CartDrawer() {
                   <>
                     {/* قائمة الوجبات */}
                     <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-3 divide-y divide-[var(--color-text-primary)]">
-                      {cart.map((item) => (
-                        <div key={`${item.product.id}-${item.notes ?? ""}`}
+                      {cart.map((item) => {
+                        const preview = cartItemPreview(item);
+                        return (
+                        <div key={`${item.product.id}-${item.notes ?? ""}-${item.coupon?.code ?? ""}`}
                           className="pt-3 first:pt-0 flex gap-3.5 items-center">
                           <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-xl overflow-hidden bg-[var(--color-page-background)] shrink-0 border border-[var(--color-border)]">
                             <Image src={item.product.image} alt={item.product.name}
@@ -256,8 +259,8 @@ export default function CartDrawer() {
                                 <span className="font-bold text-[var(--color-primary)]">ملاحظة: </span>{item.notes}
                               </p>
                             )}
-                            <div className="flex items-baseline gap-1 text-[var(--color-primary)] font-black text-sm mb-2">
-                              <span>{item.product.price * item.quantity}</span>
+                            <div className="flex items-baseline gap-1 text-[var(--color-primary)] font-black text-sm mb-1">
+                              <span>{preview.payable}</span>
                               <span className="text-[10px] text-[var(--color-text-muted)]">ج.م</span>
                               {item.quantity > 1 && (
                                 <span className="text-[10px] text-[var(--color-text-muted)] font-normal mr-1">
@@ -265,6 +268,11 @@ export default function CartDrawer() {
                                 </span>
                               )}
                             </div>
+                            {preview.discount > 0 && (
+                              <p className="mb-1 text-[10px] font-bold text-[var(--color-success)]">
+                                {item.coupon?.code} — خصم {preview.discount} ج.م
+                              </p>
+                            )}
                             <div className="flex items-center gap-2.5">
                               <div className="inline-flex items-center rounded-lg bg-[var(--color-page-background)] border border-[var(--color-border)] p-0.5">
                                 <button onClick={() => updateQuantity(item.product.id, -1)} aria-label="تقليل"
@@ -284,7 +292,8 @@ export default function CartDrawer() {
                             </div>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* تذييل السلة */}
@@ -294,18 +303,9 @@ export default function CartDrawer() {
                           <span>المجموع الفرعي</span>
                           <span className="font-bold text-white">{subtotal} ج.م</span>
                         </div>
-                        {coupon && (
+                        {couponDiscount > 0 && (
                           <div className="flex justify-between text-[var(--color-text-muted)]">
-                            <span className="flex items-center gap-1.5">
-                              الخصم ({coupon.code})
-                              <button
-                                type="button"
-                                onClick={clearCoupon}
-                                className="text-[10px] font-bold text-[var(--color-danger)] underline underline-offset-2 hover:opacity-80"
-                              >
-                                إزالة
-                              </button>
-                            </span>
+                            <span>الخصم</span>
                             <span className="font-bold text-[var(--color-success)]">-{couponDiscount} ج.م</span>
                           </div>
                         )}

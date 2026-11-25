@@ -36,7 +36,7 @@ const FIELDS: {
 ];
 
 export default function CheckoutForm({ onBack, onNext, initialValues }: CheckoutFormProps) {
-  const { subtotal, coupon, couponDiscount } = useShop();
+  const { subtotal, couponDiscount } = useShop();
   const { isFree: isFreeDelivery, amount: deliveryAmount, label: deliveryLabel } = useDeliveryQuote();
   const { activeZones, selectArea } = useDelivery();
 
@@ -197,9 +197,9 @@ export default function CheckoutForm({ onBack, onNext, initialValues }: Checkout
             <span>المجموع الفرعي</span>
             <span className="font-bold text-white">{subtotal} ج.م</span>
           </div>
-          {coupon && (
+          {couponDiscount > 0 && (
             <div className="flex items-center justify-between text-[var(--color-text-muted)]">
-              <span>الخصم ({coupon.code})</span>
+              <span>الخصم</span>
               <span className="font-bold text-[var(--color-success)]">-{couponDiscount} ج.م</span>
             </div>
           )}

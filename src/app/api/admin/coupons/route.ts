@@ -9,6 +9,7 @@ import {
   AppError,
 } from "@/lib/api-response";
 import { requireAdmin } from "@/lib/auth";
+import { couponDurationUpdate } from "@/lib/coupons";
 import { toAdminCoupon } from "@/lib/serialize";
 import { createCouponSchema } from "@/lib/validation";
 
@@ -43,7 +44,11 @@ export async function POST(req: NextRequest) {
       return badRequest(parsed.error.issues[0]?.message ?? "بيانات غير صحيحة");
 
     await connectToDatabase();
-    const coupon = await CouponModel.create(parsed.data);
+    const { durationDays, ...fields } = parsed.data;
+    const coupon = await CouponModel.create({
+      ...fields,
+      ...couponDurationUpdate(durationDays),
+    });
     return success(
       toAdminCoupon(coupon.toObject() as Parameters<typeof toAdminCoupon>[0]),
       "تم إضافة كوبون الخصم",

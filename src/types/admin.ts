@@ -97,6 +97,9 @@ export interface AdminOrderItem {
   quantity: number;
   itemTotal?: number;
   notes?: string;
+  couponCode?: string;
+  couponPercent?: number;
+  couponDiscount?: number;
 }
 
 // ─── طلب الأدمن ────────────────────────────────────────────────────
@@ -239,6 +242,9 @@ export interface AdminCoupon {
   discountPercent: number;
   description?: string;
   isActive: boolean;
+  /** مدة اختيارية بالأيام — undefined تعني بلا انتهاء */
+  durationDays?: number;
+  expiresAt?: string;
   createdAt?: string;
 }
 

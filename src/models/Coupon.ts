@@ -22,6 +22,9 @@ const couponSchema = new Schema(
     },
     description: { type: String, default: "" },
     isActive: { type: Boolean, default: true, index: true },
+    /** مدة اختيارية بالأيام — يُشتق منها expiresAt وقت الحفظ */
+    durationDays: { type: Number, min: 1, max: 3650, default: undefined },
+    expiresAt: { type: Date, default: undefined, index: true },
   },
   { timestamps: true },
 );

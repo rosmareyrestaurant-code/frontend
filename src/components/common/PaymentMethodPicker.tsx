@@ -17,8 +17,6 @@ interface PaymentMethodPickerProps {
   onMethodChange: (method: PaymentMethod) => void;
   proofUrl: string;
   onProofChange: (url: string, publicId: string) => void;
-  transactionReference: string;
-  onTransactionReferenceChange: (value: string) => void;
   config: PaymentConfig;
   showMessage: (message: string, type?: "success" | "error" | "warning" | "info") => void;
 }
@@ -31,7 +29,7 @@ const OPTIONS: { value: PaymentMethod; label: string; icon: React.ElementType }[
 
 export default function PaymentMethodPicker({
   method, onMethodChange, proofUrl, onProofChange,
-  transactionReference, onTransactionReferenceChange, config, showMessage,
+  config, showMessage,
 }: PaymentMethodPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -146,24 +144,6 @@ export default function PaymentMethodPicker({
                 رقم التحويل هيظهر هنا بعد ضبطه من إعدادات المتجر.
               </p>
             )}
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="customer-txn-ref" className="block text-[11px] font-semibold text-[var(--color-text-muted)]">
-              رقم مرجع التحويل <span className="font-normal text-[var(--color-text-muted)]">(اختياري)</span>
-            </label>
-            <input
-              id="customer-txn-ref"
-              value={transactionReference}
-              onChange={(e) => onTransactionReferenceChange(e.target.value)}
-              dir="ltr"
-              maxLength={80}
-              placeholder="مثال: 1234567890"
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-page-background)] px-3 py-2 text-[12px] font-bold text-white placeholder-[var(--color-text-muted)] focus:border-[var(--color-primary)]/60 focus:outline-none"
-            />
-            <p className="text-[10px] leading-relaxed text-[var(--color-text-muted)]">
-              الرقم هيتطبع على ورقة الطلب عشان الكاشير يراجعه — إدخاله مش معناه إن الدفع اتأكد.
-            </p>
           </div>
 
           <div className="space-y-1.5">

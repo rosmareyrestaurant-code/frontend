@@ -4,7 +4,7 @@ import { ProductModel } from "@/models/Product";
 import { OrderModel } from "@/models/Order";
 import { StoreSettingsModel } from "@/models/StoreSettings";
 import { DeliveryZoneModel } from "@/models/DeliveryZone";
-import { CouponModel } from "@/models/Coupon";
+import { findUsableCoupon } from "@/lib/coupons";
 import {
   success,
   badRequest,
@@ -136,8 +136,20 @@ export async function POST(req: NextRequest) {
       couponCode,
     } = parsed.data;
     clientOrderIdForDedup = clientOrderId;
-    // السيرفر هو اللي يوحّد الكود — أي قيمة من المتصفح تُعامل كمعاينة فقط
-    const requestedCouponCode = couponCode?.trim().toUpperCase() || undefined;
+    // كل كوبون مرتبط بمنتج — والحقل القديم يفضل شغال للعملاء القدامى فقط
+    const itemCouponCodes = [
+      ...new Set(
+        cartItems
+          .map((i) => i.couponCode?.trim().toUpperCase())
+          .filter((code): code is string => !!code),
+      ),
+    ];
+    const legacyCouponCode = couponCode?.trim().toUpperCase();
+    const couponCodesToCheck = itemCouponCodes.length
+      ? itemCouponCodes
+      : legacyCouponCode
+        ? [legacyCouponCode]
+        : [];
 
     // التحويل الإلكتروني لازم يكون معاه صورة إثبات
     if (paymentMethod !== "cash" && !paymentProofUrl) {
@@ -185,26 +197,23 @@ export async function POST(req: NextRequest) {
       // جلب مناطق التوصيل للتحقق من التوصيل المجاني
       const zones = await DeliveryZoneModel.find({ isActive: true }).lean();
 
-      // التحقق من الكوبون في قاعدة البيانات — النسبة لا تُؤخذ من المتصفح
-      let coupon: PricingCoupon | undefined;
-      if (requestedCouponCode) {
-        const couponDoc = await CouponModel.findOne({
-          code: requestedCouponCode,
-          isActive: true,
-        }).lean();
-        if (!couponDoc)
-          throw new AppError(
-            "COUPON_INVALID",
-            "كود الخصم غير صالح أو غير مُفعّل",
-            400,
-          );
-        coupon = {
-          code: requestedCouponCode,
-          discountPercent: Number(
-            (couponDoc as { discountPercent?: number }).discountPercent ?? 0,
-          ),
-        };
+      // التحقق من كل كوبون في قاعدة البيانات — النسبة لا تُؤخذ من المتصفح
+      const checkedCoupons = await Promise.all(
+        couponCodesToCheck.map((code) => findUsableCoupon(code)),
+      );
+      if (checkedCoupons.some((coupon) => !coupon)) {
+        throw new AppError(
+          "COUPON_INVALID",
+          "كود الخصم غير صالح أو منتهي",
+          400,
+        );
       }
+      const couponsByCode = new Map<string, PricingCoupon>(
+        (checkedCoupons as PricingCoupon[]).map((coupon) => [
+          coupon.code,
+          { code: coupon.code, discountPercent: coupon.discountPercent },
+        ]),
+      );
 
       // حساب الأسعار على السيرفر
       const pricing = computeOrderPricing(
@@ -213,7 +222,7 @@ export async function POST(req: NextRequest) {
         settings,
         zones as Parameters<typeof computeOrderPricing>[3],
         customer,
-        coupon,
+        couponsByCode,
       );
 
       // إنشاء الطلب

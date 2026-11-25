@@ -16,6 +16,9 @@ export interface PricedItem {
   unitPrice: number;
   itemTotal: number;
   notes?: string;
+  couponCode?: string;
+  couponPercent?: number;
+  couponDiscount?: number;
 }
 
 export interface PricingProduct {
@@ -66,16 +69,27 @@ export function computeOrderPricing(
     sizeId?: string;
     addonIds?: string[];
     notes?: string;
+    couponCode?: string;
   }[],
   productsById: Map<string, PricingProduct>,
   settings: PricingSettings,
   zones: DeliveryZone[],
   customer: { areaId?: string; areaName?: string },
-  coupon?: PricingCoupon,
+  /** خريطة أكواد صالحة — أو كوبون واحد للتوافق مع المسارات القديمة */
+  coupons?: Map<string, PricingCoupon> | PricingCoupon,
 ): PricingResult {
+  const couponByCode = new Map<string, PricingCoupon>();
+  if (coupons instanceof Map) {
+    for (const [code, coupon] of coupons) couponByCode.set(code, coupon);
+  } else if (coupons) {
+    couponByCode.set(coupons.code, coupons);
+  }
+
   const items: PricedItem[] = [];
+  const appliedCodes = new Set<string>();
   let subtotal = 0;
   let discount = 0;
+  let couponDiscount = 0;
 
   for (const ci of cartItems) {
     const product = productsById.get(ci.productId);
@@ -121,6 +135,19 @@ export function computeOrderPricing(
       discount += (originalPrice - basePrice) * ci.quantity;
     }
 
+    // الكوبون الخاص بالمنتج — السيرفر يتحقق منه قبل الوصول هنا
+    const itemCouponCode = ci.couponCode?.trim().toUpperCase();
+    const itemCoupon = itemCouponCode
+      ? couponByCode.get(itemCouponCode)
+      : undefined;
+    const itemCouponPercent = itemCoupon?.discountPercent ?? 0;
+    const itemCouponDiscount =
+      itemCoupon && itemCouponPercent > 0
+        ? Math.min(itemTotal, Math.round((itemTotal * itemCouponPercent) / 100))
+        : 0;
+    if (itemCoupon && itemCouponDiscount > 0) appliedCodes.add(itemCoupon.code);
+    couponDiscount += itemCouponDiscount;
+
     items.push({
       productId: String(product._id),
       productName: product.name,
@@ -131,6 +158,9 @@ export function computeOrderPricing(
       unitPrice,
       itemTotal,
       notes: ci.notes?.trim() || undefined,
+      couponCode: itemCoupon?.code,
+      couponPercent: itemCouponPercent,
+      couponDiscount: itemCouponDiscount,
     });
   }
 
@@ -155,20 +185,16 @@ export function computeOrderPricing(
   );
   if (freeArea) deliveryFee = 0;
 
-  // كوبون الخصم يُطبّق على قيمة المنتجات فقط (قبل رسوم التوصيل).
-  // النسبة موثوقة لأنها جاية من قاعدة البيانات بعد التحقق من الكود.
-  const couponPercent = coupon?.discountPercent ?? 0;
-  const couponDiscount =
-    coupon && couponPercent > 0
-      ? Math.min(subtotal, Math.round((subtotal * couponPercent) / 100))
-      : 0;
-
+  // الخصم محسوب على العناصر اللي أدخل العميل معاها الكود فقط — قبل رسوم التوصيل.
+  const codes = [...appliedCodes];
+  const couponPercent =
+    codes.length === 1 ? (couponByCode.get(codes[0])?.discountPercent ?? 0) : 0;
   const total = Math.max(0, subtotal - couponDiscount) + deliveryFee;
   return {
     items,
     subtotal,
     discount,
-    couponCode: coupon?.code,
+    couponCode: codes.join(", ") || undefined,
     couponPercent,
     couponDiscount,
     deliveryFee,

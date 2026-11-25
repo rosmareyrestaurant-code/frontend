@@ -40,11 +40,11 @@ export default async function HomePage() {
 
   const popular = products.filter((p) => p.isPopular).slice(0, 20);
 
-  // الأقسام بتتبني من ترتيب التصنيفات المحفوظ في الداتابيز — مفيش ترتيب يدوي هنا
-  const homeCategories = categories.filter((category) => category.showOnHome !== false);
+  // كروت التصنيفات كلها تظهر من التصنيفات المفعّلة — والاقسام السفلية اختيارية
+  const sectionCategories = categories.filter((category) => category.showOnHome !== false);
   const sections =
-    homeCategories.length > 0
-      ? homeCategories
+    categories.length > 0
+      ? sectionCategories
           .map((category) => ({
             id: SECTION_ID_ALIAS[category.slug] ?? category.slug,
             slug: category.slug,
@@ -61,7 +61,7 @@ export default async function HomePage() {
     <main className="flex w-full flex-col pb-4 sm:pb-8">
       <HeroSlider slides={slides} />
       <WhyRosemarySection />
-      <CategoriesSection categories={homeCategories} />
+      <CategoriesSection categories={categories} />
       <PopularSection products={popular} />
       {sections.map(({ id, title, products: sectionProducts }, index) => (
         <Fragment key={id}>

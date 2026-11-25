@@ -98,6 +98,8 @@ interface CouponLean {
   discountPercent: number;
   description?: string;
   isActive: boolean;
+  durationDays?: number | null;
+  expiresAt?: string | Date | null;
   createdAt?: string | Date;
 }
 
@@ -119,6 +121,9 @@ interface OrderLean {
     quantity: number;
     itemTotal: number;
     notes?: string;
+    couponCode?: string;
+    couponPercent?: number;
+    couponDiscount?: number;
   }[];
   subtotal: number;
   deliveryFee: number;
@@ -359,6 +364,8 @@ export function toAdminCoupon(doc: CouponLean): AdminCoupon {
     discountPercent: doc.discountPercent,
     description: doc.description || undefined,
     isActive: doc.isActive,
+    durationDays: doc.durationDays ?? undefined,
+    expiresAt: doc.expiresAt ? new Date(doc.expiresAt).toISOString() : undefined,
     createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : undefined,
   };
 }
@@ -382,6 +389,9 @@ export function toAdminOrder(doc: OrderLean): AdminOrder {
       quantity: i.quantity,
       itemTotal: i.itemTotal,
       notes: i.notes,
+      couponCode: i.couponCode || undefined,
+      couponPercent: i.couponPercent ?? 0,
+      couponDiscount: i.couponDiscount ?? 0,
     })),
     subtotal: doc.subtotal,
     deliveryFee: doc.deliveryFee,
@@ -453,6 +463,9 @@ export function toPublicOrder(doc: OrderLean): PublicOrder {
     unitPrice: i.unitPrice,
     itemTotal: i.itemTotal,
     notes: i.notes,
+    couponCode: i.couponCode || undefined,
+    couponPercent: i.couponPercent ?? 0,
+    couponDiscount: i.couponDiscount ?? 0,
   }));
   return {
     id: id(doc._id),

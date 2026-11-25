@@ -15,6 +15,7 @@ interface CouponForm {
   code: string;
   discountPercent: number;
   description: string;
+  durationDays: string;
   isActive: boolean;
 }
 
@@ -22,6 +23,7 @@ const EMPTY_FORM: CouponForm = {
   code: "",
   discountPercent: 10,
   description: "",
+  durationDays: "",
   isActive: true,
 };
 
@@ -71,6 +73,7 @@ export default function CouponsPage() {
       code: coupon.code,
       discountPercent: coupon.discountPercent,
       description: coupon.description ?? "",
+      durationDays: coupon.durationDays ? String(coupon.durationDays) : "",
       isActive: coupon.isActive,
     });
     setModalOpen(true);
@@ -87,6 +90,15 @@ export default function CouponsPage() {
       showToast("نسبة الخصم يجب أن تكون بين 1 و 100", "error");
       return;
     }
+    const rawDuration = form.durationDays.trim();
+    const durationDays = rawDuration ? Number(rawDuration) : null;
+    if (
+      durationDays !== null &&
+      (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 3650)
+    ) {
+      showToast("مدة الكوبون يجب أن تكون بين 1 و 3650 يوماً", "error");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -94,6 +106,7 @@ export default function CouponsPage() {
         code,
         discountPercent: percent,
         description: form.description.trim() || undefined,
+        durationDays,
         isActive: form.isActive,
       };
       const url = editing ? `/api/admin/coupons/${editing.id}` : "/api/admin/coupons";
@@ -163,7 +176,7 @@ export default function CouponsPage() {
             {refreshing && <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--color-text-muted)]" />}
           </h1>
           <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-            أنشئ كود خصم بنسبة مئوية — يدخله العميل من موديل المنتج ويظهر في السلة وتفاصيل الطلب
+            أنشئ كود خصم بنسبة مئوية ومدة اختيارية — يدخله العميل من موديل المنتج ويطبّق على المنتج نفسه
           </p>
         </div>
         <button
@@ -217,6 +230,11 @@ export default function CouponsPage() {
                 <p className="mt-0.5 text-lg font-black text-[var(--color-primary)]">
                   {coupon.discountPercent}%
                 </p>
+                {coupon.expiresAt && (
+                  <p className="mt-1 text-[10px] text-[var(--color-text-muted)]">
+                    ينتهي في {new Date(coupon.expiresAt).toLocaleDateString("ar-EG")}
+                  </p>
+                )}
               </div>
 
               <div className="mt-4 flex items-center justify-between border-t border-[var(--color-border)] pt-3">
@@ -296,6 +314,24 @@ export default function CouponsPage() {
               />
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[var(--color-text-muted)]">%</span>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="coupon-duration" className="text-xs font-bold text-[var(--color-text-muted)]">
+              مدة الكوبون (أيام) — اختياري
+            </label>
+            <input
+              id="coupon-duration"
+              type="number"
+              min={1}
+              max={3650}
+              step={1}
+              value={form.durationDays}
+              onChange={(e) => setForm((p) => ({ ...p, durationDays: e.target.value }))}
+              placeholder="اتركه فاضي لو مفيش مدة"
+              className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-page-background)] px-3 py-2.5 text-sm font-bold text-[var(--color-text-primary)] focus:border-[var(--color-primary)] focus:outline-none"
+            />
+            <p className="text-[10px] text-[var(--color-text-muted)]">الكوبون هيوقف تلقائياً بعد المدة — حتى لو فاضل مفعّل.</p>
           </div>
 
           <div className="space-y-1.5">

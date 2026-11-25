@@ -31,9 +31,6 @@ import {
   readCart,
   writeCart,
   clearCartStorage,
-  readCoupon,
-  writeCoupon,
-  clearCouponStorage,
   readFavoriteIds,
   writeFavoriteIds,
   writeLastOrder,
@@ -42,6 +39,7 @@ import {
   writeCurrentOrder,
   clearCurrentOrder,
 } from "@/lib/clientStorage";
+import { cartCouponDiscount } from "@/lib/cart-pricing";
 
 /* ─── Re-export CartItem so existing imports still work ─────────────── */
 export type { CartItem };
@@ -60,15 +58,22 @@ interface ShopContextType {
   setIsFavoritesOpen: (open: boolean) => void;
   setIsMenuImageOpen: (open: boolean) => void;
   setCurrentOrder: (order: Order | null) => void;
-  addToCart: (product: Product, quantity?: number, notes?: string, sizeId?: string) => void;
+  addToCart: (
+    product: Product,
+    quantity?: number,
+    notes?: string,
+    sizeId?: string,
+    coupon?: AppliedCoupon,
+  ) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, delta: number) => void;
   clearCart: () => void;
-  /** كوبون مُتحقق منه — المعاينة فقط؛ السيرفر يعيد التحقق وقت الطلب */
-  coupon: AppliedCoupon | null;
+  /** معاينة إجمالية لخصم الكوبونات على عناصر السلة */
   couponDiscount: number;
-  applyCoupon: (code: string) => Promise<{ ok: boolean; message: string }>;
-  clearCoupon: () => void;
+  /** تحقق فقط — الكوبون يُربط بالمنتج عند إضافته للسلة */
+  validateCoupon: (
+    code: string,
+  ) => Promise<{ ok: boolean; message: string; coupon?: AppliedCoupon }>;
   toggleFavorite: (product: Product) => void;
   isFavorite: (productId: string) => boolean;
   /** Legacy sync wrapper — dispatches async underneath; kept for compatibility */
@@ -80,7 +85,6 @@ interface ShopContextType {
       method: PaymentMethod;
       proofUrl?: string;
       proofPublicId?: string;
-      transactionReference?: string;
     },
   ) => Promise<{ order: Order; accessToken: string; orderNumber: string }>;
   cartCount: number;
@@ -116,7 +120,6 @@ async function fetchProducts(ids: string[]): Promise<Map<string, Product>> {
 /* ─── Provider ───────────────────────────────────────────────────────── */
 export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const [favorites, setFavorites] = useState<Product[]>([]);
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -161,12 +164,23 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
               const effectiveProduct: Product = size
                 ? { ...product, price: size.price, name: `${product.name} (${size.name})` }
                 : product;
+              const storedCoupon = ref.coupon;
+              const coupon: AppliedCoupon | undefined =
+                storedCoupon &&
+                typeof storedCoupon.code === "string" &&
+                Number.isFinite(storedCoupon.discountPercent)
+                  ? {
+                      code: storedCoupon.code.trim().toUpperCase(),
+                      discountPercent: Number(storedCoupon.discountPercent),
+                    }
+                  : undefined;
               const item: CartItem = {
                 product: effectiveProduct,
                 quantity: ref.quantity,
                 sizeId: size?.id,
                 addonIds: ref.addonIds,
                 notes: ref.notes,
+                coupon,
               };
               return item;
             })
@@ -174,9 +188,6 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
           setCart(hydrated);
         }
-
-        // ── كوبون الخصم (معاينة محفوظة للجلسة)
-        setCoupon(readCoupon());
 
         // ── المفضلة
         const favIds: string[] = readFavoriteIds();
@@ -208,15 +219,10 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       sizeId: item.sizeId,
       addonIds: item.addonIds,
       notes: item.notes,
+      coupon: item.coupon,
     }));
     writeCart(refs);
   }, [cart]);
-
-  /* ── استمرار الكوبون في sessionStorage ── */
-  useEffect(() => {
-    if (!writeGuard.current) return;
-    writeCoupon(coupon);
-  }, [coupon]);
 
   /* ── استمرار المفضلة في sessionStorage ── */
   useEffect(() => {
@@ -226,8 +232,20 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   /* ─── Cart ops ───────────────────────────────────────────────────── */
   const addToCart = useCallback(
-    (product: Product, quantity: number = 1, notes?: string, sizeId?: string) => {
+    (
+      product: Product,
+      quantity: number = 1,
+      notes?: string,
+      sizeId?: string,
+      coupon?: AppliedCoupon,
+    ) => {
       const cleanNotes = notes?.trim() || undefined;
+      const cleanCoupon: AppliedCoupon | undefined = coupon
+        ? {
+            code: coupon.code.trim().toUpperCase(),
+            discountPercent: Number(coupon.discountPercent),
+          }
+        : undefined;
       // المنتجات اللي لها أحجام لازم يكون معاها حجم صحيح — وإلا السيرفر بيرفض الطلب.
       // لو مفيش حجم متبعت (زي الإضافة من المفضلة) بنستخدم الحجم الافتراضي.
       const sizes = product.sizes ?? [];
@@ -244,14 +262,24 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
           (item) =>
             item.product.id === product.id &&
             item.sizeId === size?.id &&
-            item.notes === cleanNotes,
+            item.notes === cleanNotes &&
+            item.coupon?.code === cleanCoupon?.code,
         );
         if (idx > -1) {
           return prev.map((item, i) =>
             i === idx ? { ...item, quantity: item.quantity + quantity } : item,
           );
         }
-        return [...prev, { product: pricedProduct, quantity, notes: cleanNotes, sizeId: size?.id }];
+        return [
+          ...prev,
+          {
+            product: pricedProduct,
+            quantity,
+            notes: cleanNotes,
+            sizeId: size?.id,
+            coupon: cleanCoupon,
+          },
+        ];
       });
     },
     [],
@@ -275,18 +303,12 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
-  const clearCoupon = useCallback(() => {
-    setCoupon(null);
-    clearCouponStorage();
-  }, []);
-
-  const applyCoupon = useCallback(
-    async (rawCode: string): Promise<{ ok: boolean; message: string }> => {
+  const validateCoupon = useCallback(
+    async (
+      rawCode: string,
+    ): Promise<{ ok: boolean; message: string; coupon?: AppliedCoupon }> => {
       const code = rawCode.trim().toUpperCase();
-      if (!code) {
-        clearCoupon();
-        return { ok: true, message: "تمت إزالة كود الخصم" };
-      }
+      if (!code) return { ok: false, message: "اكتب كود الخصم" };
 
       try {
         const res = await fetch("/api/coupons/validate", {
@@ -296,35 +318,32 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         });
         const data = await res.json();
         if (!res.ok || !data.success) {
-          clearCoupon();
           return {
             ok: false,
             message: data?.error?.message ?? "كود الخصم غير صالح",
           };
         }
 
-        const next: AppliedCoupon = {
+        const coupon: AppliedCoupon = {
           code: data.data.code as string,
           discountPercent: Number(data.data.discountPercent ?? 0),
         };
-        setCoupon(next);
-        writeCoupon(next);
         return {
           ok: true,
-          message: `تم تطبيق كود ${next.code} — خصم ${next.discountPercent}%`,
+          message: `كود ${coupon.code} — خصم ${coupon.discountPercent}% على المنتج ده`,
+          coupon,
         };
       } catch {
         return { ok: false, message: "تعذّر التحقق من كود الخصم، حاول مرة أخرى" };
       }
     },
-    [clearCoupon],
+    [],
   );
 
   const clearCart = useCallback(() => {
     setCart([]);
     clearCartStorage();
-    clearCoupon();
-  }, [clearCoupon]);
+  }, []);
 
   /* ─── Favorites ops ──────────────────────────────────────────────── */
   const toggleFavorite = useCallback((product: Product) => {
@@ -346,10 +365,18 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     (acc, item) => acc + item.product.price * item.quantity,
     0,
   );
+  const appliedCoupons = [
+    ...new Map(
+      cart
+        .filter((item) => !!item.coupon)
+        .map((item) => [item.coupon!.code, item.coupon!] as const),
+    ).values(),
+  ];
+  const couponCodeSummary = appliedCoupons.map((c) => c.code).join(", ") || undefined;
+  const couponPercentSummary =
+    appliedCoupons.length === 1 ? (appliedCoupons[0]?.discountPercent ?? 0) : 0;
   // نفس معادلة السيرفر بالضبط — المعاينة فقط، والإجمالي النهائي يُعاد من /api/orders
-  const couponDiscount = coupon
-    ? Math.min(subtotal, Math.round((subtotal * coupon.discountPercent) / 100))
-    : 0;
+  const couponDiscount = cartCouponDiscount(cart);
   const total = Math.max(0, subtotal - couponDiscount) + deliveryFee;
 
   /* ─── placeOrderAsync: يُرسل للـ API ─────────────────────────────── */
@@ -360,7 +387,6 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         method: PaymentMethod;
         proofUrl?: string;
         proofPublicId?: string;
-        transactionReference?: string;
       },
     ): Promise<{ order: Order; accessToken: string; orderNumber: string }> => {
       // بناء cartItems للإرسال (refs فقط)
@@ -370,6 +396,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         sizeId: item.sizeId,
         addonIds: item.addonIds,
         notes: item.notes,
+        couponCode: item.coupon?.code,
       }));
 
       let orderNumber = generateLocalId();
@@ -377,8 +404,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       let serverTotal = total;
       let serverDeliveryFee = deliveryFee;
       let serverSubtotal = subtotal;
-      let serverCouponCode = coupon?.code;
-      let serverCouponPercent = coupon?.discountPercent ?? 0;
+      let serverCouponCode = couponCodeSummary;
+      let serverCouponPercent = couponPercentSummary;
       let serverCouponDiscount = couponDiscount;
 
       if (!clientOrderIdRef.current) {
@@ -398,9 +425,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
             paymentMethod: payment?.method ?? "cash",
             paymentProofUrl: payment?.proofUrl,
             paymentProofPublicId: payment?.proofPublicId,
-            transactionReference: payment?.transactionReference || undefined,
             clientOrderId: clientOrderIdRef.current,
-            couponCode: coupon?.code,
           }),
         });
         const data = await res.json();
@@ -454,8 +479,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       total,
       deliveryFee,
       subtotal,
-      coupon?.code,
-      coupon?.discountPercent,
+      couponCodeSummary,
+      couponPercentSummary,
       couponDiscount,
       clearCart,
       setCurrentOrderPersisted,
@@ -476,8 +501,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         items: [...cart],
         customer,
         subtotal,
-        couponCode: coupon?.code,
-        couponPercent: coupon?.discountPercent ?? 0,
+        couponCode: couponCodeSummary,
+        couponPercent: couponPercentSummary,
         couponDiscount,
         total,
         status: "pending",
@@ -485,7 +510,15 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       };
       return tempOrder;
     },
-    [cart, subtotal, total, coupon, couponDiscount, placeOrderAsync],
+    [
+      cart,
+      subtotal,
+      total,
+      couponCodeSummary,
+      couponPercentSummary,
+      couponDiscount,
+      placeOrderAsync,
+    ],
   );
 
   /* ─── Context value ──────────────────────────────────────────────── */
@@ -506,10 +539,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     removeFromCart,
     updateQuantity,
     clearCart,
-    coupon,
     couponDiscount,
-    applyCoupon,
-    clearCoupon,
+    validateCoupon,
     toggleFavorite,
     isFavorite,
     placeOrder,
@@ -524,7 +555,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   /* إخفاء اختلاف الـ hydration: نُظهر حالة فارغة قبل اكتمال القراءة */
   if (!isLoaded) {
     return (
-      <ShopContext.Provider value={{ ...value, cart: [], favorites: [], cartCount: 0, favoritesCount: 0, subtotal: 0, total: 0, deliveryFee: 0, coupon: null, couponDiscount: 0 }}>
+      <ShopContext.Provider value={{ ...value, cart: [], favorites: [], cartCount: 0, favoritesCount: 0, subtotal: 0, total: 0, deliveryFee: 0, couponDiscount: 0 }}>
         {children}
       </ShopContext.Provider>
     );

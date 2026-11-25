@@ -5,7 +5,7 @@
  */
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
-import { CouponModel } from "@/models/Coupon";
+import { findUsableCoupon } from "@/lib/coupons";
 import {
   success,
   badRequest,
@@ -28,19 +28,13 @@ export async function POST(req: NextRequest) {
       return badRequest(parsed.error.issues[0]?.message ?? "كود الخصم غير صحيح");
 
     await connectToDatabase();
-    const coupon = await CouponModel.findOne({
-      code: parsed.data.code,
-      isActive: true,
-    }).lean();
-
+    const coupon = await findUsableCoupon(parsed.data.code);
     if (!coupon)
-      return badRequest("كود الخصم غير صالح أو غير مُفعّل", "COUPON_INVALID");
+      return badRequest("كود الخصم غير صالح أو منتهي", "COUPON_INVALID");
 
     return success({
-      code: parsed.data.code,
-      discountPercent: Number(
-        (coupon as { discountPercent?: number }).discountPercent ?? 0,
-      ),
+      code: coupon.code,
+      discountPercent: coupon.discountPercent,
     });
   } catch (e) {
     if (e instanceof AppError)

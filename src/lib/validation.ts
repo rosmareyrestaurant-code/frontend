@@ -171,6 +171,14 @@ const couponCodeSchema = z
   .regex(/^[A-Za-z0-9_-]+$/, "الكود يجب أن يكون حروفاً لاتينية أو أرقاماً")
   .transform((value) => value.toUpperCase());
 
+const durationDaysSchema = z
+  .number()
+  .int("المدة يجب أن تكون رقماً صحيحاً")
+  .min(1, "المدة يجب أن تكون يوم واحد على الأقل")
+  .max(3650, "المدة لا يمكن أن تتجاوز 3650 يوماً")
+  .nullable()
+  .optional();
+
 const baseCouponFields = {
   code: couponCodeSchema,
   discountPercent: z
@@ -180,12 +188,14 @@ const baseCouponFields = {
     .max(100, "نسبة الخصم لا يمكن أن تتجاوز 100"),
   description: z.string().trim().max(200).optional(),
   isActive: z.boolean(),
+  durationDays: durationDaysSchema,
 };
 
 export const createCouponSchema = z.object({
   ...baseCouponFields,
   description: z.string().trim().max(200).optional().default(""),
   isActive: z.boolean().default(true),
+  durationDays: durationDaysSchema.default(null),
 });
 export const updateCouponSchema = z.object(baseCouponFields).partial();
 export const validateCouponSchema = z.object({ code: couponCodeSchema });
@@ -211,6 +221,8 @@ export const orderItemInputSchema = z.object({
   sizeId: z.string().trim().optional(),
   addonIds: z.array(z.string().trim()).optional(),
   notes: z.string().trim().optional(),
+  /** كوبون مُدخل على هذا المنتج فقط — النسبة يُعاد التحقق منها على السيرفر */
+  couponCode: z.string().trim().max(30).optional(),
 });
 
 /** الحمولة المرسلة من العميل عند إنشاء طلب (POST /api/orders) */
@@ -228,7 +240,7 @@ export const createOrderSchema = z.object({
     .max(80, "رقم مرجع التحويل طويل جداً")
     .optional(),
   clientOrderId: z.string().trim().min(8, "معرّف الطلب غير صالح").max(80, "معرّف الطلب غير صالح").optional(),
-  /** كود الخصم اللي أدخله العميل — السيرفر يتحقق منه ولا يثق في النسبة القادمة من المتصفح */
+  /** حقل قديم للتوافق مع العملاء القدامى — العملاء الجدد يرسلون الكود داخل كل منتج */
   couponCode: z.string().trim().max(30).optional(),
 });
 

@@ -12,6 +12,9 @@ const orderItemSchema = new Schema(
     quantity: Number,
     itemTotal: Number,
     notes: String,
+    couponCode: { type: String, default: "" },
+    couponPercent: { type: Number, default: 0 },
+    couponDiscount: { type: Number, default: 0 },
   },
   { _id: false },
 );

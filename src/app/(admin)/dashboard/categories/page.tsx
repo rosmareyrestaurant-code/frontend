@@ -216,7 +216,7 @@ export default function CategoriesPage() {
                 <div className="absolute left-3 top-3 flex items-center gap-1.5">
                   <ActiveBadge active={cat.isActive} />
                   {cat.showOnHome === false && (
-                    <span className="rounded-full bg-[#FBF3DF] px-2 py-0.5 text-[9.5px] font-bold text-[#8A6414]">مخفي من الرئيسية</span>
+                    <span className="rounded-full bg-[#FBF3DF] px-2 py-0.5 text-[9.5px] font-bold text-[#8A6414]">بدون قسم بالرئيسية</span>
                   )}
                 </div>
                 <div className="absolute right-3 top-3 flex items-center gap-1">
@@ -284,7 +284,6 @@ export default function CategoriesPage() {
               <label className="text-xs font-bold text-[var(--color-text-muted)]">ترتيب الظهور</label>
               <input type="number" min={1} value={form.sortOrder} onChange={e => setForm(p => ({ ...p, sortOrder: Number(e.target.value) }))}
                 className="w-full rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
-              <p className="text-[10px] leading-relaxed text-[var(--color-text-muted)]">يفضّل ضبط الترتيب من الأسهم في كروت التصنيفات — الترتيب المحفوظ هو اللي بيظهر في كل الشاشات.</p>
             </div>
             <div className="space-y-2 pt-6">
               <label className="flex cursor-pointer items-center gap-2">
@@ -293,7 +292,7 @@ export default function CategoriesPage() {
               </label>
               <label className="flex cursor-pointer items-start gap-2">
                 <input type="checkbox" checked={form.showOnHome !== false} onChange={e => setForm(p => ({ ...p, showOnHome: e.target.checked }))} className="mt-0.5 h-4 w-4 rounded accent-[var(--color-primary)]" />
-                <span className="text-[13px] font-medium leading-snug text-[var(--color-text-secondary)]">عرض التصنيف ومنتجاته في الصفحة الرئيسية</span>
+                <span className="text-[13px] font-medium leading-snug text-[var(--color-text-secondary)]">عرض منتجات التصنيف في قسم بالصفحة الرئيسية</span>
               </label>
             </div>
           </div>

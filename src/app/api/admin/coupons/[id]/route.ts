@@ -10,6 +10,7 @@ import {
   AppError,
 } from "@/lib/api-response";
 import { requireAdmin } from "@/lib/auth";
+import { couponDurationUpdate } from "@/lib/coupons";
 import { toAdminCoupon } from "@/lib/serialize";
 import { updateCouponSchema } from "@/lib/validation";
 
@@ -29,9 +30,15 @@ export async function PATCH(
       return badRequest(parsed.error.issues[0]?.message ?? "بيانات غير صحيحة");
 
     await connectToDatabase();
+    const data = { ...parsed.data };
+    if ("durationDays" in data) {
+      const durationDays = data.durationDays;
+      delete data.durationDays;
+      Object.assign(data, couponDurationUpdate(durationDays));
+    }
     const updated = await CouponModel.findByIdAndUpdate(
       id,
-      { $set: parsed.data },
+      { $set: data },
       { new: true, runValidators: true },
     ).lean();
     if (!updated) return notFound("كوبون الخصم غير موجود");

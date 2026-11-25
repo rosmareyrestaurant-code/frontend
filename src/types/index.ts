@@ -23,7 +23,7 @@ export interface Category {
   itemCount?: number;
   /** ترتيب الظهور المحفوظ في الداتابيز — المصدر الوحيد للترتيب */
   sortOrder?: number;
-  /** إظهار القسم ومنتجاته في الصفحة الرئيسية */
+  /** إظهار قسم منتجات التصنيف في الصفحة الرئيسية */
   showOnHome?: boolean;
 }
 
@@ -104,6 +104,8 @@ export interface CartItemInput {
   sizeId?: string;
   addonIds?: string[];
   notes?: string;
+  /** كوبون مُدخل على هذا المنتج فقط */
+  coupon?: AppliedCoupon;
 }
 
 /**
@@ -116,6 +118,7 @@ export interface CartItem {
   sizeId?: string;
   addonIds?: string[];
   notes?: string;
+  coupon?: AppliedCoupon;
 }
 
 /* ─── حالات الطلب ───────────────────────────────────────────────── */
@@ -135,6 +138,9 @@ export interface OrderItemSnapshot {
   unitPrice: number;
   itemTotal: number;
   notes?: string;
+  couponCode?: string;
+  couponPercent?: number;
+  couponDiscount?: number;
 }
 
 /** كوبون مُتحقق منه ومحفوظ في جلسة العميل للمعاينة فقط */
