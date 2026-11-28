@@ -41,8 +41,9 @@ export const serverError = (message = "خطأ في الخادم") =>
   error("SERVER_ERROR", message, 500);
 
 /**
- * يخلي استجابة GET العامة تتخزن على الـ CDN (Vercel) —
- * كل الزوار بياخدوا نفس النسخة في أقل من ثانية بدل ما كل واحد يضرب الداتابيز.
+ * يضيف ترويسات كاش عامة للاستجابة، فيستفيد منها الـ proxy/CDN الموجود قدام
+ * التطبيق (مثل nginx أو Cloudflare) — كل الزوار بياخدوا نفس النسخة في أقل وقت
+ * بدل ما كل واحد يضرب الداتابيز.
  */
 export const withPublicCache = (res: Response, seconds = 60) => {
   res.headers.set(

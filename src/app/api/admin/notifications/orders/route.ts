@@ -1,7 +1,7 @@
 /**
  * GET /api/admin/notifications/orders?since=<epoch-ms>
  * إشعارات الطلبات الجديدة للداشبورد — بتشتغل بالـ polling عشان تشتغل على أي استضافة
- * (Vercel / Hostinger / Namecheap) من غير WebSockets أو Redis.
+ * (Hostinger VPS أو أي سيرفر Next.js) من غير WebSockets أو Redis.
  */
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";

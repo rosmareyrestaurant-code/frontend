@@ -11,9 +11,8 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import dns from "node:dns";
 
-// استخدم Google DNS لتجاوز مشكلة SRV على Windows
-// السكربتات تعمل محلياً فقط. dns.setServers يحل مشكلة SRV lookup على Windows.
-// لا يؤثر على إنتاج Vercel لأن السكربتات لا تُشغَّل هناك.
+// استخدم Google DNS لتجاوز مشكلة SRV على Windows.
+// السكربتات تعمل محلياً فقط ولا تُشغَّل على الإنتاج (Hostinger VPS).
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

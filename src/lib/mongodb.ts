@@ -2,14 +2,13 @@ import mongoose from "mongoose";
 import dns from "node:dns";
 
 /**
- * على بعض بيئات Windows يفشل DNS lookup لـ MongoDB Atlas SRV records
- * بسبب إعدادات الـ system resolver. نضبط Google DNS فقط لما إحنا مش على Vercel
- * وفقط مرة واحدة (شغّال في dev وكمان في build المحلي عشان الصفحات الثابتة).
+ * على بعض البيئات يفشل DNS lookup لـ MongoDB Atlas SRV records
+ * بسبب إعدادات الـ system resolver. نضبط Google DNS مرة واحدة كحل احتياطي
+ * (شغّال في dev وكمان في build المحلي عشان الصفحات الثابتة).
  */
-const NEEDS_DNS_WORKAROUND = !process.env.VERCEL;
 let dnsPatched = false;
 function ensureDnsForDev() {
-  if (dnsPatched || !NEEDS_DNS_WORKAROUND) return;
+  if (dnsPatched) return;
   try {
     dns.setServers(["8.8.8.8", "1.1.1.1"]);
     dnsPatched = true;
@@ -154,7 +153,7 @@ async function connectMongo(): Promise<typeof mongoose> {
   try {
     return await mongoose.connect(MONGODB_URI as string, CONNECT_OPTIONS);
   } catch (err) {
-    if (!NEEDS_DNS_WORKAROUND || !/querySrv/i.test((err as Error).message)) throw err;
+    if (!/querySrv/i.test((err as Error).message)) throw err;
     const directUri = await toDirectUri(MONGODB_URI as string);
     return await mongoose.connect(directUri, CONNECT_OPTIONS);
   }

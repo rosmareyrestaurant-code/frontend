@@ -10,7 +10,7 @@ import { dirname, join } from "node:path";
 import dns from "node:dns";
 
 // السكربتات تعمل محلياً فقط. dns.setServers يحل مشكلة SRV lookup على Windows.
-// لا يؤثر على إنتاج Vercel لأن السكربتات لا تُشغَّل هناك.
+// لا يُشغَّل على الإنتاج (Hostinger VPS)، فالتغيير هنا محلي بس.
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
