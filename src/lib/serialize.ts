@@ -61,6 +61,7 @@ interface CategoryLean {
   description?: string;
   sortOrder: number;
   isActive: boolean;
+  showOnHomeCard?: boolean;
   showOnHome?: boolean;
 }
 
@@ -276,6 +277,7 @@ export function toPublicCategory(
     description: doc.description,
     itemCount,
     sortOrder: doc.sortOrder,
+    showOnHomeCard: doc.showOnHomeCard !== false,
     showOnHome: doc.showOnHome !== false,
   };
 }
@@ -293,6 +295,7 @@ export function toAdminCategory(
     description: doc.description,
     sortOrder: doc.sortOrder,
     isActive: doc.isActive,
+    showOnHomeCard: doc.showOnHomeCard !== false,
     showOnHome: doc.showOnHome !== false,
     productCount,
   };

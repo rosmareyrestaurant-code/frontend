@@ -208,6 +208,7 @@ export interface AdminCategory {
   description?: string;
   sortOrder: number;
   isActive: boolean;
+  showOnHomeCard: boolean;
   showOnHome: boolean;
   productCount: number;
 }

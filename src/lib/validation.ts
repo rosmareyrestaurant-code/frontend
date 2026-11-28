@@ -85,6 +85,7 @@ const baseCategoryFields = {
   description: z.string().trim().optional(),
   sortOrder: z.number().int().min(0),
   isActive: z.boolean(),
+  showOnHomeCard: z.boolean(),
   showOnHome: z.boolean(),
 };
 
@@ -94,6 +95,7 @@ export const createCategorySchema = z.object({
   imagePublicId: z.string().trim().optional().default(""),
   sortOrder: z.number().int().min(0).optional(),
   isActive: z.boolean().default(true),
+  showOnHomeCard: z.boolean().default(true),
   showOnHome: z.boolean().default(true),
 });
 export const updateCategorySchema = z.object(baseCategoryFields).partial();

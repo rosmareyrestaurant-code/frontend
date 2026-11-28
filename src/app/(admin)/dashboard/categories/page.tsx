@@ -21,7 +21,7 @@ import { MOCK_ADMIN_CATEGORIES } from "@/data/admin/categories";
 const USE_MOCK = false; // الموك معطّل — الواجهة متصلة بالـ API
 
 const EMPTY: Omit<AdminCategory, "id" | "productCount"> & { imagePublicId?: string } = {
-  nameAr: "", nameEn: "", slug: "", image: "", imagePublicId: "", description: "", sortOrder: 99, isActive: true, showOnHome: true,
+  nameAr: "", nameEn: "", slug: "", image: "", imagePublicId: "", description: "", sortOrder: 99, isActive: true, showOnHomeCard: true, showOnHome: true,
 };
 
 export default function CategoriesPage() {
@@ -65,7 +65,8 @@ export default function CategoriesPage() {
     setEditCat(c);
     setForm({ nameAr: c.nameAr, nameEn: c.nameEn, slug: c.slug, image: c.image,
       imagePublicId: (c as AdminCategory & { imagePublicId?: string }).imagePublicId ?? "",
-      description: c.description ?? "", sortOrder: c.sortOrder, isActive: c.isActive, showOnHome: c.showOnHome !== false });
+      description: c.description ?? "", sortOrder: c.sortOrder, isActive: c.isActive,
+      showOnHomeCard: c.showOnHomeCard !== false, showOnHome: c.showOnHome !== false });
     setModalOpen(true);
   };
 
@@ -262,6 +263,9 @@ export default function CategoriesPage() {
                     />
                   </span>
                   <ActiveBadge active={cat.isActive} />
+                  {cat.showOnHomeCard === false && (
+                    <span className="rounded-full bg-[#FBF3DF] px-2 py-0.5 text-[9.5px] font-bold text-[#8A6414]">بدون كرت بالرئيسية</span>
+                  )}
                   {cat.showOnHome === false && (
                     <span className="rounded-full bg-[#FBF3DF] px-2 py-0.5 text-[9.5px] font-bold text-[#8A6414]">بدون قسم بالرئيسية</span>
                   )}
@@ -338,8 +342,12 @@ export default function CategoriesPage() {
                 <span className="text-[13px] font-medium text-[var(--color-text-secondary)]">تصنيف مفعّل</span>
               </label>
               <label className="flex cursor-pointer items-start gap-2">
+                <input type="checkbox" checked={form.showOnHomeCard !== false} onChange={e => setForm(p => ({ ...p, showOnHomeCard: e.target.checked }))} className="mt-0.5 h-4 w-4 rounded accent-[var(--color-primary)]" />
+                <span className="text-[13px] font-medium leading-snug text-[var(--color-text-secondary)]">إظهار كرت التصنيف في قسم «التصنيفات» بالصفحة الرئيسية</span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-2">
                 <input type="checkbox" checked={form.showOnHome !== false} onChange={e => setForm(p => ({ ...p, showOnHome: e.target.checked }))} className="mt-0.5 h-4 w-4 rounded accent-[var(--color-primary)]" />
-                <span className="text-[13px] font-medium leading-snug text-[var(--color-text-secondary)]">عرض منتجات التصنيف في قسم بالصفحة الرئيسية</span>
+                <span className="text-[13px] font-medium leading-snug text-[var(--color-text-secondary)]">إظهار التصنيف بمنتجاته في قسم بالصفحة الرئيسية</span>
               </label>
             </div>
           </div>

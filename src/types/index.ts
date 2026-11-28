@@ -23,6 +23,8 @@ export interface Category {
   itemCount?: number;
   /** ترتيب الظهور المحفوظ في الداتابيز — المصدر الوحيد للترتيب */
   sortOrder?: number;
+  /** إظهار كرت التصنيف في قسم «التصنيفات» بالصفحة الرئيسية */
+  showOnHomeCard?: boolean;
   /** إظهار قسم منتجات التصنيف في الصفحة الرئيسية */
   showOnHome?: boolean;
 }

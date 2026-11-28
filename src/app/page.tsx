@@ -40,7 +40,8 @@ export default async function HomePage() {
 
   const popular = products.filter((p) => p.isPopular).slice(0, 20);
 
-  // كروت التصنيفات كلها تظهر من التصنيفات المفعّلة — والاقسام السفلية اختيارية
+  // كرت التصنيف وقسم منتجاته تحكمهم منفصلين في لوحة التحكم
+  const cardCategories = categories.filter((category) => category.showOnHomeCard !== false);
   const sectionCategories = categories.filter((category) => category.showOnHome !== false);
   const sections =
     categories.length > 0
@@ -61,7 +62,7 @@ export default async function HomePage() {
     <main className="flex w-full flex-col pb-4 sm:pb-8">
       <HeroSlider slides={slides} />
       <WhyRosemarySection />
-      <CategoriesSection categories={categories} />
+      <CategoriesSection categories={cardCategories} />
       <PopularSection products={popular} />
       {sections.map(({ id, title, products: sectionProducts }, index) => (
         <Fragment key={id}>

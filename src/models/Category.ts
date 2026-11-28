@@ -17,7 +17,9 @@ const categorySchema = new Schema(
     description: { type: String, default: "" },
     sortOrder: { type: Number, default: 0, index: true },
     isActive: { type: Boolean, default: true, index: true },
-    /** عرض قسم منتجات التصنيف في الصفحة الرئيسية — كارت التصنيف يظهر دائماً لو التصنيف مفعّل */
+    /** إظهار كرت التصنيف نفسه في قسم «التصنيفات» بالصفحة الرئيسية */
+    showOnHomeCard: { type: Boolean, default: true, index: true },
+    /** إظهار قسم منتجات التصنيف في الصفحة الرئيسية (مستقل عن الكرت) */
     showOnHome: { type: Boolean, default: true, index: true },
   },
   { timestamps: true },
