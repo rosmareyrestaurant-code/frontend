@@ -14,9 +14,13 @@ import {
 import { Modal } from "@/components/admin/shared/Modal";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
+import { BulkActionsBar } from "@/components/admin/shared/BulkActionsBar";
+import { BulkCheckbox } from "@/components/admin/shared/BulkCheckbox";
 import { useToast } from "@/components/admin/shared/Toast";
 import { PaymentMethodIcon } from "@/components/common/PaymentBrandIcons";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useRowSelection } from "@/hooks/useRowSelection";
+import { bulkDelete } from "@/lib/bulk-delete";
 import { NEW_ORDERS_EVENT } from "@/hooks/useNewOrders";
 import { useAutoPrintSetting } from "@/hooks/useAutoPrintOrders";
 import { AdminOrder, OrderStatus, ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/types/admin";
@@ -143,6 +147,10 @@ export default function OrdersPage() {
   const [printError, setPrintError] = useState("");
   const printRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // اختيار متعدد لصفوف الطلبات + حذف جماعي بنفس الـ DELETE المفرد
+  const selection = useRowSelection(orders.map((o) => o.id));
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
   const fetchOrders = useCallback(async () => {
     if (USE_MOCK) {
       const q = debouncedSearch.trim().toLowerCase();
@@ -186,6 +194,30 @@ export default function OrdersPage() {
   }, [page, debouncedSearch, statusFilter, showToast]);
 
   useEffect(() => { queueMicrotask(() => { void fetchOrders(); }); }, [fetchOrders]);
+
+  const deleteSelectedOrders = async () => {
+    if (!selection.hasSelection) return;
+    const ids = [...selection.selectedIds];
+    setBulkDeleting(true);
+    try {
+      if (USE_MOCK) {
+        setOrders((prev) => prev.filter((o) => !ids.includes(o.id)));
+        setTotal((t) => Math.max(0, t - ids.length));
+        showToast(`تم حذف ${ids.length} ${ids.length === 1 ? "طلب" : "طلبات"}`, "warning");
+      } else {
+        const { succeeded, failed } = await bulkDelete(ids, (id) => `/api/admin/orders/${id}`);
+        if (succeeded.length) {
+          showToast(`تم حذف ${succeeded.length} ${succeeded.length === 1 ? "طلب" : "طلبات"}`, "warning");
+          await fetchOrders();
+        }
+        if (failed.length) showToast(`تعذّر حذف ${failed.length} ${failed.length === 1 ? "طلب" : "طلبات"}`, "error");
+      }
+      if (selectedOrder && ids.includes(selectedOrder.id)) setSelectedOrder(null);
+      selection.clear();
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
 
   // طلب جديد وصل من جرس الإشعارات — نحدّث الجدول بهدوء
   useEffect(() => {
@@ -423,10 +455,26 @@ export default function OrdersPage() {
           <EmptyState icon={ShoppingBag} title="لا توجد طلبات" description="لم يتم العثور على طلبات مطابقة" />
         ) : (
           <>
+            <BulkActionsBar
+              count={selection.count}
+              onDelete={deleteSelectedOrders}
+              onClear={selection.clear}
+              deleting={bulkDeleting}
+              title="حذف الطلبات المحددة"
+              message={`هل تريد حذف ${selection.count} ${selection.count === 1 ? "طلب" : "طلبات"}؟ لا يمكن التراجع.`}
+              confirmText="حذف الطلبات"
+            />
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1040px] text-right">
                 <thead>
                   <tr className="bg-[var(--color-surface-secondary)] text-[11px] font-bold text-[var(--color-text-muted)]">
+                    <th className="px-5 py-2.5 font-bold">
+                      <BulkCheckbox
+                        checked={selection.allSelected(orders.map((o) => o.id))}
+                        onChange={() => selection.toggleAll(orders.map((o) => o.id))}
+                        label="تحديد كل الطلبات في الصفحة"
+                      />
+                    </th>
                     <th className="px-5 py-2.5 font-bold">رقم الطلب</th>
                     <th className="px-5 py-2.5 font-bold">العميل</th>
                     <th className="px-5 py-2.5 font-bold">الإجمالي</th>
@@ -440,7 +488,14 @@ export default function OrdersPage() {
                   {orders.map((order) => (
                     <tr key={order.id} onClick={() => setSelectedOrder(order)}
                       tabIndex={0} role="button"
-                      className="cursor-pointer text-[12px] transition-colors hover:bg-[var(--color-surface-soft)] focus:outline-none focus-visible:bg-[var(--color-surface-soft)]">
+                      className={`cursor-pointer text-[12px] transition-colors hover:bg-[var(--color-surface-soft)] focus:outline-none focus-visible:bg-[var(--color-surface-soft)] ${selection.isSelected(order.id) ? "bg-[var(--color-primary-soft)]" : ""}`}>
+                      <td className="px-5 py-3.5" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                        <BulkCheckbox
+                          checked={selection.isSelected(order.id)}
+                          onChange={() => selection.toggle(order.id)}
+                          label={`تحديد الطلب #${order.orderNumber}`}
+                        />
+                      </td>
                       <td className="px-5 py-3.5">
                         <span className="font-black text-[var(--color-text-primary)]" dir="ltr">#{order.orderNumber}</span>
                       </td>

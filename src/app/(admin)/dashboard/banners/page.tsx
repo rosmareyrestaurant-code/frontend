@@ -6,9 +6,13 @@ import { Plus, Pencil, Trash2, Megaphone, Eye, EyeOff, Layers, Sparkles, PanelBo
 import { ActiveBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
+import { BulkActionsBar } from "@/components/admin/shared/BulkActionsBar";
+import { BulkCheckbox } from "@/components/admin/shared/BulkCheckbox";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import ImageUpload from "@/components/admin/shared/ImageUpload";
 import { useToast } from "@/components/admin/shared/Toast";
+import { useRowSelection } from "@/hooks/useRowSelection";
+import { bulkDelete } from "@/lib/bulk-delete";
 import type { AdminBanner, BannerPosition } from "@/types/admin";
 
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
@@ -36,6 +40,8 @@ export default function BannersPage() {
   const [form, setForm] = useState<Omit<AdminBanner, "id"> & { imagePublicId?: string }>(EMPTY);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const selection = useRowSelection(banners.map((b) => b.id));
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchBanners = useCallback(async () => {
     if (USE_MOCK) { setLoading(false); loadedOnce.current = true; return; }
@@ -106,6 +112,29 @@ export default function BannersPage() {
     setDeleteId(null);
   };
 
+  const deleteSelectedBanners = async () => {
+    if (!selection.hasSelection) return;
+    const ids = [...selection.selectedIds];
+    setBulkDeleting(true);
+    try {
+      if (USE_MOCK) {
+        setBanners((prev) => prev.filter((b) => !ids.includes(b.id)));
+        showToast(`تم حذف ${ids.length} بنرات`, "warning");
+      } else {
+        const { succeeded, failed } = await bulkDelete(ids, (id) => `/api/admin/banners/${id}`);
+        if (succeeded.length) {
+          setBanners((prev) => prev.filter((b) => !succeeded.includes(b.id)));
+          showToast(`تم حذف ${succeeded.length} بنرات`, "warning");
+          void fetchBanners();
+        }
+        if (failed.length) showToast(`تعذّر حذف ${failed.length} بنرات`, "error");
+      }
+      selection.clear();
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   if (loading) return <div className="py-12 text-center text-sm text-[var(--color-text-muted)] animate-pulse">جاري التحميل...</div>;
 
   return (
@@ -135,6 +164,15 @@ export default function BannersPage() {
         ))}
       </div>
 
+      <BulkActionsBar
+        count={selection.count}
+        onDelete={deleteSelectedBanners}
+        onClear={selection.clear}
+        deleting={bulkDeleting}
+        title="حذف البنرات المحددة"
+        message={`هل تريد حذف ${selection.count} ${selection.count === 1 ? "بانر" : "بنرات"}؟ لا يمكن التراجع.`}
+        confirmText="حذف البنرات"
+      />
       {filtered.length === 0 ? (
         <EmptyState icon={Megaphone} title="لا توجد بنرات" description="أضف بانر جديد" />
       ) : (
@@ -143,10 +181,17 @@ export default function BannersPage() {
             const pos = POSITION_INFO[banner.position || "hero"] || POSITION_INFO.hero;
             const PosIcon = pos.icon;
             return (
-              <div key={banner.id} className="group relative overflow-hidden rounded-2xl bg-[var(--color-page-background)] border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:shadow-xl transition-all">
+              <div key={banner.id} className={`group relative overflow-hidden rounded-2xl bg-[var(--color-page-background)] border hover:border-[var(--color-primary)]/40 hover:shadow-xl transition-all ${selection.isSelected(banner.id) ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary-border)]" : "border-[var(--color-border)]"}`}>
                 <div className="flex flex-col sm:flex-row">
                   <div className="relative h-48 p-2 sm:h-auto sm:min-h-44 sm:w-80 shrink-0 bg-[var(--color-page-background)] overflow-hidden">
                     {banner.image ? <Image src={banner.image} alt={banner.title} fill className="object-contain object-center" sizes="320px" /> : <div className="flex h-full items-center justify-center text-[var(--color-text-muted)]"><Megaphone className="h-8 w-8" /></div>}
+                    <span className="absolute left-3 top-3 z-10 rounded-full bg-[var(--color-surface)]/90 p-1.5">
+                      <BulkCheckbox
+                        checked={selection.isSelected(banner.id)}
+                        onChange={() => selection.toggle(banner.id)}
+                        label={`تحديد البانر ${banner.title}`}
+                      />
+                    </span>
                     <div className="absolute top-3 right-3">
                       <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-black backdrop-blur-md ${pos.bg} ${pos.color} ${pos.border}`}>
                         <PosIcon className="h-3 w-3" />{pos.label}

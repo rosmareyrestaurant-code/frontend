@@ -6,9 +6,13 @@ import { Plus, Pencil, Trash2, Flame, Clock, Eye, EyeOff, Percent, Loader2 } fro
 import { ActiveBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
+import { BulkActionsBar } from "@/components/admin/shared/BulkActionsBar";
+import { BulkCheckbox } from "@/components/admin/shared/BulkCheckbox";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import ImageUpload from "@/components/admin/shared/ImageUpload";
 import { useToast } from "@/components/admin/shared/Toast";
+import { useRowSelection } from "@/hooks/useRowSelection";
+import { bulkDelete } from "@/lib/bulk-delete";
 import type { AdminOffer } from "@/types/admin";
 
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
@@ -31,6 +35,8 @@ export default function OffersAdminPage() {
   const [form, setForm] = useState<Omit<AdminOffer, "id"> & { imagePublicId?: string }>(EMPTY);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const selection = useRowSelection(offers.map((o) => o.id));
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchOffers = useCallback(async () => {
     if (USE_MOCK) { setLoading(false); loadedOnce.current = true; return; }
@@ -99,6 +105,29 @@ export default function OffersAdminPage() {
     setDeleteId(null);
   };
 
+  const deleteSelectedOffers = async () => {
+    if (!selection.hasSelection) return;
+    const ids = [...selection.selectedIds];
+    setBulkDeleting(true);
+    try {
+      if (USE_MOCK) {
+        setOffers((prev) => prev.filter((o) => !ids.includes(o.id)));
+        showToast(`تم حذف ${ids.length} عروض`, "warning");
+      } else {
+        const { succeeded, failed } = await bulkDelete(ids, (id) => `/api/admin/offers/${id}`);
+        if (succeeded.length) {
+          setOffers((prev) => prev.filter((o) => !succeeded.includes(o.id)));
+          showToast(`تم حذف ${succeeded.length} عروض`, "warning");
+          void fetchOffers();
+        }
+        if (failed.length) showToast(`تعذّر حذف ${failed.length} عروض`, "error");
+      }
+      selection.clear();
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const calcDiscount = (price: number, original: number) => original && original > price ? Math.round(((original - price) / original) * 100) : null;
 
   if (loading) return <div className="py-12 text-center text-sm text-[var(--color-text-muted)] animate-pulse">جاري التحميل...</div>;
@@ -123,6 +152,15 @@ export default function OffersAdminPage() {
         </button>
       </div>
 
+      <BulkActionsBar
+        count={selection.count}
+        onDelete={deleteSelectedOffers}
+        onClear={selection.clear}
+        deleting={bulkDeleting}
+        title="حذف العروض المحددة"
+        message={`هل تريد حذف ${selection.count} ${selection.count === 1 ? "عرض" : "عروض"}؟ لا يمكن التراجع.`}
+        confirmText="حذف العروض"
+      />
       {offers.length === 0 ? (
         <EmptyState icon={Flame} title="لا توجد عروض" description="أضف عرضاً جديداً" />
       ) : (
@@ -130,9 +168,16 @@ export default function OffersAdminPage() {
           {offers.map(offer => {
             const discount = calcDiscount(offer.price, offer.originalPrice);
             return (
-              <div key={offer.id} className="group relative flex flex-col justify-between overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-surface)] transition-all hover:border-[var(--color-primary-border)] hover:shadow-[0_20px_40px_-28px_rgba(38,53,43,0.4)]">
+              <div key={offer.id} className={`group relative flex flex-col justify-between overflow-hidden rounded-[18px] border bg-[var(--color-surface)] transition-all hover:border-[var(--color-primary-border)] hover:shadow-[0_20px_40px_-28px_rgba(38,53,43,0.4)] ${selection.isSelected(offer.id) ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary-border)]" : "border-[var(--color-border)]"}`}>
                 <div className="relative aspect-[16/9] w-full overflow-hidden bg-[var(--color-surface-secondary)] p-2">
                   {offer.image ? <Image src={offer.image} alt={offer.title} fill className="object-contain object-center" sizes="400px" /> : <div className="flex h-full items-center justify-center text-[var(--color-text-muted)]"><Flame className="h-10 w-10" /></div>}
+                  <span className="absolute left-3 top-3 z-10 rounded-full bg-[var(--color-surface)]/90 p-1.5">
+                    <BulkCheckbox
+                      checked={selection.isSelected(offer.id)}
+                      onChange={() => selection.toggle(offer.id)}
+                      label={`تحديد العرض ${offer.title}`}
+                    />
+                  </span>
                   {discount && <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#C25B4F] px-3 py-1 text-[11px] font-black text-[var(--color-on-primary)]"><Percent className="h-3 w-3" /> {discount}%</span>}
                   <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-[var(--color-text-primary)]/80 px-2.5 py-1 text-[10.5px] font-bold text-[var(--color-on-primary)] backdrop-blur-md">
                     <Clock className="h-3 w-3 text-[#D9DFD2]" /> {Math.round(offer.durationMinutes / 60)} ساعات

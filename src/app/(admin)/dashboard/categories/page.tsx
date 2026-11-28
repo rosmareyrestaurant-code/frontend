@@ -6,9 +6,13 @@ import { Plus, Pencil, Trash2, Grid3x3, GripVertical, Loader2, ChevronUp, Chevro
 import { ActiveBadge } from "@/components/admin/shared/StatusBadge";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
+import { BulkActionsBar } from "@/components/admin/shared/BulkActionsBar";
+import { BulkCheckbox } from "@/components/admin/shared/BulkCheckbox";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import ImageUpload from "@/components/admin/shared/ImageUpload";
 import { useToast } from "@/components/admin/shared/Toast";
+import { useRowSelection } from "@/hooks/useRowSelection";
+import { bulkDelete } from "@/lib/bulk-delete";
 import type { AdminCategory } from "@/types/admin";
 
 // Mock data — مفعّلة مؤقتاً للتيست (رجّع تعليقها وشغّل الـ API بعد الانتهاء)
@@ -31,6 +35,8 @@ export default function CategoriesPage() {
   const [form, setForm] = useState<Omit<AdminCategory, "id" | "productCount"> & { imagePublicId?: string }>(EMPTY);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const selection = useRowSelection(categories.map((c) => c.id));
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [savedOrder, setSavedOrder] = useState<string[]>([]);
   const [orderSaving, setOrderSaving] = useState(false);
@@ -115,6 +121,29 @@ export default function CategoriesPage() {
     } catch { showToast("خطأ", "error"); }
   };
 
+  const deleteSelectedCategories = async () => {
+    if (!selection.hasSelection) return;
+    const ids = [...selection.selectedIds];
+    setBulkDeleting(true);
+    try {
+      if (USE_MOCK) {
+        setCategories((prev) => prev.filter((c) => !ids.includes(c.id)));
+        showToast(`تم حذف ${ids.length} تصنيفات`, "warning");
+      } else {
+        const { succeeded, failed } = await bulkDelete(ids, (id) => `/api/admin/categories/${id}`);
+        if (succeeded.length) {
+          setCategories((prev) => prev.filter((c) => !succeeded.includes(c.id)));
+          showToast(`تم حذف ${succeeded.length} تصنيفات`, "warning");
+          void fetchCategories();
+        }
+        if (failed.length) showToast(`تعذّر حذف ${failed.length} تصنيفات`, "error");
+      }
+      selection.clear();
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const moveCategory = (id: string, direction: -1 | 1) => {
     setCategories((prev) => {
       const index = prev.findIndex((cat) => cat.id === id);
@@ -192,6 +221,15 @@ export default function CategoriesPage() {
           </button>
         </div>
       </div>
+      <BulkActionsBar
+        count={selection.count}
+        onDelete={deleteSelectedCategories}
+        onClear={selection.clear}
+        deleting={bulkDeleting}
+        title="حذف التصنيفات المحددة"
+        message={`هل تريد حذف ${selection.count} ${selection.count === 1 ? "تصنيف" : "تصنيفات"}؟ لا يمكن التراجع.`}
+        confirmText="حذف التصنيفات"
+      />
       {categories.length === 0 ? (
         <EmptyState icon={Grid3x3} title="لا توجد تصنيفات" action={<button onClick={openAdd} className="rounded-full bg-[var(--color-primary)] px-4 py-2 text-[12px] font-bold text-[var(--color-on-primary)]">إضافة تصنيف</button>} />
       ) : (
@@ -207,13 +245,22 @@ export default function CategoriesPage() {
               className={`group overflow-hidden rounded-[18px] border bg-[var(--color-surface)] transition-shadow ${
                 dragId === cat.id
                   ? "border-[var(--color-primary)] opacity-60 ring-2 ring-[var(--color-primary-border)]"
-                  : "border-[var(--color-border)]"
+                  : selection.isSelected(cat.id)
+                    ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary-border)]"
+                    : "border-[var(--color-border)]"
               }`}
             >
               <div className="relative h-32 bg-[var(--color-surface-secondary)]">
                 {cat.image ? <Image src={cat.image} alt={cat.nameAr} fill className="object-cover opacity-90 transition-opacity group-hover:opacity-100" sizes="400px" /> : <div className="flex h-full items-center justify-center text-[var(--color-text-muted)]"><Grid3x3 className="h-8 w-8" strokeWidth={1.7} /></div>}
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-text-primary)]/55 to-transparent" />
                 <div className="absolute left-3 top-3 flex items-center gap-1.5">
+                  <span draggable={false} onClick={(e) => e.stopPropagation()}>
+                    <BulkCheckbox
+                      checked={selection.isSelected(cat.id)}
+                      onChange={() => selection.toggle(cat.id)}
+                      label={`تحديد التصنيف ${cat.nameAr}`}
+                    />
+                  </span>
                   <ActiveBadge active={cat.isActive} />
                   {cat.showOnHome === false && (
                     <span className="rounded-full bg-[#FBF3DF] px-2 py-0.5 text-[9.5px] font-bold text-[#8A6414]">بدون قسم بالرئيسية</span>

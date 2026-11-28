@@ -6,9 +6,13 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
+import { BulkActionsBar } from "@/components/admin/shared/BulkActionsBar";
+import { BulkCheckbox } from "@/components/admin/shared/BulkCheckbox";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { ActiveBadge } from "@/components/admin/shared/StatusBadge";
 import { useToast } from "@/components/admin/shared/Toast";
+import { useRowSelection } from "@/hooks/useRowSelection";
+import { bulkDelete } from "@/lib/bulk-delete";
 import type { AdminCoupon } from "@/types/admin";
 
 interface CouponForm {
@@ -39,6 +43,8 @@ export default function CouponsPage() {
   const [deleteTarget, setDeleteTarget] = useState<AdminCoupon | null>(null);
   const [saving, setSaving] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const selection = useRowSelection(coupons.map((c) => c.id));
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchCoupons = useCallback(async () => {
     if (loadedOnce.current) setRefreshing(true);
@@ -163,6 +169,24 @@ export default function CouponsPage() {
     }
   };
 
+  const deleteSelectedCoupons = async () => {
+    if (!selection.hasSelection) return;
+    const ids = [...selection.selectedIds];
+    setBulkDeleting(true);
+    try {
+      const { succeeded, failed } = await bulkDelete(ids, (id) => `/api/admin/coupons/${id}`);
+      if (succeeded.length) {
+        setCoupons((prev) => prev.filter((c) => !succeeded.includes(c.id)));
+        showToast(`تم حذف ${succeeded.length} كوبونات`, "warning");
+        void fetchCoupons();
+      }
+      if (failed.length) showToast(`تعذّر حذف ${failed.length} كوبونات`, "error");
+      selection.clear();
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   if (loading) {
     return <div className="py-12 text-center text-sm text-[var(--color-text-muted)] animate-pulse">جاري التحميل...</div>;
   }
@@ -187,6 +211,15 @@ export default function CouponsPage() {
         </button>
       </div>
 
+      <BulkActionsBar
+        count={selection.count}
+        onDelete={deleteSelectedCoupons}
+        onClear={selection.clear}
+        deleting={bulkDeleting}
+        title="حذف الكوبونات المحددة"
+        message={`هل تريد حذف ${selection.count} ${selection.count === 1 ? "كوبون" : "كوبونات"}؟ لا يمكن التراجع.`}
+        confirmText="حذف الكوبونات"
+      />
       {coupons.length === 0 ? (
         <EmptyState
           icon={TicketPercent}
@@ -206,10 +239,15 @@ export default function CouponsPage() {
           {coupons.map((coupon) => (
             <div
               key={coupon.id}
-              className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] p-4 transition-colors hover:border-[var(--color-primary-border)]"
+              className={`rounded-2xl border bg-[var(--color-page-background)] p-4 transition-colors hover:border-[var(--color-primary-border)] ${selection.isSelected(coupon.id) ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary-border)]" : "border-[var(--color-border)]"}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
+                  <BulkCheckbox
+                    checked={selection.isSelected(coupon.id)}
+                    onChange={() => selection.toggle(coupon.id)}
+                    label={`تحديد الكوبون ${coupon.code}`}
+                  />
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--color-primary-border)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
                     <TicketPercent className="h-5 w-5" />
                   </div>

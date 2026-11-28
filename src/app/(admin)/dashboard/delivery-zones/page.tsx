@@ -4,9 +4,13 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Pencil, Trash2, MapPin, CalendarDays, Power, PowerOff, Loader2 } from "lucide-react";
 import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
+import { BulkActionsBar } from "@/components/admin/shared/BulkActionsBar";
+import { BulkCheckbox } from "@/components/admin/shared/BulkCheckbox";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { ActiveBadge } from "@/components/admin/shared/StatusBadge";
 import { useToast } from "@/components/admin/shared/Toast";
+import { useRowSelection } from "@/hooks/useRowSelection";
+import { bulkDelete } from "@/lib/bulk-delete";
 import { DELIVERY_DAYS, type DeliveryDayKey, type DeliveryZone, formatDays } from "@/types/delivery";
 
 // DeliveryContext معلّق للداشبورد — نستخدم الـ API مباشرة
@@ -26,6 +30,8 @@ export default function DeliveryZonesPage() {
   const [form, setForm] = useState<ZoneForm>(EMPTY_FORM);
   const [deleteTarget, setDeleteTarget] = useState<DeliveryZone | null>(null);
   const [saving, setSaving] = useState(false);
+  const selection = useRowSelection(zones.map((z) => z.id));
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchZones = useCallback(async () => {
     if (loadedOnce.current) setRefreshing(true);
@@ -75,6 +81,24 @@ export default function DeliveryZonesPage() {
     fetchZones();
   };
 
+  const deleteSelectedZones = async () => {
+    if (!selection.hasSelection) return;
+    const ids = [...selection.selectedIds];
+    setBulkDeleting(true);
+    try {
+      const { succeeded, failed } = await bulkDelete(ids, (id) => `/api/admin/delivery-zones/${id}`);
+      if (succeeded.length) {
+        setZones((prev) => prev.filter((z) => !succeeded.includes(z.id)));
+        showToast(`تم حذف ${succeeded.length} مناطق`, "warning");
+        void fetchZones();
+      }
+      if (failed.length) showToast(`تعذّر حذف ${failed.length} مناطق`, "error");
+      selection.clear();
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   if (loading) return <div className="py-12 text-center text-sm text-[var(--color-text-muted)] animate-pulse">جاري التحميل...</div>;
 
   return (
@@ -92,15 +116,29 @@ export default function DeliveryZonesPage() {
         </button>
       </div>
 
+      <BulkActionsBar
+        count={selection.count}
+        onDelete={deleteSelectedZones}
+        onClear={selection.clear}
+        deleting={bulkDeleting}
+        title="حذف مناطق التوصيل المحددة"
+        message={`هل تريد حذف ${selection.count} ${selection.count === 1 ? "منطقة" : "مناطق"}؟ لا يمكن التراجع.`}
+        confirmText="حذف المناطق"
+      />
       {zones.length === 0 ? (
         <EmptyState icon={MapPin} title="لا توجد مناطق" description="أضف مناطق التوصيل المجاني"
           action={<button onClick={openAdd} className="rounded-xl bg-[var(--color-primary)] px-4 py-2 text-sm font-bold text-white">إضافة منطقة</button>} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {zones.map(zone => (
-            <div key={zone.id} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-page-background)] p-4 hover:border-[#3a3229] transition-colors">
+            <div key={zone.id} className={`rounded-2xl border bg-[var(--color-page-background)] p-4 hover:border-[#3a3229] transition-colors ${selection.isSelected(zone.id) ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary-border)]" : "border-[var(--color-border)]"}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
+                  <BulkCheckbox
+                    checked={selection.isSelected(zone.id)}
+                    onChange={() => selection.toggle(zone.id)}
+                    label={`تحديد منطقة ${zone.name}`}
+                  />
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-primary)]/10 text-[var(--color-primary)]"><MapPin className="h-5 w-5" /></div>
                   <div className="min-w-0">
                     <h3 className="truncate text-sm font-black text-white">{zone.name}</h3>

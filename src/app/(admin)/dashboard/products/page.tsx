@@ -11,9 +11,13 @@ import { Modal } from "@/components/admin/shared/Modal";
 import { ConfirmDialog } from "@/components/admin/shared/ConfirmDialog";
 import { EmptyState } from "@/components/admin/shared/EmptyState";
 import { Pagination } from "@/components/admin/shared/Pagination";
+import { BulkActionsBar } from "@/components/admin/shared/BulkActionsBar";
+import { BulkCheckbox } from "@/components/admin/shared/BulkCheckbox";
 import ImageUpload from "@/components/admin/shared/ImageUpload";
 import { useToast } from "@/components/admin/shared/Toast";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useRowSelection } from "@/hooks/useRowSelection";
+import { bulkDelete } from "@/lib/bulk-delete";
 import { exportMenuToExcel, parseMenuWorkbook } from "@/lib/productExcel";
 import type { AdminProduct, AdminProductSize } from "@/types/admin";
 
@@ -57,6 +61,8 @@ export default function ProductsPage() {
   const [pendingImport, setPendingImport] = useState<AdminProduct[] | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const loadedOnce = useRef(false);
+  const selection = useRowSelection(products.map((p) => p.id));
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     if (USE_MOCK) {
@@ -191,6 +197,31 @@ export default function ProductsPage() {
       } else showToast(d.error?.message ?? "فشل الحذف", "error");
     } catch { showToast("خطأ في الاتصال", "error"); }
     finally { setDeletingId(null); }
+  };
+
+  const deleteSelectedProducts = async () => {
+    if (!selection.hasSelection) return;
+    const ids = [...selection.selectedIds];
+    setBulkDeleting(true);
+    try {
+      if (USE_MOCK) {
+        setProducts((prev) => prev.filter((p) => !ids.includes(p.id)));
+        setTotal((t) => Math.max(0, t - ids.length));
+        showToast(`تم حذف ${ids.length} منتجات`, "warning");
+      } else {
+        const { succeeded, failed } = await bulkDelete(ids, (id) => `/api/admin/products/${id}`);
+        if (succeeded.length) {
+          setProducts((prev) => prev.filter((p) => !succeeded.includes(p.id)));
+          setTotal((t) => Math.max(0, t - succeeded.length));
+          showToast(`تم حذف ${succeeded.length} منتجات`, "warning");
+          void fetchProducts();
+        }
+        if (failed.length) showToast(`تعذّر حذف ${failed.length} منتجات`, "error");
+      }
+      selection.clear();
+    } finally {
+      setBulkDeleting(false);
+    }
   };
 
   const toggleAvail = async (id: string, current: boolean) => {
@@ -382,10 +413,26 @@ export default function ProductsPage() {
           <EmptyState icon={Package} title="لا توجد منتجات" action={<button onClick={openAdd} className="rounded-full bg-[var(--color-primary)] px-4 py-2 text-[12px] font-bold text-[var(--color-on-primary)]">إضافة منتج</button>} />
         ) : (
           <>
+            <BulkActionsBar
+              count={selection.count}
+              onDelete={deleteSelectedProducts}
+              onClear={selection.clear}
+              deleting={bulkDeleting}
+              title="حذف المنتجات المحددة"
+              message={`هل تريد حذف ${selection.count} ${selection.count === 1 ? "منتج" : "منتجات"}؟ لا يمكن التراجع.`}
+              confirmText="حذف المنتجات"
+            />
             <div className="overflow-x-auto">
               <table className="w-full min-w-[750px] text-right">
                 <thead>
                   <tr className="bg-[var(--color-surface-secondary)] text-[11px] font-bold text-[var(--color-text-muted)]">
+                    <th className="px-5 py-2.5 font-bold">
+                      <BulkCheckbox
+                        checked={selection.allSelected(products.map((p) => p.id))}
+                        onChange={() => selection.toggleAll(products.map((p) => p.id))}
+                        label="تحديد كل المنتجات في الصفحة"
+                      />
+                    </th>
                     <th className="px-5 py-2.5 font-bold">المنتج</th>
                     <th className="px-5 py-2.5 font-bold">التصنيف</th>
                     <th className="px-5 py-2.5 font-bold">السعر</th>
@@ -399,7 +446,14 @@ export default function ProductsPage() {
                     <tr key={p.id} onClick={() => openEdit(p)}
                       tabIndex={0} role="button" aria-label={`تعديل ${p.name}`}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEdit(p); } }}
-                      className="cursor-pointer text-[12px] transition-colors hover:bg-[var(--color-surface-soft)] focus-visible:bg-[var(--color-surface-soft)] focus-visible:outline-none">
+                      className={`cursor-pointer text-[12px] transition-colors hover:bg-[var(--color-surface-soft)] focus-visible:bg-[var(--color-surface-soft)] focus-visible:outline-none ${selection.isSelected(p.id) ? "bg-[var(--color-primary-soft)]" : ""}`}>
+                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                        <BulkCheckbox
+                          checked={selection.isSelected(p.id)}
+                          onChange={() => selection.toggle(p.id)}
+                          label={`تحديد المنتج ${p.name}`}
+                        />
+                      </td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface-secondary)]">
