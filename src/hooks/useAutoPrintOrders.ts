@@ -9,7 +9,7 @@ import { NEW_ORDERS_EVENT } from "@/hooks/useNewOrders";
 const AUTO_PRINT_KEY = "rozmaly_autoprint";
 const AUTO_PRINT_EVENT = "rozmaly:autoprint";
 
-/** الفحص الدوري بيشتغل على صفحة الطلبات فقط */
+/** الفحص الدوري بيشتغل على أي صفحة داخل لوحة التحكم */
 const POLL_INTERVAL_MS = 10_000;
 /** أول فحص بعد فتح الصفحة — تأخير بسيط عشان ما يزاحمش تحميل الجدول */
 const FIRST_POLL_DELAY_MS = 3_000;
@@ -53,15 +53,14 @@ export function useAutoPrintSetting() {
   return { enabled, toggle, setEnabled: setAutoPrint };
 }
 
-function isOrdersPath(pathname: string | null): boolean {
+function isAdminPath(pathname: string | null): boolean {
   return (
-    pathname === "/dashboard/orders" ||
-    (pathname?.startsWith("/dashboard/orders/") ?? false)
+    pathname === "/dashboard" || (pathname?.startsWith("/dashboard/") ?? false)
   );
 }
 
 /**
- * طابور الطباعة التلقائية: كل 10 ثواني (وإنت على صفحة الطلبات وبس)
+ * طابور الطباعة التلقائية: كل 10 ثواني وأي صفحة داخل لوحة التحكم مفتوحة
  * بنسأل السيرفر عن الطلبات المستحقة، ونحجز كل طلب حجز ذري قبل طباعته.
  * - مفيش أكتر من timer واحد ولا طلبين متزامنين (inFlight + for loop).
  * - لو الشبكة قطعت، الدورة الجاية بتكمّل من نفس حالة الـ DB (مفيش فقدان).
@@ -72,7 +71,7 @@ export function useAutoPrintOrders() {
   const { enabled } = useAutoPrintSetting();
 
   useEffect(() => {
-    if (!enabled || !isOrdersPath(pathname)) return;
+    if (!enabled || !isAdminPath(pathname)) return;
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;

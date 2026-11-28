@@ -71,13 +71,19 @@ export interface PaymentVerification {
 }
 
 // ─── حالة الطباعة (طابور الطباعة التلقائية) ───────────────────────
-export type PrintState = "pending" | "processing" | "printed" | "failed";
+export type PrintState =
+  | "pending"
+  | "processing"
+  | "printed"
+  | "failed"
+  | "unconfirmed";
 
 export const PRINT_STATE_LABELS: Record<PrintState, string> = {
   pending: "بانتظار الطباعة",
   processing: "جارٍ الطباعة",
   printed: "تمت الطباعة",
   failed: "فشلت الطباعة",
+  unconfirmed: "طباعة غير مؤكدة",
 };
 
 // ─── عنصر في الطلب ─────────────────────────────────────────────────

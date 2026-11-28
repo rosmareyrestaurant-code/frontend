@@ -159,7 +159,7 @@ interface OrderLean {
   orderStatus: OrderStatus;
   notes?: string;
   cashierNote?: string;
-  printState?: "pending" | "processing" | "printed" | "failed";
+  printState?: "pending" | "processing" | "printed" | "failed" | "unconfirmed";
   printAttempts?: number;
   printLastError?: string;
   printedAt?: Date | string;

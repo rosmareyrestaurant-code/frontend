@@ -19,7 +19,11 @@ import {
 import { requireStaff } from "@/lib/auth";
 import { toAdminOrder } from "@/lib/serialize";
 import { printClaimSchema } from "@/lib/validation";
-import { claimableFilter, duePrintFilter } from "@/lib/print-queue";
+import {
+  claimableFilter,
+  duePrintFilter,
+  PRINT_MAX_AUTO_ATTEMPTS,
+} from "@/lib/print-queue";
 
 export const instant = false;
 
@@ -51,7 +55,11 @@ export async function POST(req: NextRequest) {
           printLastError: "",
           printNextAttemptAt: null,
         },
-        $inc: { printAttempts: 1 },
+        /*
+         * المحاولة اليدوية مقصودة ومنفصلة: نستنفد رصيد المحاولات التلقائية
+         * حتى لو فشلت قبل print()، فلا تعيد الطلب إلى حلقة الطابور.
+         */
+        $inc: { printAttempts: manual ? PRINT_MAX_AUTO_ATTEMPTS : 1 },
       },
       { returnDocument: "after" },
     ).lean();

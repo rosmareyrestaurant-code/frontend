@@ -6,24 +6,34 @@
  * يتحجز مرتين في نفس الوقت من جهازين.
  */
 import type { AdminOrder } from "@/types/admin";
-import { printReceiptInFrameConfirmed } from "@/lib/receipt";
+import { printReceiptInFrame } from "@/lib/receipt";
+import {
+  PRINT_ABORTED_BEFORE_PRINT_MESSAGE,
+  PRINT_UNCONFIRMED_MESSAGE,
+} from "@/lib/print-queue";
 
 /** بيتنشر بعد أي تغيير في حالة الطباعة عشان صفحة الطلبات تحدّث نفسها */
 export const PRINT_STATE_EVENT = "rosemary:print-state";
 
 export interface PrintRunResult {
-  status: "printed" | "failed" | "skipped";
+  /** printed = وصل afterprint؛ unconfirmed = أُرسل print() بلا إشارة انتهاء */
+  status: "printed" | "unconfirmed" | "failed" | "skipped";
   message?: string;
   order?: AdminOrder;
 }
 
+type AttemptPhase = "preparing" | "printing" | "printed" | "finalized";
+type AttemptStatus = "printed" | "unconfirmed" | "failed";
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function postJson(url: string, body: unknown) {
+async function postJson(url: string, body: unknown, keepalive = false) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    // نتيجة الطباعة لازم توصل حتى لو الكاشير قفل التاب بعد ما الورق طلع.
+    keepalive,
   });
   const data = await res.json().catch(() => null);
   return { res, data };
@@ -71,65 +81,140 @@ export async function printOrderFromQueue(
   }
 
   notifyUi();
-  const outcome = await printReceiptInFrameConfirmed(order);
 
-  const payload = {
-    orderId,
-    claimId,
-    status: outcome.ok ? "printed" : "failed",
-    ...(outcome.ok ? {} : { error: outcome.error }),
-  };
+  /*
+   * مصدر واحد لحالة هذه المحاولة. كل إشارات المتصفح (pagehide/afterprint/
+   * نتيجة printReceiptInFrame) تمرّ على هنا، ثم تُرسل نتيجة واحدة للحجز.
+   */
+  const abortController = new AbortController();
+  let phase: AttemptPhase = "preparing";
+  let resultPromise: Promise<PrintRunResult> | null = null;
 
-  // نتيجة الطباعة ممكن تضيع لو النت قطع بعد ما الورق طبع — بنعيد المحاولة
-  // بنفس claimId (idempotent حتى ما يتسجلش اكتمال مزدوج).
-  let lastData: { success?: boolean; data?: AdminOrder; error?: { message?: string } } | null = null;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const { res, data } = await postJson(
-        "/api/admin/print-queue/result",
-        payload,
-      );
-      lastData = data;
-      if (res.ok && data?.success) {
-        notifyUi();
-        return outcome.ok
-          ? { status: "printed", order: data.data as AdminOrder }
-          : {
-              status: "failed",
-              message: outcome.error,
+  const finalize = (
+    status: AttemptStatus,
+    error?: string,
+    options: { isPageHide?: boolean } = {},
+  ): Promise<PrintRunResult> => {
+    if (resultPromise) return resultPromise;
+    phase = "finalized";
+
+    const payload = {
+      orderId,
+      claimId,
+      status,
+      ...(status === "printed" ? {} : { error: error || PRINT_UNCONFIRMED_MESSAGE }),
+    };
+
+    resultPromise = (async () => {
+      let lastData: {
+        success?: boolean;
+        data?: AdminOrder;
+        error?: { message?: string };
+      } | null = null;
+      // إغلاق التبويب يرسل keepalive واحداً؛ إعادة المحاولة تخص التاب المفتوح.
+      const maxAttempts = options.isPageHide ? 1 : 3;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          const { res, data } = await postJson(
+            "/api/admin/print-queue/result",
+            payload,
+            true,
+          );
+          lastData = data;
+          if (res.ok && data?.success) {
+            notifyUi();
+            return {
+              status,
+              message: error,
               order: data.data as AdminOrder,
             };
+          }
+          // رفض منطقي (الحجز ضاع) — إعادة الإرسال مش هتغيّر حاجة
+          if (res.status >= 400 && res.status < 500) break;
+        } catch {
+          /* نعيد المحاولة */
+        }
+        if (attempt < maxAttempts - 1) await sleep(1200);
       }
-      // رفض منطقي (الحجز ضاع) — إعادة الإرسال مش هتغيّر حاجة
-      if (res.status >= 400 && res.status < 500) break;
-    } catch {
-      /* نعيد المحاولة */
-    }
-    if (attempt < 2) await sleep(1200);
-  }
 
-  notifyUi();
-  // نشوف الحالة الفعلية على السيرفر قبل ما نبلّغ المستخدم بنتيجة غلط
-  const actual = await fetchOrderState(orderId);
-  const expected = outcome.ok ? "printed" : "failed";
-  if (actual && actual.printState === expected) {
-    return outcome.ok
-      ? { status: "printed", order: actual }
-      : { status: "failed", message: outcome.error, order: actual };
-  }
+      notifyUi();
+      if (options.isPageHide) {
+        return { status, message: error };
+      }
 
-  if (outcome.ok) {
-    return {
-      status: "printed",
-      message:
-        "تم إرسال الطباعة لكن تعذّر تسجيلها على السيرفر — راجع حالة الطلب أو أعد الاتصال",
-    };
-  }
-  return {
-    status: "failed",
-    message:
-      outcome.error ||
-      lastData?.error?.message ||
-      "فشلت الطباعة — جرّب تاني",
+      // نشوف الحالة الفعلية على السيرفر قبل ما نبلّغ المستخدم بنتيجة غلط
+      const actual = await fetchOrderState(orderId);
+      if (actual && actual.printState === status) {
+        return { status, message: error, order: actual };
+      }
+
+      return {
+        status,
+        message:
+          error ||
+          lastData?.error?.message ||
+          (status === "printed"
+            ? "تم تسجيل نتيجة الطباعة"
+            : status === "unconfirmed"
+              ? PRINT_UNCONFIRMED_MESSAGE
+              : "فشلت الطباعة — جرّب تاني"),
+      };
+    })();
+
+    return resultPromise;
   };
+
+  /*
+   * before print(): إغلاق التبويب فشل تجهيز وقابل لإعادة المحاولة المحدودة.
+   * after print(): إغلاق التبويب unconfirmed ولا يعود للطابور.
+   * after afterprint(): النتيجة printed محفوظة ولا يمكن استبدالها.
+   */
+  const onPageHide = () => {
+    if (phase === "finalized") return;
+    if (phase === "printed") {
+      void finalize("printed");
+      return;
+    }
+    if (phase === "printing") {
+      abortController.abort();
+      void finalize(
+        "unconfirmed",
+        PRINT_UNCONFIRMED_MESSAGE,
+        { isPageHide: true },
+      );
+      return;
+    }
+    abortController.abort();
+    void finalize(
+      "failed",
+      PRINT_ABORTED_BEFORE_PRINT_MESSAGE,
+      { isPageHide: true },
+    );
+  };
+  window.addEventListener("pagehide", onPageHide);
+
+  try {
+    const outcome = await printReceiptInFrame(order, {
+      signal: abortController.signal,
+      onPrintStarted: () => {
+        // لا ترفع الإشارة إلا بعد عودة print() فعلياً.
+        if (phase === "preparing") phase = "printing";
+      },
+      onAfterPrint: () => {
+        if (phase !== "printing") return;
+        phase = "printed";
+        // يبدأ الإرسال فوراً؛ أي pagehide لاحق يجد الحجز مُنهىً بالفعل.
+        void finalize("printed");
+      },
+    });
+
+    return await finalize(
+      outcome.status,
+      "error" in outcome ? outcome.error : undefined,
+    );
+  } finally {
+    window.removeEventListener("pagehide", onPageHide);
+    abortController.abort();
+  }
 }

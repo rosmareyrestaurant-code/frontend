@@ -300,7 +300,11 @@ export const printClaimSchema = z.object({
 export const printResultSchema = z.object({
   orderId: z.string().trim().min(1, "معرّف الطلب مطلوب"),
   claimId: z.string().trim().min(1, "معرّف الحجز مطلوب"),
-  status: z.enum(["printed", "failed"]),
+  /*
+   * printed مقبول فقط كإشارة afterprint مرتبطة بحجز صالح؛ السيرفر يتحقق من
+   * claimId/الحالة، ولا يمكن لطلب عابر تغيير حالة طلب مطبوع.
+   */
+  status: z.enum(["printed", "unconfirmed", "failed"]),
   error: z.string().trim().max(300).optional(),
 });
 

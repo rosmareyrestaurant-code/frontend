@@ -97,7 +97,9 @@ const orderSchema = new Schema(
     // ─── طابور الطباعة (لا علاقة له بحالة الدفع) ───
     printState: {
       type: String,
-      enum: ["pending", "processing", "printed", "failed"],
+      // قيمة واحدة مضافة إلى حقل موجود (لا حقول جديدة ولا تغيير في الدفع/الطلب):
+      // unconfirmed تعني إن print() أُرسل بدون إشارة موثوقة بخروج الورقة.
+      enum: ["pending", "processing", "printed", "failed", "unconfirmed"],
       default: "pending",
     },
     printClaimId: { type: String, default: "" },

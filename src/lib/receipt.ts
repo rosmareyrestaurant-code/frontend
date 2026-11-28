@@ -1,6 +1,10 @@
 import type { AdminOrder } from "@/types/admin";
 import { RESTAURANT_NAME } from "@/data/siteConfig";
 import { isOnlinePaymentMethod } from "@/lib/payment-review";
+import {
+  PRINT_ABORTED_BEFORE_PRINT_MESSAGE,
+  PRINT_UNCONFIRMED_MESSAGE,
+} from "@/lib/print-queue";
 
 function escapeHtml(value: string): string {
   return value
@@ -171,7 +175,9 @@ function cashierCopy(order: AdminOrder): string {
 
 /**
  * نسختان داخل مستند طباعة واحد: وظيفة print() واحدة في iframe واحد،
- * وفاصل صفحة واضح بين المطبخ والكاشير. الطابور وحالة الطلب ما اتغيروش.
+ * وفاصل واضح بين المطبخ والكاشير بدون فاصل صفحات إجباري.
+ * طول الصفحة يُقاس من المحتوى بعد التحميل، فلا يوجد طول ثابت 200mm ولا ورق فارغ.
+ * الطابور وحالة الطلب ما اتغيروش.
  */
 export function buildReceiptHtml(order: AdminOrder): string {
   return `<!doctype html>
@@ -180,8 +186,6 @@ export function buildReceiptHtml(order: AdminOrder): string {
 <meta charset="utf-8" />
 <title>إيصال ${escapeHtml(order.orderNumber ?? order.id)}</title>
 <style>
-  /* مقاس ثابت: Chrome يتجاهل «80mm auto» ويرجع لمقاس Letter في الطباعة */
-  @page { size: 80mm 200mm; margin: 2mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #fff; color: #000; }
   body {
@@ -240,29 +244,71 @@ export function buildReceiptHtml(order: AdminOrder): string {
   .total-value { font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; }
   .pay { font-weight: 800; }
   .refvalue { direction: ltr; unicode-bidi: isolate; font-weight: 900; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  @media print {
-    html, body { width: 76mm; }
-    .copy + .copy { break-before: page; page-break-before: always; }
-    tr, .kv, .total-row, .notes { break-inside: avoid; page-break-inside: avoid; }
-  }
 </style>
 </head>
 <body>
 ${kitchenCopy(order)}
 ${cashierCopy(order)}
+<script>
+  /* Chrome لا يحترم «80mm auto» في الطباعة؛ نضبط الطول من المحتوى قبل print() */
+  (function () {
+    function applyPageSize() {
+      if (document.getElementById("thermal-page-size")) return;
+      var heightPx = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+      );
+      /* 4mm هوامش @page فقط؛ لا يوجد طول ثابت ولا مساحة إجبارية */
+      var heightMm = Math.ceil((heightPx * 25.4) / 96) + 4;
+      var style = document.createElement("style");
+      style.id = "thermal-page-size";
+      style.textContent = "@page { size: 80mm " + heightMm + "mm; margin: 2mm; }";
+      document.head.appendChild(style);
+    }
+    if (document.readyState === "complete") applyPageSize();
+    else window.addEventListener("load", applyPageSize, { once: true });
+  })();
+</script>
 </body>
 </html>`;
 }
 
-/** نتيجة محاولة الطباعة — الطباعة الفعلية بتتأكد من حدث afterprint */
-export type PrintOutcome = { ok: true } | { ok: false; error: string };
+/**
+ * نتيجة آمنة من المتصفح: printed تعني وصول إشارة afterprint (أفضل إشارة
+ * متاحة برمجياً، وليست إثباتاً مادياً لخروج الورقة). إن لم تصل الإشارة
+ * نُسجّل unconfirmed، وإن فشل التجهيز قبل print() نُسجّل failed.
+ */
+export type PrintOutcome =
+  | { status: "printed" }
+  | { status: "unconfirmed"; error: string }
+  | { status: "failed"; error: string };
 
-/** أقصى وقت نستنى فيه تأكيد المتصفح قبل ما نعتبر المحاولة فاشلة */
-const PRINT_CONFIRM_TIMEOUT_MS = 45_000;
+/**
+ * إشارات المحاولة الواحدة. الطابور يمرّر signal إلغاء عند إغلاق التبويب،
+ * ويستقبل onPrintStarted/onAfterPrint ليبني حالة واحدة صحيحة للحجز.
+ */
+export interface PrintReceiptSignals {
+  signal?: AbortSignal;
+  onPrintStarted?: () => void;
+  onAfterPrint?: () => void;
+}
 
-function preparePrintFrame(
-  order: AdminOrder,
-): { win: Window; iframe: HTMLIFrameElement } | null {
+/** مهلة قصيرة لانتظار تجهيز iframe قبل استدعاء print() */
+const PRINT_FRAME_READY_TIMEOUT_MS = 2_000;
+/**
+ * مهلة انتظار واحدة لـ afterprint بعد إرسال print() — ليست مؤقت إعادة طباعة.
+ * وظيفتها فقط إغلاق الحجز كـ unconfirmed بدل تركه processing لدقيقتين.
+ */
+const PRINT_AFTERPRINT_TIMEOUT_MS = 12_000;
+
+type PrintFrame = {
+  win: Window;
+  iframe: HTMLIFrameElement;
+  /** false يعني إن المستند ما اتجهزش في الوقت المناسب فما نطبعش */
+  ready: Promise<boolean>;
+};
+
+function preparePrintFrame(order: AdminOrder): PrintFrame | null {
   if (typeof document === "undefined") return null;
 
   const iframe = document.createElement("iframe");
@@ -278,108 +324,152 @@ function preparePrintFrame(
     return null;
   }
 
+  let readyTimer: number | null = null;
+  let markReady: (ready: boolean) => void = () => {};
+  const ready = new Promise<boolean>((resolve) => {
+    markReady = (isReady) => {
+      if (readyTimer !== null) clearTimeout(readyTimer);
+      readyTimer = null;
+      resolve(isReady);
+    };
+    readyTimer = window.setTimeout(
+      () => markReady(false),
+      PRINT_FRAME_READY_TIMEOUT_MS,
+    );
+  });
+
+  // لازم نستنى تحميل المستند (ومعاه ضبط @page من رأس المحتوى) قبل print().
+  win.addEventListener("load", () => markReady(true), { once: true });
   doc.open();
   doc.write(buildReceiptHtml(order));
   doc.close();
-  return { win, iframe };
+  if (doc.readyState === "complete") markReady(true);
+
+  return { win, iframe, ready };
 }
 
 /**
- * طباعة من iframe مخفي. الصمت التام يعتمد على تشغيل Chrome على جهاز الكاشير
- * بالخيار --kiosk-printing؛ الموقع نفسه لا يفرّض إعداد المتصفح.
+ * طباعة واحدة في iframe واحد بعد تجهيز المستند. الصمت يعتمد على تشغيل Chrome
+ * بـ --kiosk-printing؛ الموقع لا يفرض إعداد المتصفح.
+ *
+ * بعد print() ننتظر afterprint ليسجّل السيرفر الحالة printed تلقائياً.
+ * الحدث نفسه يُطلق أيضاً عند إغلاق نافذة الطباعة دون طباعة، فلا يمكن للمتصفح
+ * إثبات خروج الورق؛ إن لم يصل الحدث خلال مهلة واحدة نُسجّل unconfirmed.
+ *
+ * إشارة الإلغاء (pagehide) تُغلق المحاولة قبل print() كـ failed، وبعده كـ
+ * unconfirmed. لا توجد إعادة طباعة تلقائية من هنا، والمستمعات والـ iframe
+ * يتنظّفان دائماً.
  */
-export function printReceiptInFrame(order: AdminOrder): boolean {
-  const frame = preparePrintFrame(order);
-  if (!frame) return false;
-  const { win, iframe } = frame;
-
-  const cleanup = () => iframe.remove();
-  const trigger = () => {
-    try {
-      win.focus();
-      win.print();
-    } catch {
-      /* المتصفح رفض الطباعة — نقدر نطبع يدوي من صفحة الطلبات */
-    }
-  };
-  win.addEventListener("afterprint", cleanup, { once: true });
-  window.setTimeout(trigger, 400);
-  window.setTimeout(cleanup, 5 * 60 * 1000);
-  return true;
-}
-
-/**
- * نسخة بترجع نتيجة مؤكدة من المتصفح: بتستنى afterprint (أو فشل/مهلة 45 ثانية).
- * بعد كل حجز (Atomic Claim) بتحصل طباعة واحدة لمستند فيه نسختان —
- * afterprint معناه إن المتصفح خلّص أمر الطباعة — مش دليل مادي إن الورق طلع،
- * لأن الطابعة ممكن تكون offline وChrome يحفظ الشغل في طابور الويندوز.
- */
-export function printReceiptInFrameConfirmed(
+export function printReceiptInFrame(
   order: AdminOrder,
+  signals: PrintReceiptSignals = {},
 ): Promise<PrintOutcome> {
+  if (signals.signal?.aborted) {
+    return Promise.resolve({
+      status: "failed",
+      error: PRINT_ABORTED_BEFORE_PRINT_MESSAGE,
+    });
+  }
+
   const frame = preparePrintFrame(order);
   if (!frame) {
     return Promise.resolve({
-      ok: false,
+      status: "failed",
       error: "تعذّر تجهيز الإيصال للطباعة في المتصفح",
     });
   }
-  const { win, iframe } = frame;
+  const { win, iframe, ready } = frame;
 
   return new Promise<PrintOutcome>((resolve) => {
-    let done = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    let settled = false;
+    let printStarted = false;
+    let watchdog: number | null = null;
+    let afterPrintHandler: (() => void) | null = null;
+    let onAbort: (() => void) | null = null;
 
-    const finish = (result: PrintOutcome) => {
-      if (done) return;
-      done = true;
-      if (timer) clearTimeout(timer);
+    const cleanup = () => {
+      if (watchdog !== null) {
+        window.clearTimeout(watchdog);
+        watchdog = null;
+      }
+      if (afterPrintHandler) {
+        win.removeEventListener("afterprint", afterPrintHandler);
+        afterPrintHandler = null;
+      }
+      if (onAbort) {
+        signals.signal?.removeEventListener("abort", onAbort);
+        onAbort = null;
+      }
       iframe.remove();
+    };
+
+    // مصدر واحد لإنهاء المحاولة: أي إشارة (afterprint/timeout/abort) مرة واحدة.
+    const settle = (result: PrintOutcome) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
       resolve(result);
     };
 
-    win.addEventListener(
-      "afterprint",
-      () => finish({ ok: true }),
-      { once: true },
-    );
+    onAbort = () => {
+      if (settled) return;
+      settle(
+        printStarted
+          ? { status: "unconfirmed", error: PRINT_UNCONFIRMED_MESSAGE }
+          : {
+              status: "failed",
+              error: PRINT_ABORTED_BEFORE_PRINT_MESSAGE,
+            },
+      );
+    };
+    signals.signal?.addEventListener("abort", onAbort, { once: true });
 
-    timer = setTimeout(
-      () =>
-        finish({
-          ok: false,
-          error:
-            "المتصفح مأكدش انتهاء الطباعة (طابعة غير متصلة أو نافذة الطباعة مفتوحة؟)",
-        }),
-      PRINT_CONFIRM_TIMEOUT_MS,
-    );
+    afterPrintHandler = () => {
+      // أي afterprint قبل print() ليس إشارة لطباعة هذه المحاولة.
+      if (!printStarted || settled) return;
+      try {
+        signals.onAfterPrint?.();
+      } catch {
+        /* إشارة الواجهة لا تُلغي نتيجة الطباعة */
+      }
+      settle({ status: "printed" });
+    };
+    win.addEventListener("afterprint", afterPrintHandler);
 
-    setTimeout(() => {
-      if (done) return;
+    void ready.then((isReady) => {
+      if (settled || signals.signal?.aborted) return;
+      if (!isReady) {
+        settle({
+          status: "failed",
+          error: "لم يكتمل تجهيز الإيصال قبل إرساله للطابعة",
+        });
+        return;
+      }
       try {
         win.focus();
+        // الإشارة تُرسل بعد عودة print() فعلياً، لا أثناء تجهيز الإطار.
+        printStarted = true;
         win.print();
+        try {
+          signals.onPrintStarted?.();
+        } catch {
+          /* إشارة الواجهة لا تُلغي نتيجة الطباعة */
+        }
       } catch {
-        finish({ ok: false, error: "المتصفح رفض أمر الطباعة" });
+        printStarted = false;
+        settle({ status: "failed", error: "المتصفح رفض أمر الطباعة" });
+        return;
       }
-    }, 400);
+      if (!settled) {
+        watchdog = window.setTimeout(
+          () =>
+            settle({
+              status: "unconfirmed",
+              error: PRINT_UNCONFIRMED_MESSAGE,
+            }),
+          PRINT_AFTERPRINT_TIMEOUT_MS,
+        );
+      }
+    });
   });
-}
-
-/** يفتح نافذة طباعة بمقاس رول 80mm — بيرجع false لو المتصفح منع النافذة */
-export function printOrderReceipt(order: AdminOrder): boolean {
-  const win = window.open("", "_blank", "width=420,height=640");
-  if (!win) return false;
-  win.document.open();
-  win.document.write(buildReceiptHtml(order));
-  win.document.close();
-  win.focus();
-  window.setTimeout(() => {
-    try {
-      win.print();
-    } catch {
-      /* المستخدم يقدر يطبع يدويًا من النافذة */
-    }
-  }, 250);
-  return true;
 }

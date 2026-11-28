@@ -84,12 +84,26 @@ function PaymentCell({ order }: { order: AdminOrder }) {
   );
 }
 
-/** حالة الطباعة: تمت الطباعة / غير مطبوعة فقط */
+/** حالة الطباعة: تمت / غير مؤكدة / فشل تجهيز / بانتظار */
 function PrintBadge({ order }: { order: AdminOrder }) {
   if (order.printState === "printed") {
     return (
       <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[var(--color-primary-soft)] px-2.5 py-1 text-[10.5px] font-bold text-[#4F8A57]">
         <CheckCircle2 className="h-3 w-3" /> تمت الطباعة
+      </span>
+    );
+  }
+  if (order.printState === "unconfirmed") {
+    return (
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FEF3D9] px-2.5 py-1 text-[10.5px] font-bold text-[#B98A2C]">
+        <Clock3 className="h-3 w-3" /> طباعة غير مؤكدة
+      </span>
+    );
+  }
+  if (order.printState === "failed") {
+    return (
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#FBF0ED] px-2.5 py-1 text-[10.5px] font-bold text-[#B45243]">
+        <AlertTriangle className="h-3 w-3" /> فشل تجهيز الطباعة
       </span>
     );
   }
@@ -237,6 +251,19 @@ export default function OrdersPage() {
       showToast("الطلب ملغي — مينفعش يتطبع", "warning");
       return;
     }
+    /*
+     * إعادة طباعة يدوية مقصودة فقط: إذا سبقت طباعته فالورقة ربما خرجت،
+     * تحذير واضح قبل الإرسال، ومن غير أي خطوة تأكيد بعد الطباعة.
+     */
+    if (
+      manual &&
+      (order.printState === "unconfirmed" || order.printState === "printed") &&
+      !window.confirm(
+        "سبق إرسال إيصال لهذا الطلب، وقد تكون الورقة قد خرجت بالفعل. راجع الرول قبل المتابعة — هل تريد إعادة طباعة نسخة أخرى؟",
+      )
+    ) {
+      return;
+    }
     setPrintingId(order.id);
     setPrintError("");
     try {
@@ -247,7 +274,15 @@ export default function OrdersPage() {
         setSelectedOrder((prev) => (prev && prev.id === updated.id ? updated : prev));
       }
       if (result.status === "printed") {
-        showToast(manual ? "تم إرسال الإيصال للطابعة" : "تمت طباعة الطلب", "success");
+        showToast(
+          "تم تسجيل الطلب كمطبوع",
+          "success",
+        );
+      } else if (result.status === "unconfirmed") {
+        showToast(
+          "أُرسل أمر طباعة واحد ولم تصل إشارة الانتهاء — لا إعادة تلقائية",
+          "warning",
+        );
       } else if (result.status === "failed") {
         const message = result.message ?? "فشلت الطباعة";
         setPrintError(message);
@@ -428,14 +463,6 @@ export default function OrdersPage() {
                               e.stopPropagation();
                               if (order.status === "cancelled") {
                                 showToast("الطلب ملغي — مينفعش يتطبع", "warning");
-                                return;
-                              }
-                              if (
-                                order.printState === "printed" &&
-                                !window.confirm(
-                                  "الإيصال مطبوع قبل كده — إعادة الطباعة ممكن تطلع إيصال مكرر. تكمل؟",
-                                )
-                              ) {
                                 return;
                               }
                               void runPrint(order, true);
@@ -668,6 +695,14 @@ export default function OrdersPage() {
                 </p>
               )}
 
+              {selectedOrder.printState === "unconfirmed" && (
+                <p className="rounded-[10px] border border-[#F3DFB8] bg-[#FEF3D9] px-3 py-2 text-[11px] font-bold text-[#B98A2C]">
+                  <Clock3 className="me-1 inline h-3.5 w-3.5" />
+                  {selectedOrder.printLastError ||
+                    "أُرسل أمر طباعة ولم تصل إشارة انتهاء الواجهة — لا توجد إعادة طباعة تلقائية"}
+                </p>
+              )}
+
               {selectedOrder.printState === "failed" && (
                 <p className="rounded-[10px] border border-[#F1D3CD] bg-[#FBF0ED] px-3 py-2 text-[11px] font-bold text-[#B45243]">
                   <AlertTriangle className="me-1 inline h-3.5 w-3.5" />
@@ -693,6 +728,8 @@ export default function OrdersPage() {
                   <><Loader2 className="h-4 w-4 animate-spin" /> جاري الطباعة...</>
                 ) : selectedOrder.printState === "failed" ? (
                   <><RotateCcw className="h-4 w-4" /> إعادة المحاولة</>
+                ) : selectedOrder.printState === "unconfirmed" ? (
+                  <><RotateCcw className="h-4 w-4" /> إعادة طباعة (تحذير)</>
                 ) : selectedOrder.printState === "printed" ? (
                   <><RotateCcw className="h-4 w-4" /> إعادة طباعة</>
                 ) : (

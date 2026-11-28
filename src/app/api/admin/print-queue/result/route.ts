@@ -1,9 +1,12 @@
 /**
  * POST /api/admin/print-queue/result
- * إغلاق حجز الطباعة بنتيجة مؤكدة من المتصفح:
- *   printed — المتصفح أكد انتهاء أمر الطباعة (afterprint)
- *   failed  — فشل/لم يتأكد، فيرجع الطلب للطابور بعد مهلة قصيرة
- * أي إرسال بدون claimId صالح بيترفض (حماية من تكرار API).
+ * إغلاق حجز الطباعة بنتيجة آمنة من المتصفح:
+ *   printed     — وصلت إشارة afterprint بعد إرسال أمر الطباعة (دليل برمجي،
+ *                 لا يثبت مادياً خروج الورقة؛ القيد موثّق في التقرير)
+ *   unconfirmed — أُرسل print() لكن لم تصل إشارة انتهاء واجهة الطباعة
+ *   failed      — فشل تجهيز المستند/الإطار قبل استدعاء print()
+ * أي إرسال بدون claimId مرتبط بحجز «processing» مرفوض. الحالة القادمة من
+ * المتصفح لا تُثق إلا بعد تطابقها مع الحجز الذري، ولا توجد هنا حقول جديدة.
  */
 import { NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
@@ -19,7 +22,10 @@ import {
 import { requireStaff } from "@/lib/auth";
 import { toAdminOrder } from "@/lib/serialize";
 import { printResultSchema } from "@/lib/validation";
-import { PRINT_RETRY_DELAY_MS } from "@/lib/print-queue";
+import {
+  PRINT_RETRY_DELAY_MS,
+  PRINT_UNCONFIRMED_PREFIX,
+} from "@/lib/print-queue";
 
 export const instant = false;
 
@@ -28,6 +34,12 @@ const CLAIM_MATCH = (orderId: string, claimId: string) => ({
   printClaimId: claimId,
   printState: "processing" as const,
 });
+
+const CLEAR_CLAIM = {
+  printClaimId: "",
+  printClaimedAt: null,
+  printClaimedBy: "",
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,34 +55,40 @@ export async function POST(req: NextRequest) {
     const { orderId, claimId, status, error: printError } = parsed.data;
     const now = new Date();
 
-    const update =
+    const set =
       status === "printed"
         ? {
-            $set: {
-              printState: "printed" as const,
-              printedAt: now,
-              printedBy: session.adminId,
-              printClaimId: "",
-              printClaimedAt: null,
-              printClaimedBy: "",
-              printLastError: "",
-              printNextAttemptAt: null,
-            },
+            // afterprint هو أفضل إشارة متاحة في المتصفح، وليس إثبات خروج ورق.
+            printState: "printed" as const,
+            printedAt: now,
+            printedBy: session.adminId,
+            printLastError: "",
+            printNextAttemptAt: null,
+            ...CLEAR_CLAIM,
           }
-        : {
-            $set: {
+        : status === "unconfirmed"
+          ? {
+              // حالة مستقلة: لا إعادة تلقائية، ولا حجز بعيد، ولا اعتبارها فشل.
+              printState: "unconfirmed" as const,
+              printLastError: printError?.startsWith(PRINT_UNCONFIRMED_PREFIX)
+                ? printError
+                : `${PRINT_UNCONFIRMED_PREFIX} ${
+                    printError || "أُرسل أمر طباعة ولم تصل إشارة انتهاء الواجهة"
+                  }`,
+              printNextAttemptAt: null,
+              ...CLEAR_CLAIM,
+            }
+          : {
+              // فشل حقيقي قبل print(): مهلة قصيرة وعدد محاولات محدود في dueFilter.
               printState: "failed" as const,
               printLastError: printError || "فشلت الطباعة على جهاز الكاشير",
               printNextAttemptAt: new Date(now.getTime() + PRINT_RETRY_DELAY_MS),
-              printClaimId: "",
-              printClaimedAt: null,
-              printClaimedBy: "",
-            },
-          };
+              ...CLEAR_CLAIM,
+            };
 
     const updated = await OrderModel.findOneAndUpdate(
       CLAIM_MATCH(orderId, claimId),
-      update,
+      { $set: set },
       { returnDocument: "after" },
     ).lean();
 
@@ -86,7 +104,11 @@ export async function POST(req: NextRequest) {
 
     return success(
       toAdminOrder(updated as Parameters<typeof toAdminOrder>[0]),
-      status === "printed" ? "تم تسجيل اكتمال الطباعة" : "تم تسجيل فشل الطباعة",
+      status === "printed"
+        ? "تم تسجيل الطباعة بعد انتهاء واجهة الطباعة"
+        : status === "unconfirmed"
+          ? "تم تسجيل الطباعة كغير مؤكدة — لا إعادة تلقائية"
+          : "تم تسجيل فشل الطباعة",
     );
   } catch (e) {
     if (e instanceof AppError)
