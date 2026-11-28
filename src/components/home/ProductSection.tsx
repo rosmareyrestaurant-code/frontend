@@ -47,14 +47,14 @@ export default function ProductSection({
                 direction="right"
                 onClick={() => scroll("right")}
                 ariaLabel={`تمرير ${title} يميناً`}
-                className="relative hidden h-9 w-9 sm:flex sm:h-10 sm:w-10"
+                className="relative flex h-8 w-8 sm:h-10 sm:w-10"
               />
               {/* سهم يسار (للأمام في RTL) — يتملّى من الشمال عند الهاوفر */}
               <SliderArrow
                 direction="left"
                 onClick={() => scroll("left")}
                 ariaLabel={`تمرير ${title} يساراً`}
-                className="relative hidden h-9 w-9 sm:flex sm:h-10 sm:w-10"
+                className="relative flex h-8 w-8 sm:h-10 sm:w-10"
               />
             </>
           }

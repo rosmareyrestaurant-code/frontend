@@ -35,7 +35,8 @@ export default function SiteChrome({
       <StoreToastProvider>
         <DeliveryTicker initial={ticker} />
         <Header />
-        <div className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
+        {/* الصفحة الرئيسية ما ليها مسار تنقل — بنخبي الشريط بس بنسيب الكومبوننت mounts عشان سجل المسارات يفضل شغال */}
+        <div className={pathname === "/" ? "hidden" : "border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]"}>
           <div className="mx-auto max-w-[1400px] px-4 py-2 sm:px-6 lg:px-8">
             <PageBreadcrumbs />
           </div>
