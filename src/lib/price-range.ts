@@ -9,13 +9,50 @@ export interface PriceRange {
   discountPercent: number | null;
 }
 
+/** صيغة سعر العرض الاختياري: 100 أو 100-200 (أو 100 – 200) */
+const CARD_PRICE_REGEX = /^(\d+)(?:\s*[-–]\s*(\d+))?$/;
+
+/**
+ * لو الأدمن كتب سعر عرض يدوي على المنتج، نستخدمه في الكارت بدل حساب الأحجام.
+ * أي قيمة غير صحيحة بتتجاهل ويرجع الحساب التلقائي زي ما كان.
+ */
+function parseCardPrice(value?: string): { min: number; max: number } | null {
+  if (!value?.trim()) return null;
+  const match = value.trim().match(CARD_PRICE_REGEX);
+  if (!match) return null;
+
+  const first = Number(match[1]);
+  const second = match[2] ? Number(match[2]) : first;
+  if (!Number.isFinite(first) || !Number.isFinite(second)) return null;
+
+  return {
+    min: Math.min(first, second),
+    max: Math.max(first, second),
+  };
+}
+
 /**
  * نطاق السعر المعروض في الكروت — بيتحسب من الأحجام الفعلية للمنتج،
  * ولو مفيش أحجام بيرجع السعر الأساسي زي ما هو.
+ * سعر العرض اللي الأدمن بيكتبه (لو موجود) له الأولوية في العرض فقط،
+ * ومعاملش في سعر الطلب الفعلي اللي بيحسبه السيرفر من الأحجام.
  */
 export function getProductPriceRange(
-  product: Pick<Product, "price" | "originalPrice" | "sizes">,
+  product: Pick<Product, "price" | "originalPrice" | "sizes" | "cardPrice">,
 ): PriceRange {
+  const override = parseCardPrice(product.cardPrice);
+  if (override) {
+    return {
+      min: override.min,
+      max: override.max,
+      isRange: override.max > override.min,
+      // السعر القديم/الخصم متعلقين بالأحجام الحقيقية، فبنخبيهم مع العرض اليدوي
+      // عشان الكارت ما يظهرش رقم وهي مش متطابقة.
+      minOriginal: undefined,
+      discountPercent: null,
+    };
+  }
+
   const variants = (product.sizes ?? []).filter(
     (size) => Number.isFinite(size.price) && size.price > 0,
   );

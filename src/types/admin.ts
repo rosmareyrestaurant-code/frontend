@@ -179,6 +179,8 @@ export interface AdminProduct {
   category: string;
   price: number;
   originalPrice?: number;
+  /** سعر العرض على كارت العميل: "100" أو "100-200". فاضي = تلقائي من الأحجام */
+  cardPrice?: string;
   /** الأحجام أو القطع — فاضية يعني المنتج سعره واحد */
   sizes?: AdminProductSize[];
   /** الإضافات الاختيارية المتاحة للمنتج */

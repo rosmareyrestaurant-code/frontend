@@ -36,6 +36,8 @@ const productSchema = new Schema(
     categoryNameEn: { type: String, default: "" },
     price: { type: Number, default: 0, min: 0 }, // السعر الحالي (= basePrice)
     originalPrice: { type: Number, min: 0 }, // السعر المشطوب الأعلى (= discountPrice)
+    // عرض اختياري على كارت المنتج فقط: "100" أو "100-200". فاضي = حساب تلقائي من الأحجام
+    cardPrice: { type: String, default: "", trim: true },
     sizes: [productSizeSchema],
     addons: [productAddonSchema],
     notes: { type: String, default: "" },

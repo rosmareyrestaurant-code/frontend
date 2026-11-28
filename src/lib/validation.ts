@@ -8,6 +8,9 @@ const EGY_PHONE = /^01[0-5]\d{8}$/;
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/** سعر العرض على الكارت: رقم واحد (100) أو مدى (100-200 / 100 – 200) */
+const cardPriceRegex = /^\d+(?:\s*[-–]\s*\d+)?$/;
+
 /* ─── أحجام وإضافات ──────────────────────────────────────────────── */
 export const productSizeSchema = z.object({
   id: z.string().min(1),
@@ -38,6 +41,10 @@ const baseProductFields = {
   categoryNameEn: z.string().trim().optional(),
   price: z.number().min(0),
   originalPrice: z.number().min(0).optional(),
+  cardPrice: z.string().trim().max(24).refine(
+    (value) => value === "" || cardPriceRegex.test(value),
+    "اكتب رقماً واحداً أو مدى مثل 100-200",
+  ).optional(),
   sizes: z.array(productSizeSchema).optional(),
   addons: z.array(productAddonSchema).optional(),
   notes: z.string().trim().optional(),

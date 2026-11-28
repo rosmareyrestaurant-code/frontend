@@ -51,6 +51,8 @@ export interface Product {
   description?: string;
   price: number;
   originalPrice?: number;
+  /** عرض اختياري على كارت المنتج: "100" أو "100-200". فاضي = حساب تلقائي من الأحجام */
+  cardPrice?: string;
   image: string;
   category: string;
   isPopular?: boolean;

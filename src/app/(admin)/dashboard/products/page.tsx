@@ -32,9 +32,11 @@ type ProductForm = Omit<AdminProduct, "id" | "createdAt"> & { imagePublicId?: st
 
 const EMPTY_FORM: ProductForm = {
   name: "", description: "", image: "", imagePublicId: "", category: "pizza",
-  price: 0, originalPrice: undefined, sizes: [], addons: [],
+  price: 0, originalPrice: undefined, cardPrice: "", sizes: [], addons: [],
   isAvailable: true, isVisible: true, isFeatured: false,
 };
+/** سعر العرض على الكارت: رقم واحد أو مدى (100 / 100-200) */
+const CARD_PRICE_REGEX = /^\d+(?:\s*[-–]\s*\d+)?$/;
 const newSize = (): AdminProductSize => ({
   id: `size-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
   name: "", price: 0, isDefault: false,
@@ -105,6 +107,8 @@ export default function ProductsPage() {
 
   const totalPages = Math.ceil(total / PER_PAGE);
   const catName = (slug: string) => categories.find(c => c.slug === slug)?.nameAr ?? slug;
+  const cardPriceInvalid =
+    !!(form.cardPrice ?? "").trim() && !CARD_PRICE_REGEX.test((form.cardPrice ?? "").trim());
 
   const openAdd = () => { setEditProduct(null); setForm({ ...EMPTY_FORM, sizes: [] }); setModalOpen(true); };
   const openEdit = (p: AdminProduct) => {
@@ -112,7 +116,8 @@ export default function ProductsPage() {
     setForm({ name: p.name, description: p.description, image: p.image,
       imagePublicId: (p as AdminProduct & { imagePublicId?: string }).imagePublicId ?? "",
       category: p.category,
-      price: p.price, originalPrice: p.originalPrice, sizes: (p.sizes ?? []).map(s => ({ ...s })),
+      price: p.price, originalPrice: p.originalPrice, cardPrice: p.cardPrice ?? "",
+      sizes: (p.sizes ?? []).map(s => ({ ...s })),
       addons: (p.addons ?? []).map(a => ({ ...a })),
       nameEn: p.nameEn, categoryNameAr: p.categoryNameAr, categoryNameEn: p.categoryNameEn,
       descriptionEn: p.descriptionEn, notes: p.notes, menuOrder: p.menuOrder,
@@ -141,6 +146,11 @@ export default function ProductsPage() {
     const sizes = (form.sizes ?? []).filter(s => s.name.trim() && s.price > 0);
     const price = sizes.find(s => s.isDefault)?.price ?? sizes[0]?.price ?? form.price;
     if (!price) { showToast("لازم تدخل سعر", "error"); return; }
+    const cardPrice = (form.cardPrice ?? "").trim();
+    if (cardPrice && !CARD_PRICE_REGEX.test(cardPrice)) {
+      showToast("سعر العرض على الكارت: اكتب رقماً واحداً أو مدى مثل 100-200", "error");
+      return;
+    }
     if (USE_MOCK) {
       if (editProduct) {
         setProducts((prev) => prev.map((p) => p.id === editProduct.id ? { ...p, ...form, price, sizes: sizes.length ? sizes : p.sizes } : p));
@@ -155,7 +165,7 @@ export default function ProductsPage() {
     }
     setSaving(true);
     try {
-      const payload = { ...form, price, sizes: sizes.length ? sizes : undefined };
+      const payload = { ...form, price, cardPrice, sizes: sizes.length ? sizes : undefined };
       const url = editProduct ? `/api/admin/products/${editProduct.id}` : "/api/admin/products";
       const method = editProduct ? "PATCH" : "POST";
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -559,6 +569,18 @@ export default function ProductsPage() {
             <label className="text-xs font-bold text-[var(--color-text-muted)]">السعر قبل الخصم (اختياري)</label>
             <input type="number" min={0} value={form.originalPrice ?? ""} onChange={e => setForm(p => ({ ...p, originalPrice: e.target.value ? Number(e.target.value) : undefined }))}
               className="w-full rounded-[12px] border border-[var(--color-control-border)] bg-[var(--color-surface-soft)] px-4 py-2.5 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-primary-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-border)]/20" />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[var(--color-text-muted)]">سعر العرض على الكارت (اختياري)</label>
+            <input type="text" dir="ltr" value={form.cardPrice ?? ""} placeholder="100 أو 100-200"
+              aria-invalid={cardPriceInvalid}
+              onChange={e => setForm(p => ({ ...p, cardPrice: e.target.value }))}
+              className={`w-full rounded-[12px] border bg-[var(--color-surface-soft)] px-4 py-2.5 text-left text-[13px] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 ${cardPriceInvalid ? "border-[#C25B4F] focus:ring-[#C25B4F]/20" : "border-[var(--color-control-border)] focus:border-[var(--color-primary-border)] focus:ring-[var(--color-primary-border)]/20"}`} />
+            <p className={`text-[10px] font-medium ${cardPriceInvalid ? "text-[#C25B4F]" : "text-[var(--color-text-muted)]"}`}>
+              {cardPriceInvalid
+                ? "اكتب رقماً واحداً أو مدى مثل 100-200"
+                : "سيبه فاضي عشان الكارت يعرض السعر تلقائي من الأحجام — ده للعرض فقط وسعر الطلب الفعلي بيفضل من الأحجام"}
+            </p>
           </div>
           {/* الأحجام */}
           <div className="space-y-3 rounded-[14px] border border-[var(--color-control-border)] bg-[var(--color-surface-secondary)] p-3">

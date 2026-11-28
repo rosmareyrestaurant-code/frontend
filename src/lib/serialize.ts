@@ -41,6 +41,7 @@ interface ProductLean {
   categoryNameEn?: string;
   price: number;
   originalPrice?: number;
+  cardPrice?: string;
   sizes?: ProductSize[];
   addons?: ProductAddon[];
   notes?: string;
@@ -227,6 +228,7 @@ export function toPublicProduct(doc: ProductLean): Product {
       doc.originalPrice && doc.originalPrice > doc.price
         ? doc.originalPrice
         : undefined,
+    cardPrice: doc.cardPrice || undefined,
     image: doc.image,
     category: doc.category,
     isPopular: doc.isFeatured,
@@ -248,6 +250,7 @@ export function toAdminProduct(doc: ProductLean): AdminProduct {
     categoryNameEn: doc.categoryNameEn,
     price: doc.price,
     originalPrice: doc.originalPrice,
+    cardPrice: doc.cardPrice || undefined,
     sizes: doc.sizes,
     addons: doc.addons,
     notes: doc.notes,
